@@ -1,20 +1,20 @@
 // this is a comment
 
-int function(char *a)
+INT function(CHAR *a)
 {
 	*a = '5';
-	return 56;
+	RETURN 56;
 }
 
-float banana(void)
+FLOAT banana(VOID)
 {
-	return 9.46;
+	RETURN 9.46;
 }
 
-char str[] = "STRING";
+CHAR str[] = "STRING";
 
-int main()
+INT main()
 {
-	char lf = '\n';
-	return 0x002;
+	CHAR lf = '\n';
+	RETURN 0x002;
 }
