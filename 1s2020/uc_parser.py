@@ -1,5 +1,5 @@
 from uc_ast import *
-from uc_lexer import Lexer
+from uc_lexer import Le xer
 
 
 class UCParser:
