@@ -1,11 +1,14 @@
 from uc_ast import *
-from uc_lexer import Le xer
+from uc_lexer import UCLexer
 
 
 class UCParser:
     def __init__(self):
         self.errors = 0
         self.warnings = 0
+
+    def print_error(self, msg, x, y):
+        print("Lexical error: %s at %d:%d" % (msg, x, y))
 
     def parse(self, code, filename='', debug=0):
         if debug:
@@ -14,9 +17,14 @@ class UCParser:
 
         print("I'm on parser! :D")
 
-        Lexer.lexer(self)
+        lexer = UCLexer(self.print_error)
+        lexer.build()
+        '''dentro do input precisa colocar todo o conteudo do arquivo lido'''
+        lexer.input("3+4")
 
         return AST
+
+
 
     def show(self, buf=None, showcoord=True):
         print("I'm on show")
