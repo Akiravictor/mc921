@@ -160,8 +160,8 @@ class UCParser:
 
     def p_unary_expression(self, p):
         """ unary_expression : postfix_expression
-                             | ++ unary_expression
-                             | -- unary_expression
+                             | INCREASE unary_expression
+                             | DECREASE unary_expression
                              | unary_operator cast_expression
         """
 
@@ -169,8 +169,8 @@ class UCParser:
         """ postfix_expression : primary_expression
                                | postfix_expression LBRACKET expression RBRACKET
                                | postfix_expression LPAREN argument_expression_opt RPAREN
-                               | postfix_expression ++
-                               | postfix_expression --
+                               | postfix_expression INCREASE
+                               | postfix_expression DECREASE
         """
 
     def p_argument_expression_opt(self, p):
@@ -207,7 +207,7 @@ class UCParser:
         """
 
     def p_assignment_operator(self, p):
-        """ assignment_operator : ==
+        """ assignment_operator : EQ
                                 | *=
                                 | /=
                                 | %=
@@ -217,9 +217,9 @@ class UCParser:
 
     def p_unary_operator(self, p):
         """ unary_operator : &
-                           | *
-                           | +
-                           | -
+                           | TIMES
+                           | PLUS
+                           | MINUS
                            | !
         """
 
@@ -248,7 +248,7 @@ class UCParser:
 
     def p_init_declarator(self, p):
         """ init_declarator : declarator
-                            | declarator = initializer
+                            | declarator EQUALS initializer
         """
 
     def p_initializer(self, p):
@@ -263,7 +263,7 @@ class UCParser:
         """
 
     def p_compound_statement(self, p):
-        """ compound_statement : declaration * statement *
+        """ compound_statement : declaration TIMES statement TIMES
         """
 
     def p_statement(self, p):
