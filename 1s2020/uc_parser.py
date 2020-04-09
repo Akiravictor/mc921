@@ -50,53 +50,108 @@ class UCParser:
                            | int
                            | float
         """
+        p[0] = p[1]
 
     def p_pointer(self, p):
-        """ pointer : pointer_opt
+        """ pointer : TIMES
+                    | TIMES pointer
         """
-
-    def p_pointer_opt(self, p):
-        """ pointer_opt : pointer
-                        | None
-        """
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = [p[1]]+p[2]
 
     def p_declarator(self, p):
-        """ declarator : * pointer_opt direct_declarator
+        """ declarator : direct_declarator
+                       | pointer direct_declarator
         """
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = p[1]+p[2]
 
     def p_direct_declarator(self, p):
         """ direct_declarator : identifier
                               | declarator
                               | direct_declarator LBRACKET constant_expression_opt RBRACKET
                               | direct_declarator LPAREN parameter_list RPAREN
-                              | direct_declarator LPAREN identifier RPAREN *
+                              | direct_declarator LPAREN identifier RPAREN TIMES
         """
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = (p[1], p[3])
 
     def p_constant_expression_opt(self, p):
         """ constant_expression_opt : constant_expression
                                     | None
         """
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = None
 
     def p_constant_expression(self, p):
         """ constant_expression : binary_expression
         """
+        p[0] = p[1]
 
     def p_binary_expression(self, p):
         """ binary_expression : cast_expression
-                              | binary_expression * binary_expression
-                              | binary_expression / binary_expression
-                              | binary_expression % binary_expression
-                              | binary_expression + binary_expression
-                              | binary_expression - binary_expression
-                              | binary_expression < binary_expression
-                              | binary_expression <= binary_expression
-                              | binary_expression > binary_expression
-                              | binary_expression >= binary_expression
-                              | binary_expression == binary_expression
-                              | binary_expression != binary_expression
-                              | binary_expression & & binary_expression
-                              | binary_expression | | binary_expression
+                              | binary_expression TIMES binary_expression
+                              | binary_expression DIVIDE binary_expression
+                              | binary_expression MOD binary_expression
+                              | binary_expression PLUS binary_expression
+                              | binary_expression MINUS binary_expression
+                              | binary_expression LT binary_expression
+                              | binary_expression LE binary_expression
+                              | binary_expression GT binary_expression
+                              | binary_expression GE binary_expression
+                              | binary_expression EQ binary_expression
+                              | binary_expression NQ binary_expression
+                              | binary_expression AND binary_expression
+                              | binary_expression OR binary_expression
         """
+        if len(p) == 2:
+            p[0] = p[1]
+        elif p[2] == '*':
+            p[0] = p[1] * p[3]
+
+        elif p[2] == '/':
+            p[0] = p[1] / p[3]
+
+        elif p[2] == '%':
+            p[0] = p[1] & p[3]
+
+        elif p[2] == '+':
+            p[0] = p[1] + p[3]
+
+        elif p[2] == '-':
+            p[0] = p[1] - p[3]
+
+        elif p[2] == '<':
+            p[0] = (p[1] < p[3])
+
+        elif p[2] == '<=':
+            p[0] = (p[1] <= p[3])
+
+        elif p[2] == '>':
+            p[0] = (p[1] > p[3])
+
+        elif p[2] == '>=':
+            p[0] = (p[1] >= p[3])
+
+        elif p[2] == '==':
+            p[0] = (p[1] == p[3])
+
+        elif p[2] == '!=':
+            p[0] = (p[1] != p[3])
+
+        elif p[2] == '&&':
+            p[0] = p[1] and p[3]
+
+        elif p[2] == '||':
+            p[0] = p[1] or p[3]
 
     def p_cast_expression(self, p):
         """ cast_expression : unary_expression
