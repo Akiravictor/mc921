@@ -1,5 +1,6 @@
 from uc_ast import *
 from uc_lexer import UCLexer
+import ply.yacc as yacc
 
 
 class UCParser:
@@ -10,23 +11,11 @@ class UCParser:
     def print_error(self, msg, x, y):
         print("Lexical error: %s at %d:%d" % (msg, x, y))
 
-    def parse(self, code, filename='', debug=0):
-        if debug:
-            print("Code: {0}".format(code))
-            print("Filename: {0}".format(filename))
-
-        print("I'm on parser! :D")
-
-        lexer = UCLexer(self.print_error)
-        lexer.build()
-        lexer.input(code)
-
-        return AST
-
-
-
     def show(self, buf=None, showcoord=True):
         print("I'm on show")
+
+    def p_error(self, p):
+        print("Syntax error in input!")
 
     def p_program(self, p):
         """ program  : global_declaration_list
@@ -404,3 +393,23 @@ class UCParser:
         """ read_statement : READ LPAREN argument_expression RPAREN SEMI
         """
         p[0] = p[3]
+
+    def parse(self, code, filename='', debug=0):
+        if debug:
+            print("Code: {0}".format(code))
+            print("Filename: {0}".format(filename))
+
+        print("I'm on parser! :D")
+
+        lexer = UCLexer(self.print_error)
+        lexer.build()
+        lexer.input(code)
+
+        self.tokens = lexer.tokens
+
+        parser = yacc.yacc(module=self)
+        result = parser.parse(code)
+        print(result)
+
+
+        return AST

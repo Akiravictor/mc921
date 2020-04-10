@@ -1,0 +1,241 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    CASE
+    CHAR
+    CHAR_CONST
+    DOUBLE
+    FLOAT
+    FLOAT_CONST
+    INT
+    INT_CONST
+    LBRACE
+    LONG
+    RBRACE
+    STRING
+    SWITCH
+
+Grammar
+
+Rule 0     S' -> program
+Rule 1     program -> global_declaration_list
+Rule 2     global_declaration_list -> global_declaration
+Rule 3     global_declaration_list -> global_declaration_list global_declaration
+Rule 4     function_definition -> declarator declaration TIMES compound_statement
+Rule 5     function_definition -> type_specifier declarator declaration TIMES compound_statement
+Rule 6     identifier -> ID
+Rule 7     type_specifier -> void
+Rule 8     type_specifier -> char
+Rule 9     type_specifier -> int
+Rule 10    type_specifier -> float
+Rule 11    pointer -> TIMES
+Rule 12    pointer -> TIMES pointer
+Rule 13    declarator -> direct_declarator
+Rule 14    declarator -> pointer direct_declarator
+Rule 15    direct_declarator -> identifier
+Rule 16    direct_declarator -> declarator
+Rule 17    direct_declarator -> direct_declarator LBRACKET constant_expression_opt RBRACKET
+Rule 18    direct_declarator -> direct_declarator LPAREN parameter_list RPAREN
+Rule 19    direct_declarator -> direct_declarator LPAREN identifier RPAREN TIMES
+Rule 20    constant_expression_opt -> constant_expression
+Rule 21    constant_expression_opt -> None
+Rule 22    constant_expression -> binary_expression
+Rule 23    binary_expression -> cast_expression
+Rule 24    binary_expression -> binary_expression TIMES binary_expression
+Rule 25    binary_expression -> binary_expression DIVIDE binary_expression
+Rule 26    binary_expression -> binary_expression MOD binary_expression
+Rule 27    binary_expression -> binary_expression PLUS binary_expression
+Rule 28    binary_expression -> binary_expression MINUS binary_expression
+Rule 29    binary_expression -> binary_expression LT binary_expression
+Rule 30    binary_expression -> binary_expression LE binary_expression
+Rule 31    binary_expression -> binary_expression GT binary_expression
+Rule 32    binary_expression -> binary_expression GE binary_expression
+Rule 33    binary_expression -> binary_expression EQ binary_expression
+Rule 34    binary_expression -> binary_expression NQ binary_expression
+Rule 35    binary_expression -> binary_expression AND binary_expression
+Rule 36    binary_expression -> binary_expression OR binary_expression
+Rule 37    cast_expression -> unary_expression
+Rule 38    cast_expression -> LPAREN type_specifier RPAREN cast_expression
+Rule 39    unary_expression -> postfix_expression
+Rule 40    unary_expression -> INCREASE unary_expression
+Rule 41    unary_expression -> DECREASE unary_expression
+Rule 42    unary_expression -> unary_operator cast_expression
+Rule 43    postfix_expression -> primary_expression
+Rule 44    postfix_expression -> postfix_expression LBRACKET expression RBRACKET
+Rule 45    postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN
+Rule 46    postfix_expression -> postfix_expression INCREASE
+Rule 47    postfix_expression -> postfix_expression DECREASE
+Rule 48    argument_expression_opt -> argument_expression
+Rule 49    argument_expression_opt -> None
+Rule 50    primary_expression -> identifier
+Rule 51    primary_expression -> constant
+Rule 52    primary_expression -> string
+Rule 53    primary_expression -> expression
+Rule 54    constant -> integer_constant
+Rule 55    constant -> character_constant
+Rule 56    constant -> floating_constant
+Rule 57    expression -> assignment_expression
+Rule 58    expression -> expression COMMA assignment_expression
+Rule 59    argument_expression -> assignment_expression
+Rule 60    argument_expression -> argument_expression COMMA assignment_expression
+Rule 61    assignment_expression -> binary_expression
+Rule 62    assignment_expression -> unary_expression assignment_operator assignment_expression
+Rule 63    assignment_operator -> EQ
+Rule 64    assignment_operator -> EQTIMES
+Rule 65    assignment_operator -> EQDIV
+Rule 66    assignment_operator -> EQMOD
+Rule 67    assignment_operator -> EQPLUS
+Rule 68    assignment_operator -> EQMINUS
+Rule 69    unary_operator -> ADDRESS
+Rule 70    unary_operator -> TIMES
+Rule 71    unary_operator -> PLUS
+Rule 72    unary_operator -> MINUS
+Rule 73    unary_operator -> NOT
+Rule 74    parameter_list -> parameter_declaration
+Rule 75    parameter_list -> parameter_list COMMA parameter_declaration
+Rule 76    parameter_declaration -> type_specifier declarator
+Rule 77    declaration -> type_specifier init_declarator_list_opt SEMI
+Rule 78    init_declarator_list_opt -> init_declarator_list
+Rule 79    init_declarator_list_opt -> None
+Rule 80    init_declarator_list -> init_declarator
+Rule 81    init_declarator_list -> init_declarator_list COMMA init_declarator
+Rule 82    init_declarator -> declarator
+Rule 83    init_declarator -> declarator EQUALS initializer
+Rule 84    initializer -> assignment_expression
+Rule 85    initializer -> initializer_list
+Rule 86    initializer -> initializer_list COMMA
+Rule 87    initializer_list -> initializer
+Rule 88    initializer_list -> initializer_list COMMA initializer
+Rule 89    compound_statement -> declaration TIMES statement TIMES
+Rule 90    statement -> expression_statement
+Rule 91    statement -> compound_statement
+Rule 92    statement -> selection_statement
+Rule 93    statement -> iteration_statement
+Rule 94    statement -> jump_statement
+Rule 95    statement -> assert_statement
+Rule 96    statement -> print_statement
+Rule 97    statement -> read_statement
+Rule 98    expression_statement -> expression_opt SEMI
+Rule 99    expression_opt -> expression
+Rule 100   expression_opt -> None
+Rule 101   selection_statement -> IF LPAREN expression RPAREN statement
+Rule 102   selection_statement -> IF LPAREN expression RPAREN statement ELSE statement
+Rule 103   iteration_statement -> WHILE LPAREN expression RPAREN statement
+Rule 104   iteration_statement -> FOR LPAREN expression_opt SEMI expression_opt SEMI expression_opt RPAREN statement
+Rule 105   iteration_statement -> FOR LPAREN declaration SEMI expression_opt SEMI expression_opt RPAREN statement
+Rule 106   jump_statement -> BREAK
+Rule 107   jump_statement -> RETURN expression_opt SEMI
+Rule 108   assert_statement -> ASSERT expression SEMI
+Rule 109   print_statement -> PRINT LPAREN expression_opt RPAREN SEMI
+Rule 110   read_statement -> READ LPAREN argument_expression RPAREN SEMI
+
+Terminals, with rules where they appear
+
+ADDRESS              : 69
+AND                  : 35
+ASSERT               : 108
+CASE                 : 
+CHAR                 : 
+CHAR_CONST           : 
+COMMA                : 58 60 75 81 86 88
+DECREASE             : 41 47
+DIVIDE               : 25
+DOUBLE               : 
+ELSE                 : 102
+EQ                   : 33 63
+EQDIV                : 65
+EQMINUS              : 68
+EQMOD                : 66
+EQPLUS               : 67
+EQTIMES              : 64
+EQUALS               : 83
+FLOAT                : 
+FLOAT_CONST          : 
+FOR                  : 104 105
+GE                   : 32
+GT                   : 31
+ID                   : 6
+IF                   : 101 102
+INCREASE             : 40 46
+INT                  : 
+INT_CONST            : 
+LBRACE               : 
+LBRACKET             : 17 44
+LE                   : 30
+LONG                 : 
+LPAREN               : 18 19 38 45 101 102 103 104 105 109 110
+LT                   : 29
+MINUS                : 28 72
+MOD                  : 26
+NOT                  : 73
+NQ                   : 34
+OR                   : 36
+PLUS                 : 27 71
+PRINT                : 109
+RBRACE               : 
+RBRACKET             : 17 44
+READ                 : 110
+RETURN               : 107
+RPAREN               : 18 19 38 45 101 102 103 104 105 109 110
+SEMI                 : 77 98 104 104 105 105 107 108 109 110
+STRING               : 
+SWITCH               : 
+TIMES                : 4 5 11 12 19 24 70 89 89
+WHILE                : 103
+error                : 
+
+Nonterminals, with rules where they appear
+
+BREAK                : 106
+None                 : 21 49 79 100
+argument_expression  : 48 60 110
+argument_expression_opt : 45
+assert_statement     : 95
+assignment_expression : 57 58 59 60 62 84
+assignment_operator  : 62
+binary_expression    : 22 24 24 25 25 26 26 27 27 28 28 29 29 30 30 31 31 32 32 33 33 34 34 35 35 36 36 61
+cast_expression      : 23 38 42
+char                 : 8
+character_constant   : 55
+compound_statement   : 4 5 91
+constant             : 51
+constant_expression  : 20
+constant_expression_opt : 17
+declaration          : 4 5 89 105
+declarator           : 4 5 16 76 82 83
+direct_declarator    : 13 14 17 18 19
+expression           : 44 53 58 99 101 102 103 108
+expression_opt       : 98 104 104 104 105 105 107 109
+expression_statement : 90
+float                : 10
+floating_constant    : 56
+function_definition  : 
+global_declaration   : 2 3
+global_declaration_list : 1 3
+identifier           : 15 19 50
+init_declarator      : 80 81
+init_declarator_list : 78 81
+init_declarator_list_opt : 77
+initializer          : 83 87 88
+initializer_list     : 85 86 88
+int                  : 9
+integer_constant     : 54
+iteration_statement  : 93
+jump_statement       : 94
+parameter_declaration : 74 75
+parameter_list       : 18 75
+pointer              : 12 14
+postfix_expression   : 39 44 45 46 47
+primary_expression   : 43
+print_statement      : 96
+program              : 0
+read_statement       : 97
+selection_statement  : 92
+statement            : 89 101 102 102 103 104 105
+string               : 52
+type_specifier       : 5 38 76 77
+unary_expression     : 37 40 41 62
+unary_operator       : 42
+void                 : 7
+
