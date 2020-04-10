@@ -406,6 +406,11 @@ class UCParser:
         lexer.input(code)
 
         self.tokens = lexer.tokens
+        self.precedence = (
+             ('nonassoc', 'LT', 'GT'),  # Nonassociative operators
+             ('left', 'PLUS', 'MINUS'),
+             ('left', 'TIMES', 'DIVIDE'),
+         )
 
         parser = yacc.yacc(module=self)
         result = parser.parse(code)
