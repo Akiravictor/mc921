@@ -2,7 +2,7 @@ import ply.lex as lex
 
 
 class UCLexer:
-    keywords = ('ASSERT', 'PRINT', 'READ', 'FOR', 'RETURN', 'WHILE', 'SWITCH', 'CASE', 'IF', 'ELSE',
+    keywords = ('ASSERT', 'BREAK', 'PRINT', 'READ', 'FOR', 'RETURN', 'WHILE', 'SWITCH', 'CASE', 'IF', 'ELSE',
                 'VOID', 'INT', 'FLOAT', 'CHAR', 'DOUBLE', 'LONG')
 
     tokens = ('ID', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'EQUALS', 'MOD', 'LPAREN', 'RPAREN',

@@ -92,7 +92,7 @@ class UCParser:
         if len(p) == 2:
             p[0] = p[1]
         else:
-            pass
+            p[0] = []
 
     def p_constant_expression(self, p):
         """ constant_expression : binary_expression
@@ -198,20 +198,20 @@ class UCParser:
         if len(p) == 2:
             p[0] = p[1]
         else:
-            pass
+            p[0] = []
 
     def p_primary_expression(self, p):
         """ primary_expression : identifier
                                | constant
-                               | string
+                               | STRING
                                | expression
         """
         p[0] = p[1]
 
     def p_constant(self, p):
-        """ constant : integer_constant
-                     | character_constant
-                     | floating_constant
+        """ constant : INT_CONST
+                     | CHAR_CONST
+                     | FLOAT_CONST
         """
         p[0] = p[1]
 
@@ -290,7 +290,7 @@ class UCParser:
         if len(p) == 2:
             p[0] = p[1]
         else:
-            pass
+            p[0] = []
 
     def p_init_declarator_list(self, p):
         """ init_declarator_list : init_declarator
@@ -355,7 +355,7 @@ class UCParser:
         if len(p) == 2:
             p[0] = p[1]
         else:
-            pass
+            p[0] = []
 
     def p_selection_statement(self, p):
         """ selection_statement : IF LPAREN expression RPAREN statement
@@ -399,6 +399,11 @@ class UCParser:
         """ read_statement : READ LPAREN argument_expression RPAREN SEMI
         """
         p[0] = p[3]
+
+    def p_empty(self, p):
+        """ empty :
+        """
+        p[0] = None
 
     def parse(self, code, filename='', debug=0):
         if debug:
