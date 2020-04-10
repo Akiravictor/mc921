@@ -39,6 +39,15 @@ class UCParser:
         """
         p[0] = [p[1]] if len(p) == 2 else p[1] + [p[2]]
 
+    def p_function_definition(self, p):
+        """ function_definition : declarator declaration TIMES compound_statement
+                                | type_specifier declarator declaration TIMES compound_statement
+        """
+        if len(p) == 5:
+            p[0] = (p[1], p[2], p[4])
+        else:
+            p[0] = (p[1], p[2], p[3], p[5])
+
     def p_identifier(self, p):
         """ identifier : ID """
         p[0] = ID(p[1], lineno=p.lineno(1))
@@ -156,6 +165,10 @@ class UCParser:
         """ cast_expression : unary_expression
                             | LPAREN type_specifier RPAREN cast_expression
         """
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = (p[2], p[4])
 
     def p_unary_expression(self, p):
         """ unary_expression : postfix_expression
@@ -163,6 +176,10 @@ class UCParser:
                              | DECREASE unary_expression
                              | unary_operator cast_expression
         """
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = (p[1], p[2])
 
     def p_postfix_expression(self, p):
         """ postfix_expression : primary_expression
@@ -171,11 +188,22 @@ class UCParser:
                                | postfix_expression INCREASE
                                | postfix_expression DECREASE
         """
+        if len(p) == 2:
+            p[0] = p[1]
+        elif len(p) == 3:
+            p[0] = (p[2], p[1])
+        else:
+            p[0] = (p[1], p[3])
+
 
     def p_argument_expression_opt(self, p):
         """ argument_expression_opt : argument_expression
                                     | None
         """
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = None
 
     def p_primary_expression(self, p):
         """ primary_expression : identifier
@@ -183,87 +211,130 @@ class UCParser:
                                | string
                                | expression
         """
+        p[0] = p[1]
 
     def p_constant(self, p):
         """ constant : integer_constant
                      | character_constant
                      | floating_constant
         """
+        p[0] = p[1]
 
     def p_expression(self, p):
         """ expression : assignment_expression
                        | expression COMMA assignment_expression
         """
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1]+[p[3]]
+
 
     def p_argument_expression(self, p):
         """ argument_expression : assignment_expression
                                 | argument_expression COMMA assignment_expression
         """
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1]+[p[3]]
+
 
     def p_assignment_expression(self, p):
         """ assignment_expression : binary_expression
                                   | unary_expression assignment_operator assignment_expression
         """
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = (p[1], p[2], p[3])
 
     def p_assignment_operator(self, p):
         """ assignment_operator : EQ
-                                | *=
-                                | /=
-                                | %=
-                                | +=
-                                | -=
+                                | EQTIMES
+                                | EQDIV
+                                | EQMOD
+                                | EQPLUS
+                                | EQMINUS
         """
+        p[0] = p[1]
 
     def p_unary_operator(self, p):
-        """ unary_operator : &
+        """ unary_operator : ADDRESS
                            | TIMES
                            | PLUS
                            | MINUS
-                           | !
+                           | NOT
         """
+        p[0] = p[1]
 
     def p_parameter_list(self, p):
         """ parameter_list : parameter_declaration
                            | parameter_list COMMA parameter_declaration
         """
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1]+[p[3]]
+
 
     def p_parameter_declaration(self, p):
         """ parameter_declaration : type_specifier declarator
         """
+        p[0] = (p[1], p[2])
 
     def p_declaration(self, p):
         """ declaration : type_specifier init_declarator_list_opt SEMI
         """
+        p[0] = (p[1], p[2])
 
     def p_init_declarator_list_opt(self, p):
         """ init_declarator_list_opt : init_declarator_list
                                      | None
         """
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = None
 
     def p_init_declarator_list(self, p):
         """ init_declarator_list : init_declarator
                                  | init_declarator_list COMMA init_declarator
         """
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1]+[p[3]]
 
     def p_init_declarator(self, p):
         """ init_declarator : declarator
                             | declarator EQUALS initializer
         """
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = (p[1], p[3])
 
     def p_initializer(self, p):
         """ initializer : assignment_expression
-                     | initializer_list
-                     | initializer_list COMMA
+                        | initializer_list
+                        | initializer_list COMMA
         """
+        p[0] = p[1]
 
     def p_initializer_list(self, p):
         """ initializer_list : initializer
                              | initializer_list COMMA initializer
         """
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1] + [p[3]]
 
     def p_compound_statement(self, p):
         """ compound_statement : declaration TIMES statement TIMES
         """
+        p[0] = (p[1], p[3])
 
     def p_statement(self, p):
         """ statement : expression_statement
@@ -275,40 +346,61 @@ class UCParser:
                       | print_statement
                       | read_statement
         """
+        p[0] = p[1]
 
     def p_expression_statement(self, p):
         """ expression_statement : expression_opt SEMI
         """
+        p[0] = p[1]
 
     def p_expression_opt(self, p):
         """ expression_opt : expression
                            | None
         """
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = None
 
     def p_selection_statement(self, p):
-        """ selection_statement : IF expression statement
-                                | IF expression statement ELSE statement
+        """ selection_statement : IF LPAREN expression RPAREN statement
+                                | IF LPAREN expression RPAREN statement ELSE statement
         """
+        if len(p) == 6:
+            p[0] = (p[3], p[5])
+        else:
+            p[0] = (p[3], p[5], p[7])
 
     def p_iteration_statement(self, p):
         """ iteration_statement : WHILE LPAREN expression RPAREN statement
                                 | FOR LPAREN expression_opt SEMI expression_opt SEMI expression_opt RPAREN statement
                                 | FOR LPAREN declaration SEMI expression_opt SEMI expression_opt RPAREN statement
         """
+        if len(p) == 6:
+            p[0] = (p[3], p[5])
+        else:
+            p[0] = (p[3], p[5], p[7], p[9])
 
     def p_jump_statement(self, p):
         """ jump_statement : BREAK
                            | RETURN expression_opt SEMI
         """
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = p[2]
 
     def p_assert_statement(self, p):
         """ assert_statement : ASSERT expression SEMI
         """
+        p[0] = p[2]
 
     def p_print_statement(self, p):
         """ print_statement : PRINT LPAREN expression_opt RPAREN SEMI
         """
+        p[0] = p[3]
 
     def p_read_statement(self, p):
         """ read_statement : READ LPAREN argument_expression RPAREN SEMI
         """
+        p[0] = p[3]
