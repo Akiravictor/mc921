@@ -48,10 +48,10 @@ class UCParser:
         p[0] = p[1]
 
     def p_type_specifier(self, p):
-        """ type_specifier : void
-                           | char
-                           | int
-                           | float
+        """ type_specifier : VOID
+                           | CHAR
+                           | INT
+                           | FLOAT
         """
         p[0] = p[1]
 
@@ -87,12 +87,12 @@ class UCParser:
 
     def p_constant_expression_opt(self, p):
         """ constant_expression_opt : constant_expression
-                                    | None
+                                    | empty
         """
         if len(p) == 2:
             p[0] = p[1]
         else:
-            p[0] = None
+            pass
 
     def p_constant_expression(self, p):
         """ constant_expression : binary_expression
@@ -193,12 +193,12 @@ class UCParser:
 
     def p_argument_expression_opt(self, p):
         """ argument_expression_opt : argument_expression
-                                    | None
+                                    | empty
         """
         if len(p) == 2:
             p[0] = p[1]
         else:
-            p[0] = None
+            pass
 
     def p_primary_expression(self, p):
         """ primary_expression : identifier
@@ -285,12 +285,12 @@ class UCParser:
 
     def p_init_declarator_list_opt(self, p):
         """ init_declarator_list_opt : init_declarator_list
-                                     | None
+                                     | empty
         """
         if len(p) == 2:
             p[0] = p[1]
         else:
-            p[0] = None
+            pass
 
     def p_init_declarator_list(self, p):
         """ init_declarator_list : init_declarator
@@ -350,12 +350,12 @@ class UCParser:
 
     def p_expression_opt(self, p):
         """ expression_opt : expression
-                           | None
+                           | empty
         """
         if len(p) == 2:
             p[0] = p[1]
         else:
-            p[0] = None
+            pass
 
     def p_selection_statement(self, p):
         """ selection_statement : IF LPAREN expression RPAREN statement
