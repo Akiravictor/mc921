@@ -20,13 +20,19 @@ class UCParser:
     def p_program(self, p):
         """ program  : global_declaration_list
         """
-        p[0] = Program(p[1])
+        p[0] = p[1]
 
     def p_global_declaration_list(self, p):
         """ global_declaration_list : global_declaration
                                     | global_declaration_list global_declaration
         """
         p[0] = [p[1]] if len(p) == 2 else p[1] + [p[2]]
+
+    def p_global_declaration(self, p):
+        """global_declaration : function_definition
+                              | declaration
+        """
+        p[0] = p[1]
 
     def p_function_definition(self, p):
         """ function_definition : declarator declaration TIMES compound_statement
@@ -39,7 +45,7 @@ class UCParser:
 
     def p_identifier(self, p):
         """ identifier : ID """
-        p[0] = ID(p[1], lineno=p.lineno(1))
+        p[0] = p[1]
 
     def p_type_specifier(self, p):
         """ type_specifier : void
