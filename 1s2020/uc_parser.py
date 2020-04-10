@@ -19,7 +19,6 @@ class UCParser:
 
         lexer = UCLexer(self.print_error)
         lexer.build()
-        '''dentro do input precisa colocar todo o conteudo do arquivo lido'''
         lexer.input(code)
 
         return AST

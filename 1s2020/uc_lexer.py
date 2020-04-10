@@ -3,9 +3,11 @@ import ply.lex as lex
 
 class UCLexer:
     keywords = ('ASSERT', 'PRINT', 'READ', 'FOR', 'RETURN', 'WHILE', 'SWITCH', 'CASE', 'IF', 'ELSE',
-              'INT', 'FLOAT', 'CHAR', 'DOUBLE', 'LONG')
+                'INT', 'FLOAT', 'CHAR', 'DOUBLE', 'LONG')
 
     tokens = ('ID', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'EQUALS', 'MOD', 'LPAREN', 'RPAREN',
+              'ADDRESS', 'NOT',
+              'EQTIMES', 'EQDIV', 'EQMOD', 'EQPLUS', 'EQMINUS',
               'LBRACKET', 'RBRACKET', 'LBRACE', 'RBRACE', 'COMMA', 'SEMI',
               'LT', 'GT', 'LE', 'GE', 'EQ', 'NQ', 'AND', 'OR', 'INCREASE', 'DECREASE',
               'INT_CONST', 'FLOAT_CONST', 'CHAR_CONST', 'STRING') + keywords
@@ -18,6 +20,13 @@ class UCLexer:
     t_LPAREN = r'\('
     t_RPAREN = r'\)'
     t_EQUALS = r'='
+    t_ADDRESS = r'\&'
+    t_NOT = r'!'
+    t_EQTIMES = r'\*='
+    t_EQDIV = r'\/='
+    t_EQMOD = r'%='
+    t_EQPLUS = r'\+='
+    t_EQMINUS = r'-='
     t_MOD = r'%'
     t_LBRACKET = r'\['
     t_RBRACKET = r'\]'
