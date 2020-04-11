@@ -255,7 +255,7 @@ class UCParser:
             p[0] = (p[1], p[2], p[3])
 
     def p_assignment_operator(self, p):
-        """ assignment_operator : EQ
+        """ assignment_operator : EQUALS
                                 | EQTIMES
                                 | EQDIV
                                 | EQMOD
