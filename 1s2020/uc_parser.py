@@ -50,7 +50,7 @@ class UCParser:
         if len(p) == 2:
             p[0] = [p[1]]
         else:
-            p[0] = p[1] + [p[3]]
+            p[0] = p[1] + [p[2]]
 
 
     def p_identifier(self, p):
@@ -348,7 +348,7 @@ class UCParser:
         if len(p) == 2:
             p[0] = [p[1]]
         else:
-            p[0] = p[1] + [p[3]]
+            p[0] = p[1] + [p[2]]
 
     def p_statement(self, p):
         """ statement : expression_statement
