@@ -255,7 +255,7 @@ class UCParser:
             p[0] = (p[1], p[2], p[3])
 
     def p_assignment_operator(self, p):
-        """ assignment_operator : EQ
+        """ assignment_operator : EQUALS
                                 | EQTIMES
                                 | EQDIV
                                 | EQMOD
@@ -424,6 +424,12 @@ class UCParser:
         """
         p[0] = None
 
+    def p_error(self, p):
+        if p:
+            print("Error near the symbol %s" % p.value)
+        else:
+            print("Error at the end of input")
+
     def parse(self, code, filename='', debug=0):
         if debug:
             print("Code: {0}".format(code))
@@ -443,7 +449,7 @@ class UCParser:
          )
 
         parser = yacc.yacc(module=self)
-        result = parser.parse(code)
+        result = parser.parse('a = 3 * 4 + 5')
         print(result)
 
 

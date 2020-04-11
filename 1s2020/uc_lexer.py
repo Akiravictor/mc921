@@ -2,13 +2,13 @@ import ply.lex as lex
 
 
 class UCLexer:
-    keywords = ('ASSERT', 'BREAK', 'PRINT', 'READ', 'FOR', 'RETURN', 'WHILE', 'SWITCH', 'CASE', 'IF', 'ELSE',
-                'VOID', 'INT', 'FLOAT', 'CHAR', 'DOUBLE', 'LONG')
+    keywords = ('ASSERT', 'BREAK', 'PRINT', 'READ', 'FOR', 'RETURN', 'WHILE', 'IF', 'ELSE',
+                'VOID', 'INT', 'FLOAT', 'CHAR')
 
     tokens = ('ID', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'EQUALS', 'MOD', 'LPAREN', 'RPAREN',
               'ADDRESS', 'NOT', 'UMINUS', 'UPLUS', 'UTIMES',
               'EQTIMES', 'EQDIV', 'EQMOD', 'EQPLUS', 'EQMINUS',
-              'LBRACKET', 'RBRACKET', 'LBRACE', 'RBRACE', 'COMMA', 'SEMI',
+              'LBRACKET', 'RBRACKET', 'COMMA', 'SEMI',
               'LT', 'GT', 'LE', 'GE', 'EQ', 'NQ', 'AND', 'OR', 'INCREASE', 'DECREASE',
               'INT_CONST', 'FLOAT_CONST', 'CHAR_CONST', 'STRING') + keywords
 
@@ -30,8 +30,6 @@ class UCLexer:
     t_MOD = r'%'
     t_LBRACKET = r'\['
     t_RBRACKET = r'\]'
-    t_LBRACE = r'{'
-    t_RBRACE = r'}'
     t_COMMA = r','
     t_SEMI = r';'
     t_LT = r'<'
@@ -49,16 +47,12 @@ class UCLexer:
     t_READ = r'read'
     t_FOR = r'for'
     t_WHILE = r'while'
-    t_SWITCH = r'switch'
-    t_CASE = r'case'
     t_IF = r'if'
     t_ELSE = r'else'
     t_VOID = r'void'
     t_INT = r'int'
     t_FLOAT = r'float'
     t_CHAR = r'char'
-    t_DOUBLE = r'double'
-    t_LONG = r'long'
 
     keyword_map = {}
     for keyword in keywords:
