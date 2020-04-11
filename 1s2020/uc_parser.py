@@ -58,6 +58,7 @@ class UCParser:
     def p_init_declarator_list(self, p):
         ''' init_declarator_list : init_declarator
                                  | init_declarator_list COMMA init_declarator
+                                 | empty
         '''
         print("Inside p_init_declarator_list:")
         for i in range(len(p)):
@@ -106,8 +107,7 @@ class UCParser:
             p[0] = p[1] + [p[3]]
 
     def p_declaration(self, p):
-        ''' declaration : type_specifier SEMI
-                        | type_specifier init_declarator_list SEMI
+        ''' declaration :  type_specifier init_declarator_list SEMI
         '''
         print("Inside p_declaration:")
         for i in range(len(p)):
@@ -181,8 +181,8 @@ class UCParser:
             p[0] = (p[2], p[3])
 
     def p_expression_statement(self, p):
-        ''' expression_statement : expression
-                                 | empty SEMI
+        ''' expression_statement : expression SEMI
+                                 | SEMI
         '''
         print("Inside p_expression_statement:")
         for i in range(len(p)):
@@ -235,6 +235,37 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
+        if len(p) == 6:
+            p[0] = (p[3], p[5])
+        elif p[3] == ";":
+            if p[4] == ";":
+                if p[5] == ")":
+                    p[0] = p[6]
+                else:
+                    p[0] = (p[5], p[7])
+            elif p[7] == ")":
+                p[0] = (p[4], p[6], p[8])
+            else:
+                p[0] = (p[4], p[7])
+        elif p[4] == ";":
+            if p[5] == ")":
+                p[0] = (p[3], p[6])
+            elif p[6] == ")":
+                if p[5] == ";":
+                    p[0] = (p[3], p[7])
+                else:
+                    p[0] = (p[3], p[5], p[7])
+            elif p[5] == ";":
+                p[0] = (p[3], p[6], p[8])
+            elif p[6] == ";":
+                if p[7] == ")":
+                    p[0] = (p[3], p[5], p[8])
+                else:
+                    p[0] = (p[3], p[5], p[7], p[9])
+        elif p[6] == ")":
+            p[0] = (p[3], p[4], p[7])
+        else:
+            p[0] = (p[3], p[4], p[6], p[8])
 
     def p_jump_statement(self, p):
         ''' jump_statement : BREAK SEMI
@@ -457,14 +488,14 @@ class UCParser:
         else:
             p[0] = p[1]+[p[3]]
 
-    def p_constant_expression(self, p):
-        ''' constant_expression : binary_expression
-        '''
-        print("Inside p_constant_expression:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = p[1]
+    # def p_constant_expression(self, p):
+    #     ''' constant_expression : binary_expression
+    #     '''
+    #     print("Inside p_constant_expression:")
+    #     for i in range(len(p)):
+    #         print("p[{0}] = {1}".format(i, p[i]))
+    #     print('End')
+    #     p[0] = p[1]
 
     def p_assignment_operator(self, p):
         ''' assignment_operator : EQUALS
@@ -514,9 +545,17 @@ class UCParser:
         print('End')
 
     def p_direct_declarator(self, p):
+        # ''' direct_declarator : ID
+        #                       | LPAREN declarator RPAREN
+        #                       | direct_declarator LBRACKET constant_expression RBRACKET
+        #                       | direct_declarator LBRACKET RBRACKET
+        #                       | direct_declarator LPAREN parameter_list RPAREN
+        #                       | direct_declarator LPAREN id_list RPAREN
+        # '''
+
         ''' direct_declarator : ID
                               | LPAREN declarator RPAREN
-                              | direct_declarator LBRACKET constant_expression RBRACKET
+                              | direct_declarator LBRACKET binary_expression RBRACKET
                               | direct_declarator LBRACKET RBRACKET
                               | direct_declarator LPAREN parameter_list RPAREN
                               | direct_declarator LPAREN id_list RPAREN
@@ -579,10 +618,10 @@ class UCParser:
              ('right', 'UMINUS')
          )
 
-        parser = yacc.yacc(module=self)
+        parser = yacc.yacc(module=self, write_tables=False)
         print(code)
-        result = parser.parse(code)
-        # result = parser.parse('int main();')
+        # result = parser.parse(code)
+        result = parser.parse('int main();')
         print(result)
 
 

@@ -10,7 +10,7 @@
 
 import sys
 from contextlib import contextmanager
-from uc_parser2 import UCParser
+from uc_parser import UCParser
 
 """
 One of the most important (and difficult) parts of writing a compiler
