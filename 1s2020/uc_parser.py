@@ -452,7 +452,7 @@ class UCParser:
          )
 
         parser = yacc.yacc(module=self)
-        result = parser.parse('a = 3 * 4 + 5')
+        result = parser.parse('a=3')
         print(result)
 
 

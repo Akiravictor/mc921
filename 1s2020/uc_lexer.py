@@ -6,9 +6,9 @@ class UCLexer:
                 'VOID', 'INT', 'FLOAT', 'CHAR')
 
     tokens = ('ID', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'EQUALS', 'MOD', 'LPAREN', 'RPAREN',
-              'ADDRESS', 'NOT', 'UMINUS', 'UPLUS', 'UTIMES',
+              'ADDRESS', 'NOT', 'UMINUS',
               'EQTIMES', 'EQDIV', 'EQMOD', 'EQPLUS', 'EQMINUS',
-              'LBRACKET', 'RBRACKET', 'COMMA', 'SEMI',
+              'LBRACE', 'RBRACE', 'LBRACKET', 'RBRACKET', 'COMMA', 'SEMI',
               'LT', 'GT', 'LE', 'GE', 'EQ', 'NQ', 'AND', 'OR', 'INCREASE', 'DECREASE',
               'INT_CONST', 'FLOAT_CONST', 'CHAR_CONST', 'STRING') + keywords
 
@@ -30,6 +30,8 @@ class UCLexer:
     t_MOD = r'%'
     t_LBRACKET = r'\['
     t_RBRACKET = r'\]'
+    t_LBRACE = r'{'
+    t_RBRACE = r'}'
     t_COMMA = r','
     t_SEMI = r';'
     t_LT = r'<'
@@ -120,7 +122,7 @@ class UCLexer:
         return t
 
     def t_STRING(self, t):
-        r'\"[a-zA-Z]*\"'
+        r'\".*\"'
         t.type = self.keyword_map.get(t.value, "STRING")
         return t
 
