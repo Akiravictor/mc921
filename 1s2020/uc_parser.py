@@ -443,9 +443,12 @@ class UCParser:
 
         self.tokens = lexer.tokens
         self.precedence = (
-             ('nonassoc', 'LT', 'GT'),  # Nonassociative operators
+             ('left', 'OR'),
+             ('left', 'AND'),
+             ('left', 'EQ', 'NQ'),
+             ('left', 'GT', 'GE', 'LT', 'LE'),
              ('left', 'PLUS', 'MINUS'),
-             ('left', 'TIMES', 'DIVIDE'),
+             ('left', 'TIMES', 'DIVIDE', 'MOD'),
          )
 
         parser = yacc.yacc(module=self)
