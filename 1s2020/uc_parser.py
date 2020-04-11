@@ -45,8 +45,13 @@ class UCParser:
 
     def p_declaration_list(self, p):
         """ declaration_list : declaration
+                             | declaration_list declaration
         """
-        p[0] = [p[1]]
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1] + [p[3]]
+
 
     def p_identifier(self, p):
         """ identifier : ID """
@@ -338,8 +343,12 @@ class UCParser:
 
     def p_statement_list(self, p):
         """ statement_list : statement
+                           | statement_list statement
         """
-        p[0] = [p[1]]
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1] + [p[3]]
 
     def p_statement(self, p):
         """ statement : expression_statement
