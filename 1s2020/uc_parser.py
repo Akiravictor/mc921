@@ -35,13 +35,18 @@ class UCParser:
         p[0] = p[1]
 
     def p_function_definition(self, p):
-        """ function_definition : declarator declaration compound_statement
-                                | type_specifier declarator declaration  compound_statement
+        """ function_definition : declarator declaration_list compound_statement
+                                | type_specifier declarator declaration_list  compound_statement
         """
         if len(p) == 4:
-            p[0] = p[1] + [p[2]] + p[3]
+            p[0] = (p[1], p[2], p[3])
         else:
-            p[0] = p[1] + p[2] + [p[3]] + p[4]
+            p[0] = (p[1], p[2], p[3], p[4])
+
+    def p_declaration_list(self, p):
+        """ declaration_list : declaration
+        """
+        p[0] = [p[1]]
 
     def p_identifier(self, p):
         """ identifier : ID """
@@ -288,7 +293,7 @@ class UCParser:
                                      | empty
         """
         if len(p) == 2:
-            p[0] = p[1]
+            p[0] = [p[1]]
         else:
             p[0] = []
 
@@ -327,9 +332,14 @@ class UCParser:
             p[0] = p[1] + [p[3]]
 
     def p_compound_statement(self, p):
-        """ compound_statement : declaration statement
+        """ compound_statement : declaration_list statement_list
         """
-        p[0] = p[1] + [p[2]]
+        p[0] = (p[1], p[2])
+
+    def p_statement_list(self, p):
+        """ statement_list : statement
+        """
+        p[0] = [p[1]]
 
     def p_statement(self, p):
         """ statement : expression_statement
