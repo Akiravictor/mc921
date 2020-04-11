@@ -39,9 +39,9 @@ class UCParser:
                                 | type_specifier declarator declaration  compound_statement
         """
         if len(p) == 4:
-            p[0] = (p[1], p[2], p[3])
+            p[0] = p[1] + [p[2]] + p[3]
         else:
-            p[0] = (p[1], p[2], p[3], p[4])
+            p[0] = p[1] + p[2] + [p[3]] + p[4]
 
     def p_identifier(self, p):
         """ identifier : ID """
@@ -329,7 +329,7 @@ class UCParser:
     def p_compound_statement(self, p):
         """ compound_statement : declaration statement
         """
-        p[0] = (p[1], p[2])
+        p[0] = p[1] + [p[2]]
 
     def p_statement(self, p):
         """ statement : expression_statement
