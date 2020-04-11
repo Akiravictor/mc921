@@ -50,7 +50,10 @@ class UCParser:
         if len(p) == 4:
             p[0] = (p[1], p[2], p[3])
         else:
-            p[0] = (p[1], p[2], p[3], p[4])
+            if p[3][0] is None:
+                p[0] = (p[1], p[2], p[4])
+            else:
+                p[0] = (p[1], p[2], p[3], p[4])
 
     def p_init_declarator_list(self, p):
         ''' init_declarator_list : init_declarator
@@ -168,7 +171,14 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = (p[1], p[2])
+        if p[2][0] is None and p[3][0] is not None:
+            p[0] = (p[3])
+        elif p[2][0] is not None and p[3][0] is None:
+            p[0] = (p[2])
+        elif p[2][0] is None and p[3][0] is None:
+            p[0] = ()
+        else:
+            p[0] = (p[2], p[3])
 
     def p_expression_statement(self, p):
         ''' expression_statement : expression
@@ -257,7 +267,10 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = p[3]
+        if len(p) == 6:
+            p[0] = (p[1], p[3])
+        else:
+            p[0] = (p[1], '')
 
     def p_read_statement(self, p):
         ''' read_statement : READ LPAREN argument_expression RPAREN SEMI
@@ -266,7 +279,7 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = p[3]
+        p[0] = (p[1], p[3])
 
     def p_statement(self, p):
         ''' statement : expression_statement
