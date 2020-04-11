@@ -221,10 +221,38 @@ class UCParser:
                                 | FOR LPAREN declaration expression SEMI RPAREN statement
                                 | FOR LPAREN declaration SEMI RPAREN statement
         '''
-        print("Inside p_iteration_statement:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
+
+        if len(p) == 6:
+            p[0] = (p[3], p[5])
+        elif p[3] == ";":
+            if p[4] == ";":
+                if p[5] == ")":
+                    p[0] = p[6]
+                else:
+                    p[0] = (p[5], p[7])
+            elif p[7] == ")":
+                p[0] = (p[4], p[6], p[8])
+            else:
+                p[0] = (p[4], p[7])
+        elif p[4] == ";":
+            if p[5] == ")":
+                p[0] = (p[3], p[6])
+            elif p[6] == ")":
+                if p[5] == ";":
+                    p[0] = (p[3], p[7])
+                else:
+                    p[0] = (p[3], p[5], p[7])
+            elif p[5] == ";":
+                p[0] = (p[3], p[6], p[8])
+            elif p[6] == ";":
+                if p[7] == ")":
+                    p[0] = (p[3], p[5], p[8])
+                else:
+                    p[0] = (p[3], p[5], p[7], p[9])
+        elif p[6] == ")":
+            p[0] = (p[3], p[4], p[7])
+        else:
+            p[0] = (p[3], p[4], p[6], p[8])
 
     def p_jump_statement(self, p):
         ''' jump_statement : BREAK SEMI
@@ -532,7 +560,7 @@ class UCParser:
             p[0] = p[1] + [p[2]]
 
     def p_type_specifier(self, p):
-        ''' type_specifier : VOID
+        '''  type_specifier : VOID
                            | INT
                            | FLOAT
                            | CHAR
@@ -544,7 +572,8 @@ class UCParser:
         p[0] = p[1]
 
     def p_empty(self, p):
-        ''' empty :'''
+        '''  empty :
+        '''
         pass
 
     def parse(self, code, filename='', debug=0):
