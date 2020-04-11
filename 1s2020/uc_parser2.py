@@ -21,293 +21,255 @@ class UCParser:
             print("Error at the end of input")
 
     def p_program(self, p):
-        ''' program : global_declaration
+        ''' program : global_declaration_list_opt
         '''
-        print("Inside p_program:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = p[1]
+        p[0] = Program(p[1])
 
-    def p_global_declaraion(self, p):
-        ''' global_declaration : function_definition
-                               | declaration
+    def p_global_declaration_list_opt(self, p):
+        ''' global_declaration_list_opt : global_declaration global_declaration_list_opt
+                                        | empty
         '''
-        print("Inside p_global_declaraion:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = p[1]
+        if len(p) == 2:
+            p[0] = p[1]
+        print('p_global_declaration_list_opt')
+
+    def p_global_declaration(self, p):
+        ''' global_declaration : function_definition
+                              | declaration
+        '''
+        p[0] = GlobalDecl(p[1])
+        print('global_declaration')
 
     def p_function_definition(self, p):
-        ''' function_definition : type_specifier declarator declaration_list compound_statement
-                                | declarator declaration_list compound_statement
+        ''' function_definition : type_specifier declarator compound_statement
+                                | declarator declaration_list_opt  compound_statement
         '''
-        print("Inside p_function_definition:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 4:
-            p[0] = (p[1], p[2], p[3])
+        print('function_definition')
+
+    def p_declaration_list_opt(self, p):
+        ''' declaration_list_opt : declaration declaration_list_opt
+                                 | empty
+        '''
+        print("declaration_list_opt")
+
+    def p_declarator(self, p):
+        ''' declarator : direct_declarator
+        '''
+        p[0] = p[1]
+        print('declarator')
+
+    def p_direct_declarator1(self, p):
+        ''' direct_declarator : ID
+                              | LPAREN declarator RPAREN
+        '''
+        if len(p) == 2:
+            p[0] = ID(p[1])
         else:
-            if p[3][0] is None:
-                p[0] = (p[1], p[2], p[4])
-            else:
-                p[0] = (p[1], p[2], p[3], p[4])
+            pass
+        # elif len(p) == 4:
+        #     p[0] = Decl(p[2])
+        print('direct_declarator')
+
+    def p_direct_declarator2(self, p):
+        ''' direct_declarator : direct_declarator LBRACKET constant_expression_opt RBRACKET '''
+
+    def p_direct_declarator3(self, p):
+        ''' direct_declarator : direct_declarator LPAREN parameter_list RPAREN '''
+
+    def p_direct_declarator4(self, p):
+        ''' direct_declarator : direct_declarator LPAREN identifier_list_opt RPAREN '''
+
+    def p_constant_expression_opt(self, p):
+        ''' constant_expression_opt : constant_expression
+                                    | empty
+        '''
+        print('constant_expression_opt')
+
+    def p_identifier_list_opt(self, p):
+        ''' identifier_list_opt : ID identifier_list_opt
+                                | empty
+        '''
+        print('identifier_list_opt')
+
+    def p_constant_expression(self, p):
+        ''' constant_expression : binary_expression'''
+        print('constant_expression')
+
+    def p_binary_expression(self, p):
+        ''' binary_expression : cast_expression
+                              | binary_expression TIMES binary_expression
+                              | binary_expression DIVIDE binary_expression
+                              | binary_expression MOD binary_expression
+                              | binary_expression PLUS binary_expression
+                              | binary_expression MINUS binary_expression
+                              | binary_expression LT binary_expression
+                              | binary_expression EQUALS binary_expression
+                              | binary_expression EQ binary_expression
+                              | binary_expression LE binary_expression
+                              | binary_expression GT binary_expression
+                              | binary_expression GE binary_expression
+                              | binary_expression NQ binary_expression
+                              | binary_expression AND binary_expression
+                              | binary_expression OR binary_expression
+        '''
+        print('binary_expression')
+
+    def p_cast_expression(self, p):
+        '''cast_expression : unary_expression
+                            | LPAREN type_specifier RPAREN cast_expression
+        '''
+        print('cast_expression')
+
+    def p_unary_expression(self, p):
+        ''' unary_expression : postfix_expression
+                             | INCREASE unary_expression
+                             | DECREASE unary_expression
+                             | unary_operator cast_expression
+        '''
+        print('')
+
+    def p_postfix_expression(self, p):
+        ''' postfix_expression : primary_expression
+                               | postfix_expression LBRACKET expression RBRACKET
+                               | postfix_expression LPAREN argument_expression_opt RPAREN
+                               | postfix_expression INCREASE
+                               | postfix_expression DECREASE
+        '''
+        print('')
+
+    def p_argument_expression_opt(self, p):
+        ''' argument_expression_opt : argument_expression
+                                    | empty
+        '''
+        print('')
+
+    def p_primary_expression(self, p):
+        ''' primary_expression : ID
+                               | constant
+                               | STRING
+                               | LPAREN expression RPAREN
+        '''
+        print('')
+
+    def p_constant(self, p):
+        ''' constant : INT_CONST
+                     | FLOAT_CONST
+                     | CHAR_CONST
+        '''
+        print('')
+
+    def p_expression(self, p):
+        ''' expression : assignment_expression
+                       | expression COMMA assignment_expression
+        '''
+        print('')
+
+    def p_argument_expression(self, p):
+        ''' argument_expression : assignment_expression
+                                | argument_expression COMMA assignment_expression
+        '''
+        print('')
+
+    def p_assignment_expression(self, p):
+        ''' assignment_expression : binary_expression
+                                  | unary_expression assignment_operator assignment_expression
+        '''
+        print('')
+
+    def p_assignment_operator(self, p):
+        '''assignment_operator :  EQTIMES
+                               | EQDIV
+                               | EQMOD
+                               | EQPLUS
+                               | EQMINUS
+        '''
+        print('')
+
+    def p_unary_operator(self, p):
+        ''' unary_operator : ADDRESS
+                           | TIMES
+                           | PLUS
+                           | MINUS
+                           | NOT
+        '''
+        print('unary_operator')
+
+    def p_type_specifier(self, p):
+        ''' type_specifier : VOID
+                           | CHAR
+                           | INT
+                           | FLOAT
+        '''
+        p[0] = Type(p[1], coord=None)
+        print('type_specifier')
+
+    def p_parameter_list(self, p):
+        ''' parameter_list : parameter_declaration
+                           | parameter_list COMMA parameter_declaration
+        '''
+        print('parameter_list')
+
+    def p_parameter_declaration(self, p):
+        ''' parameter_declaration : type_specifier declarator '''
+        print('parameter_declaration')
+
+    def p_declaration(self, p):
+        ''' declaration : type_specifier init_declarator_list_opt SEMI'''
+        p[0] = Decl(p[2], p[1], p[2])
+        print("declaration")
+
+    def p_init_declarator_list_opt(self, p):
+        ''' init_declarator_list_opt : init_declarator_list
+                                     | empty
+        '''
+        p[0] = p[1]
+        print('init_declarator_list_opt')
 
     def p_init_declarator_list(self, p):
         ''' init_declarator_list : init_declarator
                                  | init_declarator_list COMMA init_declarator
         '''
-        print("Inside p_init_declarator_list:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
         if len(p) == 2:
-            p[0] = [p[1]]
+            p[0] = p[1]
         else:
-            p[0] = p[1] + [p[3]]
+            # p[0] = DeclList()
+            # p[0] = p[1]
+            pass
+        print('init_declarator_list')
 
     def p_init_declarator(self, p):
         ''' init_declarator : declarator
                             | declarator EQUALS initializer
         '''
-        print("Inside p_init_declarator:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
         if len(p) == 2:
             p[0] = p[1]
         else:
-            p[0] = (p[1], p[3])
+            # p[0] = Assignment(p[2])
+            pass
+        print('init_declarator')
 
     def p_initializer(self, p):
         ''' initializer : assignment_expression
                         | LBRACE initializer_list RBRACE
                         | LBRACE initializer_list COMMA RBRACE
         '''
-        print("Inside p_initializer:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = p[1]
+        print('initializer')
 
     def p_initializer_list(self, p):
         ''' initializer_list : initializer
                              | initializer_list COMMA initializer
         '''
-        print("Inside p_initializer_list:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1] + [p[3]]
-
-    def p_declaration(self, p):
-        ''' declaration : type_specifier SEMI
-                        | type_specifier init_declarator_list SEMI
-        '''
-        print("Inside p_declaration:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = (p[1], p[2])
-
-    def p_declaration_list(self, p):
-        ''' declaration_list : declaration
-                             | declaration_list declaration
-                             | empty
-        '''
-        print("Inside p_declaration_list:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1] + [p[2]]
-
-    def p_declarator(self, p):
-        ''' declarator : pointer direct_declarator
-                       | direct_declarator
-        '''
-        print("Inside p_declarator:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = p[1]+p[2]
-
-    def p_parameter_list(self, p):
-        ''' parameter_list : parameter_declaration
-                            | parameter_list COMMA parameter_declaration
-        '''
-        print("Inside p_parameter_list:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1]+[p[3]]
-
-    def p_parameter_declaration(self, p):
-        ''' parameter_declaration : type_specifier declarator
-        '''
-        print("Inside p_parameter_declaration:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = (p[1], p[2])
+        print('initializer_list')
 
     def p_compound_statement(self, p):
-        ''' compound_statement : LBRACE declaration_list statement_list RBRACE
-        '''
-        print("Inside p_compound_statement:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if p[2][0] is None and p[3][0] is not None:
-            p[0] = (p[3])
-        elif p[2][0] is not None and p[3][0] is None:
-            p[0] = (p[2])
-        elif p[2][0] is None and p[3][0] is None:
-            p[0] = ()
-        else:
-            p[0] = (p[2], p[3])
+        ''' compound_statement : LBRACE declaration_list_opt statement_list_opt RBRACE '''
+        print('compound_statement')
 
-    def p_expression_statement(self, p):
-        ''' expression_statement : expression
-                                 | empty SEMI
+    def p_statement_list_opt(self, p):
+        ''' statement_list_opt : statement statement_list_opt
+                               | empty
         '''
-        print("Inside p_expression_statement:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = p[1]
-
-    def p_expression(self, p):
-        ''' expression : assignment_expression
-                       | expression COMMA assignment_expression
-        '''
-        print("Inside p_expression:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1]+[p[3]]
-
-    def p_selection_statement(self, p):
-        ''' selection_statement : IF LPAREN expression RPAREN statement
-                                | IF LPAREN expression RPAREN statement ELSE statement
-        '''
-        print("Inside p_selection_statement:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 6:
-            p[0] = (p[3], p[5])
-        else:
-            p[0] = (p[3], p[5], p[7])
-
-    def p_iteration_statement(self, p):
-        ''' iteration_statement : WHILE LPAREN expression RPAREN statement
-                                | FOR LPAREN expression SEMI expression SEMI expression RPAREN statement
-                                | FOR LPAREN SEMI expression SEMI expression RPAREN statement
-                                | FOR LPAREN expression SEMI SEMI expression RPAREN statement
-                                | FOR LPAREN SEMI SEMI expression RPAREN statement
-                                | FOR LPAREN expression SEMI expression SEMI RPAREN statement
-                                | FOR LPAREN SEMI expression SEMI RPAREN statement
-                                | FOR LPAREN expression SEMI SEMI RPAREN statement
-                                | FOR LPAREN SEMI SEMI RPAREN statement
-                                | FOR LPAREN declaration expression SEMI expression RPAREN statement
-                                | FOR LPAREN declaration SEMI expression RPAREN statement
-                                | FOR LPAREN declaration expression SEMI RPAREN statement
-                                | FOR LPAREN declaration SEMI RPAREN statement
-        '''
-
-        if len(p) == 6:
-            p[0] = (p[3], p[5])
-        elif p[3] == ";":
-            if p[4] == ";":
-                if p[5] == ")":
-                    p[0] = p[6]
-                else:
-                    p[0] = (p[5], p[7])
-            elif p[7] == ")":
-                p[0] = (p[4], p[6], p[8])
-            else:
-                p[0] = (p[4], p[7])
-        elif p[4] == ";":
-            if p[5] == ")":
-                p[0] = (p[3], p[6])
-            elif p[6] == ")":
-                if p[5] == ";":
-                    p[0] = (p[3], p[7])
-                else:
-                    p[0] = (p[3], p[5], p[7])
-            elif p[5] == ";":
-                p[0] = (p[3], p[6], p[8])
-            elif p[6] == ";":
-                if p[7] == ")":
-                    p[0] = (p[3], p[5], p[8])
-                else:
-                    p[0] = (p[3], p[5], p[7], p[9])
-        elif p[6] == ")":
-            p[0] = (p[3], p[4], p[7])
-        else:
-            p[0] = (p[3], p[4], p[6], p[8])
-
-    def p_jump_statement(self, p):
-        ''' jump_statement : BREAK SEMI
-                           | RETURN expression SEMI
-                           | RETURN SEMI
-        '''
-        print("Inside p_jump_statement:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-
-    def p_assert_statement(self, p):
-        ''' assert_statement : ASSERT expression SEMI
-                             | ASSERT SEMI
-        '''
-        print("Inside p_assert_statement:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 3:
-            p[0] = p[2]
-        else:
-            p[0] = p[1]
-
-    def p_print_statement(self, p):
-        ''' print_statement : PRINT LPAREN expression RPAREN SEMI
-                            | PRINT LPAREN RPAREN SEMI
-        '''
-        print("Inside p_print_statement:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 6:
-            p[0] = (p[1], p[3])
-        else:
-            p[0] = (p[1], '')
-
-    def p_read_statement(self, p):
-        ''' read_statement : READ LPAREN argument_expression RPAREN SEMI
-        '''
-        print("Inside p_read_statement:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = (p[1], p[3])
+        print("statement_list_opt")
 
     def p_statement(self, p):
         ''' statement : expression_statement
@@ -319,274 +281,52 @@ class UCParser:
                       | print_statement
                       | read_statement
         '''
-        print("Inside p_statement:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = p[1]
+        print("statement")
 
-    def p_statement_list(self, p):
-        ''' statement_list : statement
-                           | statement_list statement
+    def p_expression_statement(self, p):
+        ''' expression_statement : expression_opt SEMI'''
+        print('expression_statement')
+
+    def p_expression_opt(self, p):
+        ''' expression_opt : expression
                            | empty
         '''
-        print("Inside p_statement_list:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1] + [p[2]]
+        print('expression_opt')
 
-    def p_assignment_expression(self, p):
-        ''' assignment_expression : binary_expression
-                                  | unary_expression assignment_operator assignment_expression
+    def p_selection_statement(self, p):
+        ''' selection_statement : IF LPAREN expression RPAREN statement
+                                | IF LPAREN expression RPAREN statement ELSE statement
         '''
-        print("Inside p_assignment_expression:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = (p[1], p[2], p[3])
+        print('selection_statement')
 
-    def p_binary_expression(self, p):
-        ''' binary_expression : cast_expression
-                              | binary_expression PLUS binary_expression
-                              | binary_expression MINUS binary_expression
-                              | binary_expression TIMES binary_expression
-                              | binary_expression DIVIDE binary_expression
-                              | binary_expression MOD binary_expression
-                              | binary_expression LT binary_expression
-                              | binary_expression LE binary_expression
-                              | binary_expression GT binary_expression
-                              | binary_expression GE binary_expression
-                              | binary_expression EQ binary_expression
-                              | binary_expression NQ binary_expression
-                              | binary_expression AND binary_expression
-                              | binary_expression OR binary_expression
+    def p_iteration_statement(self, p):
+        ''' iteration_statement : WHILE LPAREN expression RPAREN statement
+                                | FOR LPAREN init_declarator SEMI expression_opt SEMI expression_opt RPAREN statement
+                                | FOR LPAREN type_specifier init_declarator SEMI expression_opt SEMI expression_opt RPAREN statement
         '''
-        print("Inside p_binary_expression:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = p[1]
-        elif p[2] == '*':
-            p[0] = p[1] * p[3]
+        print("iteration_statement")
 
-        elif p[2] == '/':
-            p[0] = p[1] / p[3]
-
-        elif p[2] == '%':
-            p[0] = p[1] & p[3]
-
-        elif p[2] == '+':
-            p[0] = p[1] + p[3]
-
-        elif p[2] == '-':
-            p[0] = p[1] - p[3]
-
-        elif p[2] == '<':
-            p[0] = (p[1] < p[3])
-
-        elif p[2] == '<=':
-            p[0] = (p[1] <= p[3])
-
-        elif p[2] == '>':
-            p[0] = (p[1] > p[3])
-
-        elif p[2] == '>=':
-            p[0] = (p[1] >= p[3])
-
-        elif p[2] == '==':
-            p[0] = (p[1] == p[3])
-
-        elif p[2] == '!=':
-            p[0] = (p[1] != p[3])
-
-        elif p[2] == '&&':
-            p[0] = p[1] and p[3]
-
-        elif p[2] == '||':
-            p[0] = p[1] or p[3]
-
-    def p_unary_expression(self, p):
-        ''' unary_expression : postfix_expression
-                             | INCREASE unary_expression
-                             | DECREASE unary_expression
-                             | unary_operator cast_expression
+    def p_jump_statement(self, p):
+        ''' jump_statement : BREAK SEMI
+                           | RETURN SEMI
+                           | RETURN expression SEMI
         '''
-        print("Inside p_unary_expression:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = (p[1], p[2])
+        print('jump_statement')
 
-    def p_postfix_expression(self, p):
-        ''' postfix_expression : primary_expression
-                               | postfix_expression LBRACKET expression RBRACKET
-                               | postfix_expression LPAREN argument_expression RPAREN
-                               | postfix_expression LPAREN RPAREN
-                               | postfix_expression INCREASE
-                               | postfix_expression DECREASE
-        '''
-        print("Inside p_postfix_expression:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = p[1]
-        elif len(p) == 3:
-            p[0] = (p[2], p[1])
-        else:
-            p[0] = (p[1], p[3])
+    def p_assert_statement(self, p):
+        ''' assert_statement : ASSERT expression SEMI '''
+        print('assert_statement')
 
-    def p_cast_expression(self, p):
-        ''' cast_expression : unary_expression
-                            | LPAREN type_specifier RPAREN cast_expression
-        '''
-        print("Inside p_cast_expression:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = (p[2], p[4])
+    def p_print_statement(self, p):
+        ''' print_statement : PRINT LPAREN expression_opt RPAREN SEMI'''
+        print('print_statement')
 
-    def p_primary_expression(self, p):
-        ''' primary_expression : ID
-                               | constant
-                               | STRING
-                               | LPAREN expression RPAREN
-        '''
-        print("Inside p_primary_expression:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = p[1]
-
-    def p_argument_expression(self, p):
-        ''' argument_expression : assignment_expression
-                                | argument_expression COMMA assignment_expression
-        '''
-        print("Inside p_argument_expression:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1]+[p[3]]
-
-    def p_constant_expression(self, p):
-        ''' constant_expression : binary_expression
-        '''
-        print("Inside p_constant_expression:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = p[1]
-
-    def p_assignment_operator(self, p):
-        ''' assignment_operator : EQUALS
-                               | EQTIMES
-                               | EQDIV
-                               | EQMOD
-                               | EQPLUS
-                               | EQMINUS
-        '''
-        print("Inside p_assignment_operator:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = p[1]
-
-    def p_unary_operator(self, p):
-        ''' unary_operator : ADDRESS
-                           | TIMES
-                           | PLUS
-                           | UMINUS
-                           | NOT
-        '''
-        print("Inside p_unary_operator:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = p[1]
-
-    def p_constant(self, p):
-        ''' constant : INT_CONST
-                     | FLOAT_CONST
-                     | CHAR_CONST
-        '''
-        print("Inside p_constant:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = p[1]
-
-    def p_pointer(self, p):
-        ''' pointer : TIMES pointer
-                    | TIMES
-        '''
-        print("Inside p_pointer:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-
-    def p_direct_declarator(self, p):
-        ''' direct_declarator : ID
-                              | LPAREN declarator RPAREN
-                              | direct_declarator LBRACKET constant_expression RBRACKET
-                              | direct_declarator LBRACKET RBRACKET
-                              | direct_declarator LPAREN parameter_list RPAREN
-                              | direct_declarator LPAREN id_list RPAREN
-        '''
-        print("Inside p_direct_declarator:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = p[1]
-        else:
-            p[0] = (p[1], p[3])
-
-    def p_id_list(self, p):
-        ''' id_list : ID
-                    | id_list ID
-                    | empty
-        '''
-        print("Inside p_id_list:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1] + [p[2]]
-
-    def p_type_specifier(self, p):
-        '''  type_specifier : VOID
-                           | INT
-                           | FLOAT
-                           | CHAR
-        '''
-        print("Inside p_type_specifier:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        p[0] = p[1]
+    def p_read_statement(self, p):
+        ''' read_statement : READ LPAREN argument_expression RPAREN SEMI'''
+        print('read_statement')
 
     def p_empty(self, p):
-        '''  empty :
-        '''
+        '''empty :'''
         pass
 
     def parse(self, code, filename='', debug=0):
@@ -602,11 +342,13 @@ class UCParser:
 
         self.tokens = lexer.tokens
         self.precedence = (
-             ('nonassoc', 'LT', 'GT', 'LE', 'GE', 'EQ', 'NQ', 'NOT', 'AND', 'OR'),  # Nonassociative operators
-             ('left', 'PLUS', 'MINUS'),
-             ('left', 'TIMES', 'DIVIDE', 'MOD'),
-             ('right', 'UMINUS')
-         )
+            ('left', 'OR'),
+            ('left', 'AND', 'EQUALS'),
+            ('left', 'EQ', 'NQ'),
+            ('left', 'GT', 'GE', 'LT', 'LE'),
+            ('left', 'PLUS', 'MINUS'),
+            ('left', 'TIMES', 'DIVIDE', 'MOD')
+        )
 
         parser = yacc.yacc(module=self)
         print(code)

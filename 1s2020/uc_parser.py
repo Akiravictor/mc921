@@ -21,7 +21,7 @@ class UCParser:
             print("Error at the end of input")
 
     def p_program(self, p):
-        ''' program : global_declaration
+        ''' program : global_declaration_list
         '''
         print("Inside p_program:")
         for i in range(len(p)):
@@ -29,19 +29,28 @@ class UCParser:
         print('End')
         p[0] = p[1]
 
-    def p_global_declaraion(self, p):
+    def p_global_declaration_list(self, p):
+        ''' global_declaration_list : global_declaration_list global_declaration
+                                    | empty
+        '''
+        print("Inside p_global_declaration_list:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+
+    def p_global_declaration(self, p):
         ''' global_declaration : function_definition
                                | declaration
         '''
-        print("Inside p_global_declaraion:")
+        print("Inside p_global_declaration:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         p[0] = p[1]
 
     def p_function_definition(self, p):
-        ''' function_definition : type_specifier declarator declaration_list compound_statement
-                                | declarator declaration_list compound_statement
+        ''' function_definition : type_specifier declarator compound_statement
+                                | declarator declaration_list_opt compound_statement
         '''
         print("Inside p_function_definition:")
         for i in range(len(p)):
@@ -55,10 +64,14 @@ class UCParser:
             else:
                 p[0] = (p[1], p[2], p[3], p[4])
 
+    def p_init_declarator_list_opt(self, p):
+        ''' init_declarator_list_opt : init_declarator_list
+                                     | empty
+        '''
+
     def p_init_declarator_list(self, p):
         ''' init_declarator_list : init_declarator
                                  | init_declarator_list COMMA init_declarator
-                                 | empty
         '''
         print("Inside p_init_declarator_list:")
         for i in range(len(p)):
@@ -107,7 +120,7 @@ class UCParser:
             p[0] = p[1] + [p[3]]
 
     def p_declaration(self, p):
-        ''' declaration :  type_specifier init_declarator_list SEMI
+        ''' declaration :  type_specifier init_declarator_list_opt SEMI
         '''
         print("Inside p_declaration:")
         for i in range(len(p)):
@@ -115,23 +128,25 @@ class UCParser:
         print('End')
         p[0] = (p[1], p[2])
 
-    def p_declaration_list(self, p):
-        ''' declaration_list : declaration
-                             | declaration_list declaration
-                             | empty
+    def p_declaration_list_opt(self, p):
+        ''' declaration_list_opt : declaration_list_opt declaration
+                                 | empty
         '''
-        print("Inside p_declaration_list:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1] + [p[2]]
+
+    # def p_declaration_list(self, p):
+    #     ''' declaration_list : declaration_list declaration
+    #     '''
+    #     print("Inside p_declaration_list:")
+    #     for i in range(len(p)):
+    #         print("p[{0}] = {1}".format(i, p[i]))
+    #     print('End')
+    #     if len(p) == 2:
+    #         p[0] = [p[1]]
+    #     else:
+    #         p[0] = p[1] + [p[2]]
 
     def p_declarator(self, p):
-        ''' declarator : pointer direct_declarator
-                       | direct_declarator
+        ''' declarator : pointer_opt direct_declarator
         '''
         print("Inside p_declarator:")
         for i in range(len(p)):
@@ -165,7 +180,7 @@ class UCParser:
         p[0] = (p[1], p[2])
 
     def p_compound_statement(self, p):
-        ''' compound_statement : LBRACE declaration_list statement_list RBRACE
+        ''' compound_statement : LBRACE declaration_list_opt statement_list_opt RBRACE
         '''
         print("Inside p_compound_statement:")
         for i in range(len(p)):
@@ -181,14 +196,18 @@ class UCParser:
             p[0] = (p[2], p[3])
 
     def p_expression_statement(self, p):
-        ''' expression_statement : expression SEMI
-                                 | SEMI
+        ''' expression_statement : expression_opt SEMI
         '''
         print("Inside p_expression_statement:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         p[0] = p[1]
+
+    def p_expression_opt(self, p):
+        ''' expression_opt : expression
+                           | empty
+        '''
 
     def p_expression(self, p):
         ''' expression : assignment_expression
@@ -218,54 +237,14 @@ class UCParser:
 
     def p_iteration_statement(self, p):
         ''' iteration_statement : WHILE LPAREN expression RPAREN statement
-                                | FOR LPAREN expression SEMI expression SEMI expression RPAREN statement
-                                | FOR LPAREN SEMI expression SEMI expression RPAREN statement
-                                | FOR LPAREN expression SEMI SEMI expression RPAREN statement
-                                | FOR LPAREN SEMI SEMI expression RPAREN statement
-                                | FOR LPAREN expression SEMI expression SEMI RPAREN statement
-                                | FOR LPAREN SEMI expression SEMI RPAREN statement
-                                | FOR LPAREN expression SEMI SEMI RPAREN statement
-                                | FOR LPAREN SEMI SEMI RPAREN statement
-                                | FOR LPAREN declaration expression SEMI expression RPAREN statement
-                                | FOR LPAREN declaration SEMI expression RPAREN statement
-                                | FOR LPAREN declaration expression SEMI RPAREN statement
-                                | FOR LPAREN declaration SEMI RPAREN statement
+                                | FOR LPAREN init_declarator SEMI expression_opt SEMI expression_opt RPAREN statement
+                                | FOR LPAREN type_specifier init_declarator SEMI expression_opt SEMI expression_opt RPAREN statement
         '''
         print("Inside p_iteration_statement:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 6:
-            p[0] = (p[3], p[5])
-        elif p[3] == ";":
-            if p[4] == ";":
-                if p[5] == ")":
-                    p[0] = p[6]
-                else:
-                    p[0] = (p[5], p[7])
-            elif p[7] == ")":
-                p[0] = (p[4], p[6], p[8])
-            else:
-                p[0] = (p[4], p[7])
-        elif p[4] == ";":
-            if p[5] == ")":
-                p[0] = (p[3], p[6])
-            elif p[6] == ")":
-                if p[5] == ";":
-                    p[0] = (p[3], p[7])
-                else:
-                    p[0] = (p[3], p[5], p[7])
-            elif p[5] == ";":
-                p[0] = (p[3], p[6], p[8])
-            elif p[6] == ";":
-                if p[7] == ")":
-                    p[0] = (p[3], p[5], p[8])
-                else:
-                    p[0] = (p[3], p[5], p[7], p[9])
-        elif p[6] == ")":
-            p[0] = (p[3], p[4], p[7])
-        else:
-            p[0] = (p[3], p[4], p[6], p[8])
+
 
     def p_jump_statement(self, p):
         ''' jump_statement : BREAK SEMI
@@ -279,7 +258,6 @@ class UCParser:
 
     def p_assert_statement(self, p):
         ''' assert_statement : ASSERT expression SEMI
-                             | ASSERT SEMI
         '''
         print("Inside p_assert_statement:")
         for i in range(len(p)):
@@ -291,8 +269,7 @@ class UCParser:
             p[0] = p[1]
 
     def p_print_statement(self, p):
-        ''' print_statement : PRINT LPAREN expression RPAREN SEMI
-                            | PRINT LPAREN RPAREN SEMI
+        ''' print_statement : PRINT LPAREN expression_opt RPAREN SEMI
         '''
         print("Inside p_print_statement:")
         for i in range(len(p)):
@@ -328,19 +305,24 @@ class UCParser:
         print('End')
         p[0] = p[1]
 
-    def p_statement_list(self, p):
-        ''' statement_list : statement
-                           | statement_list statement
-                           | empty
+    def p_statement_list_opt(self, p):
+        ''' statement_list_opt : statement_list_opt statement
+                               | empty
         '''
-        print("Inside p_statement_list:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            p[0] = [p[1]]
-        else:
-            p[0] = p[1] + [p[2]]
+
+    # def p_statement_list(self, p):
+    #     ''' statement_list : statement
+    #                        | statement_list statement
+    #                        | empty
+    #     '''
+    #     print("Inside p_statement_list:")
+    #     for i in range(len(p)):
+    #         print("p[{0}] = {1}".format(i, p[i]))
+    #     print('End')
+    #     if len(p) == 2:
+    #         p[0] = [p[1]]
+    #     else:
+    #         p[0] = p[1] + [p[2]]
 
     def p_assignment_expression(self, p):
         ''' assignment_expression : binary_expression
@@ -357,11 +339,11 @@ class UCParser:
 
     def p_binary_expression(self, p):
         ''' binary_expression : cast_expression
-                              | binary_expression PLUS binary_expression
-                              | binary_expression MINUS binary_expression
                               | binary_expression TIMES binary_expression
                               | binary_expression DIVIDE binary_expression
                               | binary_expression MOD binary_expression
+                              | binary_expression PLUS binary_expression
+                              | binary_expression MINUS binary_expression
                               | binary_expression LT binary_expression
                               | binary_expression LE binary_expression
                               | binary_expression GT binary_expression
@@ -434,8 +416,7 @@ class UCParser:
     def p_postfix_expression(self, p):
         ''' postfix_expression : primary_expression
                                | postfix_expression LBRACKET expression RBRACKET
-                               | postfix_expression LPAREN argument_expression RPAREN
-                               | postfix_expression LPAREN RPAREN
+                               | postfix_expression LPAREN argument_expression_opt RPAREN
                                | postfix_expression INCREASE
                                | postfix_expression DECREASE
         '''
@@ -475,6 +456,11 @@ class UCParser:
         print('End')
         p[0] = p[1]
 
+    def p_argument_expression_opt(self, p):
+        ''' argument_expression_opt : argument_expression
+                                    | empty
+        '''
+
     def p_argument_expression(self, p):
         ''' argument_expression : assignment_expression
                                 | argument_expression COMMA assignment_expression
@@ -488,14 +474,19 @@ class UCParser:
         else:
             p[0] = p[1]+[p[3]]
 
-    # def p_constant_expression(self, p):
-    #     ''' constant_expression : binary_expression
-    #     '''
-    #     print("Inside p_constant_expression:")
-    #     for i in range(len(p)):
-    #         print("p[{0}] = {1}".format(i, p[i]))
-    #     print('End')
-    #     p[0] = p[1]
+    def p_constant_expression_opt(self, p):
+        ''' constant_expression_opt : constant_expression
+                                    | empty
+        '''
+
+    def p_constant_expression(self, p):
+        ''' constant_expression : binary_expression
+        '''
+        print("Inside p_constant_expression:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        p[0] = p[1]
 
     def p_assignment_operator(self, p):
         ''' assignment_operator : EQUALS
@@ -535,6 +526,11 @@ class UCParser:
         print('End')
         p[0] = p[1]
 
+    def p_pointer_opt(self, p):
+        ''' pointer_opt : pointer
+                        | empty
+        '''
+
     def p_pointer(self, p):
         ''' pointer : TIMES pointer
                     | TIMES
@@ -545,21 +541,13 @@ class UCParser:
         print('End')
 
     def p_direct_declarator(self, p):
-        # ''' direct_declarator : ID
-        #                       | LPAREN declarator RPAREN
-        #                       | direct_declarator LBRACKET constant_expression RBRACKET
-        #                       | direct_declarator LBRACKET RBRACKET
-        #                       | direct_declarator LPAREN parameter_list RPAREN
-        #                       | direct_declarator LPAREN id_list RPAREN
-        # '''
-
         ''' direct_declarator : ID
                               | LPAREN declarator RPAREN
-                              | direct_declarator LBRACKET binary_expression RBRACKET
-                              | direct_declarator LBRACKET RBRACKET
+                              | direct_declarator LBRACKET constant_expression_opt RBRACKET
                               | direct_declarator LPAREN parameter_list RPAREN
                               | direct_declarator LPAREN id_list RPAREN
         '''
+
         print("Inside p_direct_declarator:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
@@ -570,8 +558,7 @@ class UCParser:
             p[0] = (p[1], p[3])
 
     def p_id_list(self, p):
-        ''' id_list : ID
-                    | id_list ID
+        ''' id_list : id_list ID
                     | empty
         '''
         print("Inside p_id_list:")
@@ -620,7 +607,7 @@ class UCParser:
 
         parser = yacc.yacc(module=self, write_tables=False)
         print(code)
-        # result = parser.parse(code)
+        #result = parser.parse(code)
         result = parser.parse('int main();')
         print(result)
 
