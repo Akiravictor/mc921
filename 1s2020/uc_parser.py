@@ -68,6 +68,10 @@ class UCParser:
         ''' init_declarator_list_opt : init_declarator_list
                                      | empty
         '''
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = []
 
     def p_init_declarator_list(self, p):
         ''' init_declarator_list : init_declarator
@@ -132,6 +136,10 @@ class UCParser:
         ''' declaration_list_opt : declaration_list_opt declaration
                                  | empty
         '''
+        if len(p) == 3:
+            p[0] = p[1] + [p[2]]
+        else:
+            p[0] = []
 
     # def p_declaration_list(self, p):
     #     ''' declaration_list : declaration_list declaration
@@ -208,6 +216,10 @@ class UCParser:
         ''' expression_opt : expression
                            | empty
         '''
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = []
 
     def p_expression(self, p):
         ''' expression : assignment_expression
@@ -310,19 +322,11 @@ class UCParser:
                                | empty
         '''
 
-    # def p_statement_list(self, p):
-    #     ''' statement_list : statement
-    #                        | statement_list statement
-    #                        | empty
-    #     '''
-    #     print("Inside p_statement_list:")
-    #     for i in range(len(p)):
-    #         print("p[{0}] = {1}".format(i, p[i]))
-    #     print('End')
-    #     if len(p) == 2:
-    #         p[0] = [p[1]]
-    #     else:
-    #         p[0] = p[1] + [p[2]]
+        if len(p) == 3:
+            p[0] = p[1] + [p[2]]
+        else:
+            p[0] = []
+
 
     def p_assignment_expression(self, p):
         ''' assignment_expression : binary_expression
@@ -478,6 +482,10 @@ class UCParser:
         ''' constant_expression_opt : constant_expression
                                     | empty
         '''
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = []
 
     def p_constant_expression(self, p):
         ''' constant_expression : binary_expression
@@ -530,6 +538,10 @@ class UCParser:
         ''' pointer_opt : pointer
                         | empty
         '''
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = []
 
     def p_pointer(self, p):
         ''' pointer : TIMES pointer
