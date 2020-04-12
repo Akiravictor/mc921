@@ -88,17 +88,6 @@ class Node(object):
                 _my_node_name=child_name)
 
 
-class AST:
-    def __init__(self):
-        '''Ainda não sei oq colocar aqui...'''
-
-    def show(buf=None, showcoord=True):
-        print("I'm on show from AST!")
-
-    def ast(self):
-        print("I'm on AST!")
-
-
 class ArrayDecl(Node):
     __slots__ = ('type', 'dim', 'coord')
 
