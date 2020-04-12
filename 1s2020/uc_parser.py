@@ -144,7 +144,7 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 3:
-            p[0] = (p[1], p[2])
+            p[0] = p[1] + [p[2]]
 
     def p_declarator(self, p):
         ''' declarator : pointer_opt direct_declarator
@@ -166,7 +166,7 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 2:
-            p[0] = p[1]
+            p[0] = [p[1]]
         elif len(p) == 4:
             p[0] = p[1] + [p[3]]
 
@@ -177,7 +177,7 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = p[1]
+        p[0] = (p[1], p[2])
 
     def p_compound_statement(self, p):
         ''' compound_statement : LBRACE declaration_list_opt statement_list_opt RBRACE
@@ -205,8 +205,8 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if p[1] is not None:
-            p[0] = p[1]
+
+        p[0] = p[1]
 
     def p_expression(self, p):
         ''' expression : assignment_expression
@@ -217,7 +217,7 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 2:
-            p[0] == p[1]
+            p[0] = p[1]
         elif len(p) == 4:
             p[0] = (p[1], p[3])
 
@@ -278,7 +278,7 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = p[3]
+        p[0] = ('print', p[3])
 
     def p_read_statement(self, p):
         ''' read_statement : READ LPAREN argument_expression RPAREN SEMI
@@ -287,7 +287,7 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = p[3]
+        p[0] = ('read', p[3])
 
     def p_statement(self, p):
         ''' statement : expression_statement
@@ -313,8 +313,13 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if p[1] is not None:
-            p[0] = (p[1], p[2])
+        if len(p) == 3:
+            if p[1] is not None:
+                if p[2] is not None:
+                    p[0] = p[1] + [p[2]]
+            elif p[1] is None:
+                if p[2] is not None:
+                    p[0] = p[2]
 
     def p_assignment_expression(self, p):
         ''' assignment_expression : binary_expression
@@ -562,6 +567,10 @@ class UCParser:
 
     def p_empty(self, p):
         ''' empty :'''
+        print("Inside p_empty:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
         pass
 
     def parse(self, code, filename='', debug=0):
