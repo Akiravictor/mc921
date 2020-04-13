@@ -23,7 +23,7 @@ class Node(object):
 
         indent = ''
         separator = ''
-        for name in self.__slots__[:-2]:
+        for name in self.__slots__[:-1]:
             result += separator
             result += indent
             result += name + '=' + (
@@ -88,6 +88,82 @@ class Node(object):
                 _my_node_name=child_name)
 
 
+class NodeVisitor(object):
+    """ A base NodeVisitor class for visiting uc_ast nodes.
+        Subclass it and define your own visit_XXX methods, where
+        XXX is the class name you want to visit with these
+        methods.
+
+        For example:
+
+        class ConstantVisitor(NodeVisitor):
+            def __init__(self):
+                self.values = []
+
+            def visit_Constant(self, node):
+                self.values.append(node.value)
+
+        Creates a list of values of all the constant nodes
+        encountered below the given node. To use it:
+
+        cv = ConstantVisitor()
+        cv.visit(node)
+
+        Notes:
+
+        *   generic_visit() will be called for AST nodes for which
+            no visit_XXX method was defined.
+        *   The children of nodes for which a visit_XXX was
+            defined will not be visited - if you need this, call
+            generic_visit() on the node.
+            You can use:
+                NodeVisitor.generic_visit(self, node)
+        *   Modeled after Python's own AST visiting facilities
+            (the ast module of Python 3.0)
+    """
+
+    _method_cache = None
+
+    def visit(self, node):
+        """ Visit a node.
+        """
+
+        if self._method_cache is None:
+            self._method_cache = {}
+
+        visitor = self._method_cache.get(node.__class__.__name__, None)
+        if visitor is None:
+            method = 'visit_' + node.__class__.__name__
+            visitor = getattr(self, method, self.generic_visit)
+            self._method_cache[node.__class__.__name__] = visitor
+
+        return visitor(node)
+
+    def generic_visit(self, node):
+        """ Called if no explicit visitor function exists for a
+            node. Implements preorder visiting of the node.
+        """
+        for c in node:
+            self.visit(c)
+
+class Coord(object):
+    """ Coordinates of a syntactic element. Consists of:
+            - Line number
+            - (optional) column number, for the Lexer
+    """
+    __slots__ = ('line', 'column')
+
+    def __init__(self, line, column=None):
+        self.line = line
+        self.column = column
+
+    def __str__(self):
+        if self.line:
+            coord_str = "   @ %s:%s" % (self.line, self.column)
+        else:
+            coord_str = ""
+        return coord_str
+
 class ArrayDecl(Node):
     __slots__ = ('type', 'dim', 'coord')
 
@@ -134,7 +210,7 @@ class ArrayRef(Node):
     attr_names = ()
 
 
-class Assert:
+class Assert(Node):
     __slots__ = ('expr', 'coord')
 
     def __init__(self, expr, coord=None):
@@ -461,7 +537,7 @@ class FuncDef(Node):
     attr_names = ()
 
 
-class GlobalDecl:
+class GlobalDecl(Node):
     __slots__ = ('decls', 'coord')
 
     def __init__(self, decls, coord=None):
@@ -585,10 +661,10 @@ class Print(Node):
     attr_names = ()
 
 
-class Program:
+class Program(Node):
     __slots__ = ('gdecls', 'symtab', 'coord')
 
-    def __init__(self, gdecls, symtab, coord=None):
+    def __init__(self, gdecls, symtab=None, coord=None):
         self.gdecls = gdecls
         self.symtab = None
         self.coord = coord
@@ -606,7 +682,7 @@ class Program:
     attr_names = ()
 
 
-class PtrDecl:
+class PtrDecl(Node):
     __slots__ = ('type', 'coord')
 
     def __init__(self, type, coord=None):
@@ -625,7 +701,7 @@ class PtrDecl:
     attr_names = ()
 
 
-class Read:
+class Read(Node):
     __slots__ = ('names', 'coord')
 
     def __init__(self, names, coord=None):
@@ -645,7 +721,7 @@ class Read:
     attr_names = ()
 
 
-class Return:
+class Return(Node):
     __slots__ = ('expr', 'coord')
 
     def __init__(self, expr, coord=None):
@@ -664,7 +740,7 @@ class Return:
     attr_names = ()
 
 
-class Type:
+class Type(Node):
     __slots__ = ('names', 'coord')
 
     def __init__(self, names, coord=None):
@@ -681,7 +757,7 @@ class Type:
     attr_names = ('names',)
 
 
-class VarDecl:
+class VarDecl(Node):
     __slots__ = ('declname', 'type', 'coord')
 
     def __init__(self, declname, type, coord=None):
