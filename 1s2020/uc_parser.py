@@ -38,7 +38,7 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 3:
-            p[0] = p[2]
+            p[0] = [p[1]] + [p[2]]
 
     def p_global_declaration(self, p):
         ''' global_declaration : function_definition
@@ -82,7 +82,7 @@ class UCParser:
         if len(p) == 2:
             p[0] = p[1]
         elif len(p) == 4:
-            p[0] = p[1] + [p[3]]
+            p[0] = [p[1]]+ [p[3]]
 
     def p_init_declarator(self, p):
         ''' init_declarator : declarator
@@ -124,7 +124,7 @@ class UCParser:
         if len(p) == 2:
             p[0] = [p[1]]
         elif len(p) == 4:
-            p[0] = p[1] + [[3]]
+            p[0] = p[1] + [p[3]]
 
     def p_declaration(self, p):
         ''' declaration :  type_specifier init_declarator_list_opt SEMI
@@ -144,7 +144,7 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 3:
-            p[0] = p[1] + [p[2]]
+            p[0] = [p[1]] + [p[2]]
 
     def p_declarator(self, p):
         ''' declarator : pointer_opt direct_declarator
@@ -244,11 +244,11 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 6:
-            p[0] = (p[3], p[5])
+            p[0] = (p[1], p[3], p[5])
         elif len(p) == 10:
-            p[0] = (p[3], p[5], p[7], p[9])
+            p[0] = (p[1], p[3], p[5], p[7], p[9])
         elif len(p) == 11:
-            p[0] = (p[3], p[4], p[6], p[8], p[10])
+            p[0] = (p[1], p[3], p[4], p[6], p[8], p[10])
 
     def p_jump_statement(self, p):
         ''' jump_statement : BREAK SEMI
@@ -314,12 +314,16 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 3:
-            if p[1] is not None:
-                if p[2] is not None:
-                    p[0] = p[1] + [p[2]]
-            elif p[1] is None:
-                if p[2] is not None:
-                    p[0] = p[2]
+            p[0] = [p[1]] + [p[2]]
+            # if p[1] is not None:
+            #     if p[2] is not None:
+            #         p[0] = p[1] + [p[2]]
+            #     else:
+            #         p[0] = [p[1]]
+            #
+            # elif p[1] is None:
+            #     if p[2] is not None:
+            #         p[0] = [p[2]]
 
     def p_assignment_expression(self, p):
         ''' assignment_expression : binary_expression
@@ -388,7 +392,7 @@ class UCParser:
         if len(p) == 2:
             p[0] = p[1]
         elif len(p) == 3:
-            p[0] = p[1]
+            p[0] = (p[2], p[1])
         elif len(p) == 5:
             p[0] = (p[1], p[3])
 
@@ -540,7 +544,13 @@ class UCParser:
         elif len(p) == 4:
             p[0] = p[2]
         elif len(p) == 5:
-            p[0] = (p[1], p[3])
+            if p[2] == '[' and p[4] == ']':
+                if p[3] is None:
+                    p[0] = ('Array', p[1], '')
+                else:
+                    p[0] = ('Array', p[1], p[3])
+            else:
+                p[0] = (p[1], p[3])
 
     def p_id_list(self, p):
         ''' id_list : id_list ID
@@ -567,10 +577,10 @@ class UCParser:
 
     def p_empty(self, p):
         ''' empty :'''
-        print("Inside p_empty:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
+        # print("Inside p_empty:")
+        # for i in range(len(p)):
+        #     print("p[{0}] = {1}".format(i, p[i]))
+        # print('End')
         pass
 
     def parse(self, code, filename='', debug=0):
