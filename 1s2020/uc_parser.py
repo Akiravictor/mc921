@@ -37,8 +37,13 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
+        if len(p) == 2:
+            if p[1] is None:
+                p[0] = []
+            else:
+                p[0] = [p[1]]
         if len(p) == 3:
-            p[0] = [p[1]] + [p[2]]
+            p[0] = p[1] + [p[2]]
 
     def p_global_declaration(self, p):
         ''' global_declaration : function_definition
@@ -80,9 +85,9 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 2:
-            p[0] = p[1]
+            p[0] = [p[1]]
         elif len(p) == 4:
-            p[0] = [p[1]]+ [p[3]]
+            p[0] = p[1] + [p[3]]
 
     def p_init_declarator(self, p):
         ''' init_declarator : declarator
@@ -143,8 +148,13 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
+        if len(p) == 2:
+            if p[1] is None:
+                p[0] = []
+            else:
+                p[0] = p[1]
         if len(p) == 3:
-            p[0] = [p[1]] + [p[2]]
+            p[0] = p[1] + [p[2]]
 
     def p_declarator(self, p):
         ''' declarator : pointer_opt direct_declarator
@@ -230,9 +240,9 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 6:
-            p[0] = (p[3], p[5])
+            p[0] = (p[1], p[3], p[5])
         elif len(p) == 8:
-            p[0] = (p[3], p[5], p[7])
+            p[0] = (p[1], p[3], p[5], p[6], p[7])
 
     def p_iteration_statement(self, p):
         ''' iteration_statement : WHILE LPAREN expression RPAREN statement
@@ -248,7 +258,7 @@ class UCParser:
         elif len(p) == 10:
             p[0] = (p[1], p[3], p[5], p[7], p[9])
         elif len(p) == 11:
-            p[0] = (p[1], p[3], p[4], p[6], p[8], p[10])
+            p[0] = (p[1], p[3], p[4], p[6], p[8], [p[10]])
 
     def p_jump_statement(self, p):
         ''' jump_statement : BREAK SEMI
@@ -313,8 +323,16 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
+        if len(p) == 2:
+            if p[1] is None:
+                p[0] = []
+            else:
+                p[0] = p[1]
         if len(p) == 3:
-            p[0] = [p[1]] + [p[2]]
+            if p[2] is None:
+                p[0] = p[1]
+            else:
+                p[0] = p[1] + [p[2]]
             # if p[1] is not None:
             #     if p[2] is not None:
             #         p[0] = p[1] + [p[2]]
@@ -560,6 +578,11 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
+        if len(p) == 2:
+            if p[1] is None:
+                p[0] = []
+            else:
+                p[0] = p[1]
         if len(p) == 3:
             p[0] = p[1] + [p[2]]
 
