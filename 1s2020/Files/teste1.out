@@ -1,0 +1,617 @@
+Outputting the AST to Files/teste1.ast.
+I'm on parser! :D
+I'm on lexer!
+Inside p_global_declaration_list:
+p[0] = None
+p[1] = None
+End
+Inside p_type_specifier:
+p[0] = None
+p[1] = int
+End
+Inside p_pointer_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = n
+End
+Inside p_declarator:
+p[0] = None
+p[1] = None
+p[2] = n
+End
+Inside p_constant:
+p[0] = None
+p[1] = 3
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = 3
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = 3
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = 3
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = 3
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = 3
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = 3
+End
+Inside p_initializer:
+p[0] = None
+p[1] = 3
+End
+Inside p_init_declarator:
+p[0] = None
+p[1] = n
+p[2] = =
+p[3] = 3
+End
+Inside p_init_declarator_list:
+p[0] = None
+p[1] = ('=', 'n', '3')
+End
+Inside p_init_declarator_list_opt:
+p[0] = None
+p[1] = [('=', 'n', '3')]
+End
+Inside p_declaration:
+p[0] = None
+p[1] = int
+p[2] = [('=', 'n', '3')]
+p[3] = ;
+End
+Inside p_global_declaration:
+p[0] = None
+p[1] = ('int', [('=', 'n', '3')])
+End
+Inside p_global_declaration_list:
+p[0] = None
+p[1] = []
+p[2] = ('int', [('=', 'n', '3')])
+End
+Inside p_type_specifier:
+p[0] = None
+p[1] = int
+End
+Inside p_pointer_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = doubleMe
+End
+Inside p_type_specifier:
+p[0] = None
+p[1] = int
+End
+Inside p_pointer_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = x
+End
+Inside p_declarator:
+p[0] = None
+p[1] = None
+p[2] = x
+End
+Inside p_parameter_declaration:
+p[0] = None
+p[1] = int
+p[2] = x
+End
+Inside p_parameter_list:
+p[0] = None
+p[1] = ('int', 'x')
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = doubleMe
+p[2] = (
+p[3] = [('int', 'x')]
+p[4] = )
+End
+Inside p_declarator:
+p[0] = None
+p[1] = None
+p[2] = ('doubleMe', [('int', 'x')])
+End
+Inside p_declaration_list_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = x
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = x
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = x
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = x
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = x
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = x
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = x
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = x
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = x
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = x
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = x
+p[2] = *
+p[3] = x
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = ('*', 'x', 'x')
+End
+Inside p_expression:
+p[0] = None
+p[1] = ('*', 'x', 'x')
+End
+Inside p_jump_statement:
+p[0] = None
+p[1] = return
+p[2] = ('*', 'x', 'x')
+p[3] = ;
+End
+Inside p_statement:
+p[0] = None
+p[1] = ('*', 'x', 'x')
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = []
+p[2] = ('*', 'x', 'x')
+End
+Inside p_compound_statement:
+p[0] = None
+p[1] = {
+p[2] = []
+p[3] = [('*', 'x', 'x')]
+p[4] = }
+End
+Inside p_function_definition:
+p[0] = None
+p[1] = int
+p[2] = ('doubleMe', [('int', 'x')])
+p[3] = ([], [('*', 'x', 'x')])
+End
+Inside p_global_declaration:
+p[0] = None
+p[1] = ('int', ('doubleMe', [('int', 'x')]), ([], [('*', 'x', 'x')]))
+End
+Inside p_global_declaration_list:
+p[0] = None
+p[1] = [('int', [('=', 'n', '3')])]
+p[2] = ('int', ('doubleMe', [('int', 'x')]), ([], [('*', 'x', 'x')]))
+End
+Inside p_type_specifier:
+p[0] = None
+p[1] = void
+End
+Inside p_pointer_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = main
+End
+Inside p_id_list:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = main
+p[2] = (
+p[3] = []
+p[4] = )
+End
+Inside p_declarator:
+p[0] = None
+p[1] = None
+p[2] = ('main', [])
+End
+Inside p_declaration_list_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_type_specifier:
+p[0] = None
+p[1] = int
+End
+Inside p_pointer_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = v
+End
+Inside p_declarator:
+p[0] = None
+p[1] = None
+p[2] = v
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_initializer:
+p[0] = None
+p[1] = n
+End
+Inside p_init_declarator:
+p[0] = None
+p[1] = v
+p[2] = =
+p[3] = n
+End
+Inside p_init_declarator_list:
+p[0] = None
+p[1] = ('=', 'v', 'n')
+End
+Inside p_init_declarator_list_opt:
+p[0] = None
+p[1] = [('=', 'v', 'n')]
+End
+Inside p_declaration:
+p[0] = None
+p[1] = int
+p[2] = [('=', 'v', 'n')]
+p[3] = ;
+End
+Inside p_declaration_list_opt:
+p[0] = None
+p[1] = []
+p[2] = ('int', [('=', 'v', 'n')])
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_assignment_operator:
+p[0] = None
+p[1] = =
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = doubleMe
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = doubleMe
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_argument_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_argument_expression_opt:
+p[0] = None
+p[1] = v
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = doubleMe
+p[2] = (
+p[3] = v
+p[4] = )
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = ('doubleMe', 'v')
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = ('doubleMe', 'v')
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = ('doubleMe', 'v')
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = ('doubleMe', 'v')
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = v
+p[2] = =
+p[3] = ('doubleMe', 'v')
+End
+Inside p_expression:
+p[0] = None
+p[1] = ('=', 'v', ('doubleMe', 'v'))
+End
+Inside p_expression_opt:
+p[0] = None
+p[1] = ('=', 'v', ('doubleMe', 'v'))
+End
+Inside p_expression_statement:
+p[0] = None
+p[1] = ('=', 'v', ('doubleMe', 'v'))
+p[2] = ;
+End
+Inside p_statement:
+p[0] = None
+p[1] = ('=', 'v', ('doubleMe', 'v'))
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = []
+p[2] = ('=', 'v', ('doubleMe', 'v'))
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = v
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = n
+p[2] = *
+p[3] = n
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = v
+p[2] = ==
+p[3] = ('*', 'n', 'n')
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = ('==', 'v', ('*', 'n', 'n'))
+End
+Inside p_expression:
+p[0] = None
+p[1] = ('==', 'v', ('*', 'n', 'n'))
+End
+Inside p_assert_statement:
+p[0] = None
+p[1] = assert
+p[2] = ('==', 'v', ('*', 'n', 'n'))
+p[3] = ;
+End
+Inside p_statement:
+p[0] = None
+p[1] = ('==', 'v', ('*', 'n', 'n'))
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = [('=', 'v', ('doubleMe', 'v'))]
+p[2] = ('==', 'v', ('*', 'n', 'n'))
+End
+Inside p_constant:
+p[0] = None
+p[1] = 0
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_jump_statement:
+p[0] = None
+p[1] = return
+p[2] = 0
+p[3] = ;
+End
+Inside p_statement:
+p[0] = None
+p[1] = 0
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = [('=', 'v', ('doubleMe', 'v')), ('==', 'v', ('*', 'n', 'n'))]
+p[2] = 0
+End
+Inside p_compound_statement:
+p[0] = None
+p[1] = {
+p[2] = [('int', [('=', 'v', 'n')])]
+p[3] = [('=', 'v', ('doubleMe', 'v')), ('==', 'v', ('*', 'n', 'n')), '0']
+p[4] = }
+End
+Inside p_function_definition:
+p[0] = None
+p[1] = void
+p[2] = ('main', [])
+p[3] = ([('int', [('=', 'v', 'n')])], [('=', 'v', ('doubleMe', 'v')), ('==', 'v', ('*', 'n', 'n')), '0'])
+End
+Inside p_global_declaration:
+p[0] = None
+p[1] = ('void', ('main', []), ([('int', [('=', 'v', 'n')])], [('=', 'v', ('doubleMe', 'v')), ('==', 'v', ('*', 'n', 'n')), '0']))
+End
+Inside p_global_declaration_list:
+p[0] = None
+p[1] = [('int', [('=', 'n', '3')]), ('int', ('doubleMe', [('int', 'x')]), ([], [('*', 'x', 'x')]))]
+p[2] = ('void', ('main', []), ([('int', [('=', 'v', 'n')])], [('=', 'v', ('doubleMe', 'v')), ('==', 'v', ('*', 'n', 'n')), '0']))
+End
+Inside p_program:
+p[0] = None
+p[1] = [('int', [('=', 'n', '3')]), ('int', ('doubleMe', [('int', 'x')]), ([], [('*', 'x', 'x')])), ('void', ('main', []), ([('int', [('=', 'v', 'n')])], [('=', 'v', ('doubleMe', 'v')), ('==', 'v', ('*', 'n', 'n')), '0']))]
+End
+[('int', [('=', 'n', '3')]), ('int', ('doubleMe', [('int', 'x')]), ([], [('*', 'x', 'x')])), ('void', ('main', []), ([('int', [('=', 'v', 'n')])], [('=', 'v', ('doubleMe', 'v')), ('==', 'v', ('*', 'n', 'n')), '0']))]
+I'm on show

@@ -1,7 +1,8 @@
 int v[] = {1, 2, 3, 4};
 int main(){
-    for (int i = 1; i <= 4; i++)
+    for (int i = 1; i <= 4; i++){
         print(v[i]);
-        print(i);
+        print((int)i);
+    }
     return;
 }

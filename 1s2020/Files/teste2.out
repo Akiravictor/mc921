@@ -1,0 +1,1227 @@
+Outputting the AST to Files/teste2.ast.
+I'm on parser! :D
+I'm on lexer!
+Inside p_global_declaration_list:
+p[0] = None
+p[1] = None
+End
+Inside p_type_specifier:
+p[0] = None
+p[1] = int
+End
+Inside p_pointer_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = f
+End
+Inside p_type_specifier:
+p[0] = None
+p[1] = int
+End
+Inside p_pointer_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = n
+End
+Inside p_declarator:
+p[0] = None
+p[1] = None
+p[2] = n
+End
+Inside p_parameter_declaration:
+p[0] = None
+p[1] = int
+p[2] = n
+End
+Inside p_parameter_list:
+p[0] = None
+p[1] = ('int', 'n')
+End
+Inside p_type_specifier:
+p[0] = None
+p[1] = int
+End
+Inside p_pointer_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = k
+End
+Inside p_declarator:
+p[0] = None
+p[1] = None
+p[2] = k
+End
+Inside p_parameter_declaration:
+p[0] = None
+p[1] = int
+p[2] = k
+End
+Inside p_parameter_list:
+p[0] = None
+p[1] = [('int', 'n')]
+p[2] = ,
+p[3] = ('int', 'k')
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = f
+p[2] = (
+p[3] = [('int', 'n'), ('int', 'k')]
+p[4] = )
+End
+Inside p_declarator:
+p[0] = None
+p[1] = None
+p[2] = ('f', [('int', 'n'), ('int', 'k')])
+End
+Inside p_declaration_list_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_type_specifier:
+p[0] = None
+p[1] = int
+End
+Inside p_pointer_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = p
+End
+Inside p_declarator:
+p[0] = None
+p[1] = None
+p[2] = p
+End
+Inside p_init_declarator:
+p[0] = None
+p[1] = p
+End
+Inside p_init_declarator_list:
+p[0] = None
+p[1] = p
+End
+Inside p_pointer_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = q
+End
+Inside p_declarator:
+p[0] = None
+p[1] = None
+p[2] = q
+End
+Inside p_init_declarator:
+p[0] = None
+p[1] = q
+End
+Inside p_init_declarator_list:
+p[0] = None
+p[1] = ['p']
+p[2] = ,
+p[3] = q
+End
+Inside p_pointer_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = t
+End
+Inside p_declarator:
+p[0] = None
+p[1] = None
+p[2] = t
+End
+Inside p_init_declarator:
+p[0] = None
+p[1] = t
+End
+Inside p_init_declarator_list:
+p[0] = None
+p[1] = ['p', 'q']
+p[2] = ,
+p[3] = t
+End
+Inside p_init_declarator_list_opt:
+p[0] = None
+p[1] = ['p', 'q', 't']
+End
+Inside p_declaration:
+p[0] = None
+p[1] = int
+p[2] = ['p', 'q', 't']
+p[3] = ;
+End
+Inside p_declaration_list_opt:
+p[0] = None
+p[1] = []
+p[2] = ('int', ['p', 'q', 't'])
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_constant:
+p[0] = None
+p[1] = 2
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = 2
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = 2
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = 2
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = 2
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = 2
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = n
+p[2] = <
+p[3] = 2
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = ('<', 'n', '2')
+End
+Inside p_expression:
+p[0] = None
+p[1] = ('<', 'n', '2')
+End
+Inside p_declaration_list_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = k
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = k
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = k
+End
+Inside p_assignment_operator:
+p[0] = None
+p[1] = =
+End
+Inside p_constant:
+p[0] = None
+p[1] = 0
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = k
+p[2] = =
+p[3] = 0
+End
+Inside p_expression:
+p[0] = None
+p[1] = ('=', 'k', '0')
+End
+Inside p_expression_opt:
+p[0] = None
+p[1] = ('=', 'k', '0')
+End
+Inside p_expression_statement:
+p[0] = None
+p[1] = ('=', 'k', '0')
+p[2] = ;
+End
+Inside p_statement:
+p[0] = None
+p[1] = ('=', 'k', '0')
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = []
+p[2] = ('=', 'k', '0')
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_jump_statement:
+p[0] = None
+p[1] = return
+p[2] = n
+p[3] = ;
+End
+Inside p_statement:
+p[0] = None
+p[1] = n
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = [('=', 'k', '0')]
+p[2] = n
+End
+Inside p_compound_statement:
+p[0] = None
+p[1] = {
+p[2] = []
+p[3] = [('=', 'k', '0'), 'n']
+p[4] = }
+End
+Inside p_statement:
+p[0] = None
+p[1] = ([], [('=', 'k', '0'), 'n'])
+End
+Inside p_declaration_list_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = t
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = t
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = t
+End
+Inside p_assignment_operator:
+p[0] = None
+p[1] = =
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = f
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = f
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_constant:
+p[0] = None
+p[1] = 1
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = 1
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = 1
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = 1
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = 1
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = 1
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = n
+p[2] = -
+p[3] = 1
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = ('-', 'n', '1')
+End
+Inside p_argument_expression:
+p[0] = None
+p[1] = ('-', 'n', '1')
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = p
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = p
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = p
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = p
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = p
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = p
+End
+Inside p_argument_expression:
+p[0] = None
+p[1] = ('-', 'n', '1')
+p[2] = ,
+p[3] = p
+End
+Inside p_argument_expression_opt:
+p[0] = None
+p[1] = (('-', 'n', '1'), 'p')
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = f
+p[2] = (
+p[3] = (('-', 'n', '1'), 'p')
+p[4] = )
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = ('f', (('-', 'n', '1'), 'p'))
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = ('f', (('-', 'n', '1'), 'p'))
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = ('f', (('-', 'n', '1'), 'p'))
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = f
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = f
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = n
+End
+Inside p_constant:
+p[0] = None
+p[1] = 2
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = 2
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = 2
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = 2
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = 2
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = 2
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = n
+p[2] = -
+p[3] = 2
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = ('-', 'n', '2')
+End
+Inside p_argument_expression:
+p[0] = None
+p[1] = ('-', 'n', '2')
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = q
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = q
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = q
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = q
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = q
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = q
+End
+Inside p_argument_expression:
+p[0] = None
+p[1] = ('-', 'n', '2')
+p[2] = ,
+p[3] = q
+End
+Inside p_argument_expression_opt:
+p[0] = None
+p[1] = (('-', 'n', '2'), 'q')
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = f
+p[2] = (
+p[3] = (('-', 'n', '2'), 'q')
+p[4] = )
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = ('f', (('-', 'n', '2'), 'q'))
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = ('f', (('-', 'n', '2'), 'q'))
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = ('f', (('-', 'n', '2'), 'q'))
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = ('f', (('-', 'n', '1'), 'p'))
+p[2] = +
+p[3] = ('f', (('-', 'n', '2'), 'q'))
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = t
+p[2] = =
+p[3] = ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))
+End
+Inside p_expression:
+p[0] = None
+p[1] = ('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q'))))
+End
+Inside p_expression_opt:
+p[0] = None
+p[1] = ('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q'))))
+End
+Inside p_expression_statement:
+p[0] = None
+p[1] = ('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q'))))
+p[2] = ;
+End
+Inside p_statement:
+p[0] = None
+p[1] = ('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q'))))
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = []
+p[2] = ('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q'))))
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = k
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = k
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = k
+End
+Inside p_assignment_operator:
+p[0] = None
+p[1] = =
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = p
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = p
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = p
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = p
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = p
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = q
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = q
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = q
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = q
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = q
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = p
+p[2] = +
+p[3] = q
+End
+Inside p_constant:
+p[0] = None
+p[1] = 1
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = 1
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = 1
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = 1
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = 1
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = 1
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = ('+', 'p', 'q')
+p[2] = +
+p[3] = 1
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = ('+', ('+', 'p', 'q'), '1')
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = k
+p[2] = =
+p[3] = ('+', ('+', 'p', 'q'), '1')
+End
+Inside p_expression:
+p[0] = None
+p[1] = ('=', 'k', ('+', ('+', 'p', 'q'), '1'))
+End
+Inside p_expression_opt:
+p[0] = None
+p[1] = ('=', 'k', ('+', ('+', 'p', 'q'), '1'))
+End
+Inside p_expression_statement:
+p[0] = None
+p[1] = ('=', 'k', ('+', ('+', 'p', 'q'), '1'))
+p[2] = ;
+End
+Inside p_statement:
+p[0] = None
+p[1] = ('=', 'k', ('+', ('+', 'p', 'q'), '1'))
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = [('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q'))))]
+p[2] = ('=', 'k', ('+', ('+', 'p', 'q'), '1'))
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = t
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = t
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = t
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = t
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = t
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = t
+End
+Inside p_expression:
+p[0] = None
+p[1] = t
+End
+Inside p_jump_statement:
+p[0] = None
+p[1] = return
+p[2] = t
+p[3] = ;
+End
+Inside p_statement:
+p[0] = None
+p[1] = t
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = [('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))), ('=', 'k', ('+', ('+', 'p', 'q'), '1'))]
+p[2] = t
+End
+Inside p_compound_statement:
+p[0] = None
+p[1] = {
+p[2] = []
+p[3] = [('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))), ('=', 'k', ('+', ('+', 'p', 'q'), '1')), 't']
+p[4] = }
+End
+Inside p_statement:
+p[0] = None
+p[1] = ([], [('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))), ('=', 'k', ('+', ('+', 'p', 'q'), '1')), 't'])
+End
+Inside p_selection_statement:
+p[0] = None
+p[1] = if
+p[2] = (
+p[3] = ('<', 'n', '2')
+p[4] = )
+p[5] = ([], [('=', 'k', '0'), 'n'])
+p[6] = else
+p[7] = ([], [('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))), ('=', 'k', ('+', ('+', 'p', 'q'), '1')), 't'])
+End
+Inside p_statement:
+p[0] = None
+p[1] = ('if', ('<', 'n', '2'), ([], [('=', 'k', '0'), 'n']), 'else', ([], [('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))), ('=', 'k', ('+', ('+', 'p', 'q'), '1')), 't']))
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = []
+p[2] = ('if', ('<', 'n', '2'), ([], [('=', 'k', '0'), 'n']), 'else', ([], [('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))), ('=', 'k', ('+', ('+', 'p', 'q'), '1')), 't']))
+End
+Inside p_compound_statement:
+p[0] = None
+p[1] = {
+p[2] = [('int', ['p', 'q', 't'])]
+p[3] = [('if', ('<', 'n', '2'), ([], [('=', 'k', '0'), 'n']), 'else', ([], [('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))), ('=', 'k', ('+', ('+', 'p', 'q'), '1')), 't']))]
+p[4] = }
+End
+Inside p_function_definition:
+p[0] = None
+p[1] = int
+p[2] = ('f', [('int', 'n'), ('int', 'k')])
+p[3] = ([('int', ['p', 'q', 't'])], [('if', ('<', 'n', '2'), ([], [('=', 'k', '0'), 'n']), 'else', ([], [('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))), ('=', 'k', ('+', ('+', 'p', 'q'), '1')), 't']))])
+End
+Inside p_global_declaration:
+p[0] = None
+p[1] = ('int', ('f', [('int', 'n'), ('int', 'k')]), ([('int', ['p', 'q', 't'])], [('if', ('<', 'n', '2'), ([], [('=', 'k', '0'), 'n']), 'else', ([], [('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))), ('=', 'k', ('+', ('+', 'p', 'q'), '1')), 't']))]))
+End
+Inside p_global_declaration_list:
+p[0] = None
+p[1] = []
+p[2] = ('int', ('f', [('int', 'n'), ('int', 'k')]), ([('int', ['p', 'q', 't'])], [('if', ('<', 'n', '2'), ([], [('=', 'k', '0'), 'n']), 'else', ([], [('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))), ('=', 'k', ('+', ('+', 'p', 'q'), '1')), 't']))]))
+End
+Inside p_type_specifier:
+p[0] = None
+p[1] = int
+End
+Inside p_pointer_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = main
+End
+Inside p_id_list:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = main
+p[2] = (
+p[3] = []
+p[4] = )
+End
+Inside p_declarator:
+p[0] = None
+p[1] = None
+p[2] = ('main', [])
+End
+Inside p_declaration_list_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_type_specifier:
+p[0] = None
+p[1] = int
+End
+Inside p_pointer_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_direct_declarator:
+p[0] = None
+p[1] = m
+End
+Inside p_declarator:
+p[0] = None
+p[1] = None
+p[2] = m
+End
+Inside p_constant:
+p[0] = None
+p[1] = 9
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = 9
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = 9
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = 9
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = 9
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = 9
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = 9
+End
+Inside p_initializer:
+p[0] = None
+p[1] = 9
+End
+Inside p_init_declarator:
+p[0] = None
+p[1] = m
+p[2] = =
+p[3] = 9
+End
+Inside p_init_declarator_list:
+p[0] = None
+p[1] = ('=', 'm', '9')
+End
+Inside p_init_declarator_list_opt:
+p[0] = None
+p[1] = [('=', 'm', '9')]
+End
+Inside p_declaration:
+p[0] = None
+p[1] = int
+p[2] = [('=', 'm', '9')]
+p[3] = ;
+End
+Inside p_declaration_list_opt:
+p[0] = None
+p[1] = []
+p[2] = ('int', [('=', 'm', '9')])
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = None
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = f
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = f
+End
+Inside p_constant:
+p[0] = None
+p[1] = 3
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = 3
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = 3
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = 3
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = 3
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = 3
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = 3
+End
+Inside p_argument_expression:
+p[0] = None
+p[1] = 3
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = m
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = m
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = m
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = m
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = m
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = m
+End
+Inside p_argument_expression:
+p[0] = None
+p[1] = 3
+p[2] = ,
+p[3] = m
+End
+Inside p_argument_expression_opt:
+p[0] = None
+p[1] = ('3', 'm')
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = f
+p[2] = (
+p[3] = ('3', 'm')
+p[4] = )
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = ('f', ('3', 'm'))
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = ('f', ('3', 'm'))
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = ('f', ('3', 'm'))
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = ('f', ('3', 'm'))
+End
+Inside p_expression:
+p[0] = None
+p[1] = ('f', ('3', 'm'))
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = m
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = m
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = m
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = m
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = m
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = m
+End
+Inside p_expression:
+p[0] = None
+p[1] = ('f', ('3', 'm'))
+p[2] = ,
+p[3] = m
+End
+Inside p_expression_opt:
+p[0] = None
+p[1] = (('f', ('3', 'm')), 'm')
+End
+Inside p_print_statement:
+p[0] = None
+p[1] = print
+p[2] = (
+p[3] = (('f', ('3', 'm')), 'm')
+p[4] = )
+p[5] = ;
+End
+Inside p_statement:
+p[0] = None
+p[1] = ('print', (('f', ('3', 'm')), 'm'))
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = []
+p[2] = ('print', (('f', ('3', 'm')), 'm'))
+End
+Inside p_constant:
+p[0] = None
+p[1] = 0
+End
+Inside p_primary_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_postfix_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_unary_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_cast_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_binary_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_assignment_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_expression:
+p[0] = None
+p[1] = 0
+End
+Inside p_jump_statement:
+p[0] = None
+p[1] = return
+p[2] = 0
+p[3] = ;
+End
+Inside p_statement:
+p[0] = None
+p[1] = 0
+End
+Inside p_statement_list_opt:
+p[0] = None
+p[1] = [('print', (('f', ('3', 'm')), 'm'))]
+p[2] = 0
+End
+Inside p_compound_statement:
+p[0] = None
+p[1] = {
+p[2] = [('int', [('=', 'm', '9')])]
+p[3] = [('print', (('f', ('3', 'm')), 'm')), '0']
+p[4] = }
+End
+Inside p_function_definition:
+p[0] = None
+p[1] = int
+p[2] = ('main', [])
+p[3] = ([('int', [('=', 'm', '9')])], [('print', (('f', ('3', 'm')), 'm')), '0'])
+End
+Inside p_global_declaration:
+p[0] = None
+p[1] = ('int', ('main', []), ([('int', [('=', 'm', '9')])], [('print', (('f', ('3', 'm')), 'm')), '0']))
+End
+Inside p_global_declaration_list:
+p[0] = None
+p[1] = [('int', ('f', [('int', 'n'), ('int', 'k')]), ([('int', ['p', 'q', 't'])], [('if', ('<', 'n', '2'), ([], [('=', 'k', '0'), 'n']), 'else', ([], [('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))), ('=', 'k', ('+', ('+', 'p', 'q'), '1')), 't']))]))]
+p[2] = ('int', ('main', []), ([('int', [('=', 'm', '9')])], [('print', (('f', ('3', 'm')), 'm')), '0']))
+End
+Inside p_program:
+p[0] = None
+p[1] = [('int', ('f', [('int', 'n'), ('int', 'k')]), ([('int', ['p', 'q', 't'])], [('if', ('<', 'n', '2'), ([], [('=', 'k', '0'), 'n']), 'else', ([], [('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))), ('=', 'k', ('+', ('+', 'p', 'q'), '1')), 't']))])), ('int', ('main', []), ([('int', [('=', 'm', '9')])], [('print', (('f', ('3', 'm')), 'm')), '0']))]
+End
+[('int', ('f', [('int', 'n'), ('int', 'k')]), ([('int', ['p', 'q', 't'])], [('if', ('<', 'n', '2'), ([], [('=', 'k', '0'), 'n']), 'else', ([], [('=', 't', ('+', ('f', (('-', 'n', '1'), 'p')), ('f', (('-', 'n', '2'), 'q')))), ('=', 'k', ('+', ('+', 'p', 'q'), '1')), 't']))])), ('int', ('main', []), ([('int', [('=', 'm', '9')])], [('print', (('f', ('3', 'm')), 'm')), '0']))]
+I'm on show

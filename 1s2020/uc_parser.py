@@ -4,6 +4,9 @@ import ply.yacc as yacc
 
 
 class UCParser:
+    isCast = False
+
+
     def __init__(self):
         self.errors = 0
         self.warnings = 0
@@ -13,6 +16,13 @@ class UCParser:
 
     def show(self, buf=None, showcoord=True):
         print("I'm on show")
+
+    def _token_coord(self, p, token_idx):
+        last_cr = p.lexer.lexer.lexdata.rfind('\n', 0, p.lexpos(token_idx))
+        if last_cr < 0:
+            last_cr = -1
+        column = (p.lexpos(token_idx) - (last_cr))
+        return Coord(p.lineno(token_idx), column)
 
     def p_error(self, p):
         if p:
@@ -28,6 +38,7 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         p[0] = p[1]
+        p[0] = Program(p[1])
 
     def p_global_declaration_list(self, p):
         ''' global_declaration_list : global_declaration_list global_declaration
@@ -63,7 +74,7 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = (p[1], p[2], p[3])
+        p[0] = FuncDef(p[1], p[2], p[3])
 
     def p_init_declarator_list_opt(self, p):
         ''' init_declarator_list_opt : init_declarator_list
@@ -74,7 +85,7 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if p[1] is not None:
-            p[0] = p[1]
+            p[0] = DeclList(p[1])
 
     def p_init_declarator_list(self, p):
         ''' init_declarator_list : init_declarator
@@ -98,7 +109,7 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 2:
-            p[0] = p[1]
+            p[0] = Decl(p[1])
         elif len(p) == 4:
             p[0] = (p[2], p[1], p[3])
 
@@ -258,7 +269,7 @@ class UCParser:
         elif len(p) == 10:
             p[0] = (p[1], p[3], p[5], p[7], p[9])
         elif len(p) == 11:
-            p[0] = (p[1], p[3], p[4], p[6], p[8], [p[10]])
+            p[0] = (p[1], p[3], p[4], p[6], p[8], p[10])
 
     def p_jump_statement(self, p):
         ''' jump_statement : BREAK SEMI
@@ -269,8 +280,10 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 4:
-            p[0] = p[2]
+        if len(p) == 3:
+            p[0] = (p[1])
+        elif len(p) == 4:
+            p[0] = (p[1], p[2])
 
     def p_assert_statement(self, p):
         ''' assert_statement : ASSERT expression SEMI
@@ -352,7 +365,7 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 4:
-            p[0] = (p[2], p[1], p[3])
+            p[0] = Assignment(p[2], p[1], p[3])
         elif len(p) == 2:
             p[0] = p[1]
 
@@ -377,9 +390,12 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 2:
-            p[0] = p[1]
+            if isinstance(p[1], Cast):
+                p[0] = p[1]
+            else:
+                p[0] = p[1]
         elif len(p) == 4:
-            p[0] = (p[2], p[1], p[3])
+            p[0] = BinaryOp(p[2], p[1], p[3])
 
     def p_unary_expression(self, p):
         ''' unary_expression : postfix_expression
@@ -394,7 +410,11 @@ class UCParser:
         if len(p) == 2:
             p[0] = p[1]
         elif len(p) == 3:
-            p[0] = (p[1], p[2])
+            if isinstance(p[2], Cast):
+                p[0] = p[2]
+            else:
+                p[0] = UnaryOp(p[1], p[2])
+            # p[0] = (p[1], p[2])
 
     def p_postfix_expression(self, p):
         ''' postfix_expression : primary_expression
@@ -425,7 +445,7 @@ class UCParser:
         if len(p) == 2:
             p[0] = p[1]
         elif len(p) == 5:
-            p[0] = (p[2], p[4])
+            p[0] = Cast(p[1],p[2])
 
     def p_primary_expression(self, p):
         ''' primary_expression : ID
@@ -438,7 +458,7 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 2:
-            p[0] = p[1]
+            p[0] = ID(p[1])
         elif len(p) == 4:
             p[0] = p[2]
 
@@ -522,7 +542,15 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = p[1]
+
+        if p.slice[1].type == 'INT_CONST':
+            type = 'int'
+        elif p.slice[1].type == 'FLOAT_CONST':
+            type = 'float'
+        elif p.slice[1].type == 'CHAR_CONST':
+            type = 'char'
+
+        p[0] = Constant(type, p[1])
 
     def p_pointer_opt(self, p):
         ''' pointer_opt : pointer
@@ -544,7 +572,7 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 3:
-            p[0] = p[2]
+            p[0] = PtrDecl(p[2])
 
     def p_direct_declarator(self, p):
         ''' direct_declarator : ID
@@ -596,7 +624,7 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = p[1]
+        p[0] = Type(p[1])
 
     def p_empty(self, p):
         ''' empty :'''
@@ -627,7 +655,7 @@ class UCParser:
 
         parser = yacc.yacc(module=self, write_tables=False)
         # print(code)
-        result = parser.parse(code)
+        result = parser.parse(code, tracking=True)
         # result = parser.parse("int a = 2;")
         print(result)
 
