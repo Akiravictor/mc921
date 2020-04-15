@@ -4,9 +4,6 @@ import ply.yacc as yacc
 
 
 class UCParser:
-    isCast = False
-
-
     def __init__(self):
         self.errors = 0
         self.warnings = 0
@@ -64,17 +61,23 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = p[1]
+        if isinstance(p[1], FuncDef):
+            p[0] = p[1]
+        else:
+            p[0] = GlobalDecl(p[1])
 
     def p_function_definition(self, p):
-        ''' function_definition : type_specifier declarator compound_statement
+        ''' function_definition : type_specifier declarator declaration_list_opt compound_statement
                                 | declarator declaration_list_opt compound_statement
         '''
         print("Inside p_function_definition:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = FuncDef(p[1], p[2], p[3])
+        if len(p) == 5:
+            p[0] = FuncDef(p[1], p[2], p[3], p[4])
+        elif len(p) == 4:
+            p[0] = FuncDef('void', p[1], p[2], p[3])
 
     def p_init_declarator_list_opt(self, p):
         ''' init_declarator_list_opt : init_declarator_list
@@ -591,6 +594,7 @@ class UCParser:
             p[0] = p[2]
         elif len(p) == 5:
             if p[2] == '[' and p[4] == ']':
+                # ArrayDecl()
                 if p[3] is None:
                     p[0] = ('Array', p[1], '')
                 else:

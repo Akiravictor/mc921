@@ -26,8 +26,7 @@ class Node(object):
         for name in self.__slots__[:-1]:
             result += separator
             result += indent
-            result += name + '=' + (
-                _repr(getattr(self, name)).replace('\n', '\n  ' + (' ' * (len(name) + len(self.__class__.__name__)))))
+            result += name + '=' + (_repr(getattr(self, name)).replace('\n', '\n  ' + (' ' * (len(name) + len(self.__class__.__name__)))))
 
             separator = ','
             indent = '\n ' + (' ' * len(self.__class__.__name__))
@@ -66,7 +65,7 @@ class Node(object):
 
         if self.attr_names:
             if attrnames:
-                nvlist = [(n, getattr(self, n)) for n in self.attr_names]
+                nvlist = [(n, getattr(self, n)) for n in self.attr_names if getattr(self, n) is not None]
                 attrstr = ', '.join('%s=%s' % nv for nv in nvlist)
             else:
                 vlist = [getattr(self, n) for n in self.attr_names]
@@ -184,7 +183,7 @@ class ArrayDecl(Node):
         if self.dim is not None:
             yield self.dim
 
-    attr_names = ( )
+    attr_names = ()
 
 
 class ArrayRef(Node):
@@ -510,9 +509,10 @@ class FuncDecl(Node):
 
 
 class FuncDef(Node):
-    __slots__ = ('decl', 'param_decls', 'body', 'coord')
+    __slots__ = ('spec', 'decl', 'param_decls', 'body', 'coord')
 
-    def __init__(self, decl, param_decls, body, coord=None):
+    def __init__(self, spec, decl, param_decls, body, coord=None):
+        self.spec = spec
         self.decl = decl
         self.param_decls = param_decls
         self.body = body
