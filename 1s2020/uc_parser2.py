@@ -63,6 +63,7 @@ class UCParser:
         declarations = []
 
         for decl in decls:
+            print(decl)
             assert decl['decl'] is not None
             declaration = Decl(name=None, type=decl['decl'], init=decl.get('init'), coord=decl.get('coord'))
 
@@ -87,9 +88,9 @@ class UCParser:
 
         decl.name = type.declname
 
-        for tn in typename:
+        for tn in typename.names:
             if not isinstance(tn, Type):
-                if len(typename) > 1:
+                if len(typename.names) > 1:
                     self._parse_error("Invalid multiple types specified", tn.coord)
 
                 else:
@@ -194,7 +195,7 @@ class UCParser:
     def p_init_declarator_list_1(self, p):
         ''' init_declarator_list : init_declarator
         '''
-        print("Inside p_init_declarator_list:")
+        print("Inside p_init_declarator_list_1:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
@@ -205,7 +206,7 @@ class UCParser:
     def p_init_declarator_list_2(self, p):
         ''' init_declarator_list : init_declarator_list COMMA init_declarator
         '''
-        print("Inside p_init_declarator_list:")
+        print("Inside p_init_declarator_list_2:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
@@ -289,8 +290,6 @@ class UCParser:
         spec = p[1]
         if p[2] is not None:
             decls = self._build_declarations(spec=spec, decls=p[2])
-        else:
-            decls = self._build_declarations(spec=spec, decls=[dict(decl=None, init=None)])
         p[0] = decls
 
     def p_declaration_list_opt(self, p):
@@ -319,6 +318,8 @@ class UCParser:
 
         if p[1] is None:
             p[0] = p[2]
+        else:
+            p[0] = self._type_modify_decl(p[2], p[1])
 
     def p_parameter_list_1(self, p):
         ''' parameter_list : parameter_declaration
