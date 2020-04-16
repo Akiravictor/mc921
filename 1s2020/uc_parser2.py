@@ -15,11 +15,33 @@ class UCParser:
         print("I'm on show")
 
     def _token_coord(self, p, token_idx):
-        last_cr = p.lexer.lexer.lexdata.rfind('\n', 0, p.lexpos(token_idx))
+        last_cr = p.lexer.lexdata.rfind('\n', 0, p.lexpos(token_idx))
         if last_cr < 0:
             last_cr = -1
         column = (p.lexpos(token_idx) - (last_cr))
-        return Coord(p.lineno(token_idx), column)
+        return Coord(p.lineno(token_idx), column).__str__()
+
+    def _type_modify_decl(self, decl, modifier):
+        modifier_head = modifier
+        modifier_tail = modifier
+
+        while modifier_tail.type:
+            modifier_tail = modifier_tail.type
+
+        if isinstance(decl, VarDecl):
+            modifier_tail = decl
+            return modifier
+        else:
+            decl_tail = decl
+
+            while not isinstance(decl_tail.type, VarDecl):
+                decl_tail = decl_tail.type
+
+            modifier_tail.type = decl_tail.type
+            decl_tail.type = modifier_head
+            return decl
+
+
 
     def p_error(self, p):
         if p:
@@ -33,11 +55,16 @@ class UCParser:
         return FuncDef(spec=spec, decl=declaration, param_decls=param_decls, body=body, coord=decl.coord)
 
     def _build_declarations(self, spec, decls):
+        print("Inside _build_declarations:")
+        for decl in decls:
+            print(decl)
+        print(spec)
+        print('End')
         declarations = []
 
         for decl in decls:
             assert decl['decl'] is not None
-            declaration = Decl(name=None, type=decl['decl'], init=decl.get('init'), coord=decl['decl'].coord)
+            declaration = Decl(name=None, type=decl['decl'], init=decl.get('init'), coord=decl.get('coord'))
 
             if isinstance(declaration.type, (Type)):
                 fixed_decl = declaration
@@ -49,6 +76,11 @@ class UCParser:
         return declarations
 
     def _fix_decl_name_type(self, decl, typename):
+        print("Inside _fix_decl_name_type:")
+        print(decl)
+        print("typename")
+        print(typename)
+        print('End')
         type = decl
         while not isinstance(type, VarDecl):
             type = type.type
@@ -157,9 +189,7 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if p[1] is not None:
-            # p[0] = DeclList(p[1])
-            p[0] = p[1]
+        p[0] = p[1]
 
     def p_init_declarator_list_1(self, p):
         ''' init_declarator_list : init_declarator
@@ -191,10 +221,10 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        # if len(p) == 2:
-        #     p[0] = Decl(p[1])
-        p[0] = dict(decl=p[1], init=(p[3] if len(p) > 2 else None))
-        pass
+        if len(p) == 2:
+            p[0] = dict(decl=p[1], init=None)
+        else:
+            p[0] = dict(decl=p[1], init=p[3])
 
 
     def p_initializer_1(self, p):
@@ -252,10 +282,16 @@ class UCParser:
     def p_decl_body(self, p):
         ''' decl_body : type_specifier init_declarator_list_opt
         '''
-
+        print("Inside p_decl_body:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
         spec = p[1]
-        decls = None
-
+        if p[2] is not None:
+            decls = self._build_declarations(spec=spec, decls=p[2])
+        else:
+            decls = self._build_declarations(spec=spec, decls=[dict(decl=None, init=None)])
+        p[0] = decls
 
     def p_declaration_list_opt(self, p):
         ''' declaration_list_opt : declaration_list_opt declaration
@@ -320,7 +356,7 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = (p[2], p[3])
+        p[0] = Compound(block_items=[2], coord=self._token_coord(p, 1))
 
     def p_expression_statement(self, p):
         ''' expression_statement : expression_opt SEMI
@@ -469,7 +505,7 @@ class UCParser:
         p[0] = Print(exprs, self._token_coord(p, 1))
 
     def p_read_statement(self, p):
-        ''' read_statement : READ LPAREN argument_expression RPAREN SEMI
+        ''' read_statement : READ LPAREN argument_expression_list RPAREN SEMI
         '''
         print("Inside p_read_statement:")
         for i in range(len(p)):
@@ -569,7 +605,7 @@ class UCParser:
         print('End')
         # if len(p) == 4:
         #     p[0] = BinaryOp(p[2], p[1], p[3])
-        p[0] = (p[2], p[1], p[3])
+        p[0] = BinaryOp(p[2], p[1], p[3], p[1].coord)
 
     def p_unary_expression_1(self, p):
         ''' unary_expression : postfix_expression
@@ -596,7 +632,7 @@ class UCParser:
         #         p[0] = p[2]
         #     else:
         #         p[0] = UnaryOp(p[1], p[2])
-        p[0] = (p[1], p[2])
+        p[0] = UnaryOp(p[1], p[2], p[2].coord)
 
     def p_postfix_expression_1(self, p):
         ''' postfix_expression : primary_expression
@@ -619,11 +655,10 @@ class UCParser:
         print('End')
         # if len(p) == 3:
         #     p[0] = (p[2], p[1])
-        p[0] = (p[2], p[1])
+        p[0] = UnaryOp('p' + p[2], p[1], p[1].coord)
 
     def p_postfix_expression_3(self, p):
         ''' postfix_expression : postfix_expression LBRACKET expression RBRACKET
-                               | postfix_expression LPAREN argument_expression_opt RPAREN
         '''
         print("Inside p_postfix_expression:")
         for i in range(len(p)):
@@ -631,7 +666,18 @@ class UCParser:
         print('End')
         # if len(p) == 5:
         #     p[0] = (p[1], p[3])
-        p[0] = (p[1], p[2], p[3], p[4])
+        p[0] = ArrayRef(p[1], p[3], p[1].coord)
+
+    def p_postfix_expression_4(self, p):
+        ''' postfix_expression : postfix_expression LPAREN argument_expression_opt RPAREN
+        '''
+        print("Inside p_postfix_expression:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 5:
+        #     p[0] = (p[1], p[3])
+        p[0] = FuncCall(p[1], p[3], p[1].coord)
 
     def p_cast_expression_1(self, p):
         ''' cast_expression : unary_expression
@@ -653,12 +699,22 @@ class UCParser:
         print('End')
         # if len(p) == 5:
         #     p[0] = Cast(p[1], p[2])
-        p[0] = (p[2], p[4])
+        p[0] = Cast(p[2], p[4], self._token_coord(p, 1))
+
+    def p_string_literal(self, p):
+        ''' string_literal : STRING
+        '''
+        print("Inside p_constant:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+
+        p[0] = Constant('string', p[1], self._token_coord(p, 1))
 
     def p_primary_expression_1(self, p):
-        ''' primary_expression : ID
+        ''' primary_expression : identifier
                                | constant
-                               | STRING
+                               | string_literal
         '''
         print("Inside p_primary_expression:")
         for i in range(len(p)):
@@ -685,7 +741,7 @@ class UCParser:
         p[0] = p[2]
 
     def p_argument_expression_opt(self, p):
-        ''' argument_expression_opt : argument_expression
+        ''' argument_expression_opt : argument_expression_list
                                     | empty
         '''
         print("Inside p_argument_expression_opt:")
@@ -695,27 +751,22 @@ class UCParser:
         if p[1] is not None:
             p[0] = p[1]
 
-    def p_argument_expression_1(self, p):
-        ''' argument_expression : assignment_expression
+    def p_argument_expression_list(self, p):
+        ''' argument_expression_list : assignment_expression
+                                     | argument_expression_list COMMA assignment_expression
         '''
-        print("Inside p_argument_expression:")
+        print("Inside p_argument_expression_list:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        # if len(p) == 2:
-        #     p[0] = p[1]
-        p[0] = p[1]
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            if not isinstance(p[1], ExprList):
+                p[1] = ExprList([p[1]], p[1].coord)
 
-    def p_argument_expression_2(self, p):
-        ''' argument_expression : argument_expression COMMA assignment_expression
-        '''
-        print("Inside p_argument_expression:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        # if len(p) == 4:
-        #     p[0] = (p[1], p[3])
-        p[0] = (p[1], p[3])
+            p[1].exprs.append(p[3])
+            p[0] = p[1]
 
     def p_constant_expression_opt(self, p):
         ''' constant_expression_opt : constant_expression
@@ -764,25 +815,35 @@ class UCParser:
         print('End')
         p[0] = p[1]
 
-    def p_constant(self, p):
+    def p_constant_1(self, p):
         ''' constant : INT_CONST
-                     | FLOAT_CONST
-                     | CHAR_CONST
         '''
         print("Inside p_constant:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
 
-        if p.slice[1].type == 'INT_CONST':
-            type = 'int'
-        elif p.slice[1].type == 'FLOAT_CONST':
-            type = 'float'
-        elif p.slice[1].type == 'CHAR_CONST':
-            type = 'char'
+        p[0] = Constant('int', p[1], self._token_coord(p, 1))
 
-        # p[0] = Constant(type, p[1])
-        p[0] = (type, p[1])
+    def p_constant_2(self, p):
+        ''' constant : FLOAT_CONST
+        '''
+        print("Inside p_constant:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+
+        p[0] = Constant('float', p[1], self._token_coord(p, 1))
+
+    def p_constant_3(self, p):
+        ''' constant : CHAR_CONST
+        '''
+        print("Inside p_constant:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+
+        p[0] = Constant('char', p[1], self._token_coord(p, 1))
 
     def p_pointer_opt(self, p):
         ''' pointer_opt : pointer
@@ -804,7 +865,7 @@ class UCParser:
         print('End')
         # if len(p) == 3:
         #     p[0] = PtrDecl(p[2])
-        p[0] = ('pointer', p[1])
+        p[0] = p[2]
 
     def p_pointer_2(self, p):
         ''' pointer : TIMES
@@ -815,10 +876,10 @@ class UCParser:
         print('End')
         # if len(p) == 3:
         #     p[0] = PtrDecl(p[2])
-        p[0] = 'pointer'
+        p[0] = PtrDecl(type=None, coord=self._token_coord(p, 1))
 
     def p_direct_declarator_1(self, p):
-        ''' direct_declarator : ID
+        ''' direct_declarator : identifier
         '''
         print("Inside p_direct_declarator:")
         for i in range(len(p)):
@@ -826,7 +887,7 @@ class UCParser:
         print('End')
         # if len(p) == 2:
         #     p[0] = p[1]
-        p[0] = ('id', p[1])
+        p[0] = VarDecl(declname=p[1], type=None, coord=self._token_coord(p, 1))
 
     def p_direct_declarator_2(self, p):
         ''' direct_declarator : LPAREN declarator RPAREN
@@ -840,23 +901,30 @@ class UCParser:
         p[0] = p[2]
 
     def p_direct_declarator_3(self, p):
-        ''' direct_declarator : direct_declarator LBRACKET constant_expression_opt RBRACKET
-                              | direct_declarator LPAREN parameter_list RPAREN
+        ''' direct_declarator : direct_declarator LPAREN parameter_list RPAREN
                               | direct_declarator LPAREN id_list RPAREN
         '''
         print("Inside p_direct_declarator:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        # if len(p) == 5:
-        #     if p[2] == '[' and p[4] == ']':
-        #         p[0] = ArrayDecl('type', p[3])
-        #     else:
-        #         p[0] = (p[1], p[3])
-        p[0] = (p[1], p[3])
+        func = FuncDecl(args=p[3], type=None, coord=p[1].coord)
+
+        p[0] = self._type_modify_decl(decl=p[1], modifier=func)
+
+    def p_direct_declarator_4(self, p):
+        ''' direct_declarator : direct_declarator LBRACKET constant_expression_opt RBRACKET
+        '''
+        print("Inside p_direct_declarator:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+
+        arr = ArrayDecl(type=None, dim=p[3] if len(p) > 4 else None, coord=p[1].coord)
+        p[0] = self._type_modify_decl(decl=p[1], modifier=arr)
 
     def p_id_list(self, p):
-        ''' id_list : id_list ID
+        ''' id_list : id_list identifier
                     | empty
         '''
         print("Inside p_id_list:")
@@ -872,6 +940,11 @@ class UCParser:
         if len(p) == 3:
             p[0] = p[1] + [p[2]]
 
+    def p_identifier(self, p):
+        ''' identifier : ID
+        '''
+        p[0] = ID(p[1], self._token_coord(p, 1))
+
     def p_type_specifier(self, p):
         ''' type_specifier : VOID
                            | INT
@@ -882,8 +955,7 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        # p[0] = Type(p[1])
-        p[0] = p[1]
+        p[0] = Type([p[1]], coord=self._token_coord(p, 1))
 
     def p_empty(self, p):
         ''' empty :'''
@@ -900,11 +972,11 @@ class UCParser:
 
         print("I'm on parser! :D")
 
-        lexer = UCLexer(self.print_error)
-        lexer.build()
+        self.lexer = UCLexer(self.print_error)
+        self.lexer.build()
         # lexer.input(code)
 
-        self.tokens = lexer.tokens
+        self.tokens = self.lexer.tokens
         self.precedence = (
              ('nonassoc', 'LT', 'GT', 'LE', 'GE', 'EQ', 'NQ', 'NOT', 'AND', 'OR'),  # Nonassociative operators
              ('left', 'PLUS', 'MINUS'),
