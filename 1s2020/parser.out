@@ -76,10 +76,10 @@ Rule 70    unary_expression -> INCREASE unary_expression
 Rule 71    unary_expression -> DECREASE unary_expression
 Rule 72    unary_expression -> unary_operator cast_expression
 Rule 73    postfix_expression -> primary_expression
-Rule 74    postfix_expression -> postfix_expression LBRACKET expression RBRACKET
-Rule 75    postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN
-Rule 76    postfix_expression -> postfix_expression INCREASE
-Rule 77    postfix_expression -> postfix_expression DECREASE
+Rule 74    postfix_expression -> postfix_expression INCREASE
+Rule 75    postfix_expression -> postfix_expression DECREASE
+Rule 76    postfix_expression -> postfix_expression LBRACKET expression RBRACKET
+Rule 77    postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN
 Rule 78    cast_expression -> unary_expression
 Rule 79    cast_expression -> LPAREN type_specifier RPAREN cast_expression
 Rule 80    primary_expression -> ID
@@ -133,7 +133,7 @@ BREAK                : 37
 CHAR                 : 119
 CHAR_CONST           : 104
 COMMA                : 11 16 18 24 31 87
-DECREASE             : 71 77
+DECREASE             : 71 75
 DIVIDE               : 57
 ELSE                 : 33
 EQ                   : 65
@@ -150,13 +150,13 @@ GE                   : 64
 GT                   : 63
 ID                   : 80 109 114
 IF                   : 32 33
-INCREASE             : 70 76
+INCREASE             : 70 74
 INT                  : 117
 INT_CONST            : 102
 LBRACE               : 15 16 26
-LBRACKET             : 74 111
+LBRACKET             : 76 111
 LE                   : 62
-LPAREN               : 32 33 34 35 36 41 42 75 79 83 110 112 113
+LPAREN               : 32 33 34 35 36 41 42 77 79 83 110 112 113
 LT                   : 61
 MINUS                : 60
 MOD                  : 58
@@ -166,10 +166,10 @@ OR                   : 68
 PLUS                 : 59 99
 PRINT                : 41
 RBRACE               : 15 16 26
-RBRACKET             : 74 111
+RBRACKET             : 76 111
 READ                 : 42
 RETURN               : 38 39
-RPAREN               : 32 33 34 35 36 41 42 75 79 83 110 112 113
+RPAREN               : 32 33 34 35 36 41 42 77 79 83 110 112 113
 SEMI                 : 19 27 35 35 36 36 37 38 39 40 41 42
 STRING               : 82
 TIMES                : 56 98 107 108
@@ -181,7 +181,7 @@ error                :
 Nonterminals, with rules where they appear
 
 argument_expression  : 42 84 87
-argument_expression_opt : 75
+argument_expression_opt : 77
 assert_statement     : 48
 assignment_expression : 14 30 31 54 86 87
 assignment_operator  : 54
@@ -196,7 +196,7 @@ declaration_list_opt : 6 7 20 26
 declarator           : 6 7 12 13 25 110
 direct_declarator    : 22 111 112 113
 empty                : 3 9 21 29 52 85 89 106 115
-expression           : 28 31 32 33 34 38 40 74 83
+expression           : 28 31 32 33 34 38 40 76 83
 expression_opt       : 27 35 35 36 36 41
 expression_statement : 43
 function_definition  : 4
@@ -706,10 +706,10 @@ state 29
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -949,10 +949,10 @@ state 36
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -1090,10 +1090,10 @@ state 42
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -1273,10 +1273,10 @@ state 47
 state 48
 
     (69) unary_expression -> postfix_expression .
-    (74) postfix_expression -> postfix_expression . LBRACKET expression RBRACKET
-    (75) postfix_expression -> postfix_expression . LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> postfix_expression . INCREASE
-    (77) postfix_expression -> postfix_expression . DECREASE
+    (74) postfix_expression -> postfix_expression . INCREASE
+    (75) postfix_expression -> postfix_expression . DECREASE
+    (76) postfix_expression -> postfix_expression . LBRACKET expression RBRACKET
+    (77) postfix_expression -> postfix_expression . LPAREN argument_expression_opt RPAREN
 
     EQUALS          reduce using rule 69 (unary_expression -> postfix_expression .)
     EQTIMES         reduce using rule 69 (unary_expression -> postfix_expression .)
@@ -1302,10 +1302,10 @@ state 48
     RBRACKET        reduce using rule 69 (unary_expression -> postfix_expression .)
     RBRACE          reduce using rule 69 (unary_expression -> postfix_expression .)
     RPAREN          reduce using rule 69 (unary_expression -> postfix_expression .)
-    LBRACKET        shift and go to state 99
-    LPAREN          shift and go to state 100
-    INCREASE        shift and go to state 101
-    DECREASE        shift and go to state 102
+    INCREASE        shift and go to state 99
+    DECREASE        shift and go to state 100
+    LBRACKET        shift and go to state 101
+    LPAREN          shift and go to state 102
 
 
 state 49
@@ -1316,10 +1316,10 @@ state 49
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -1361,10 +1361,10 @@ state 50
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -1408,10 +1408,10 @@ state 51
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -1479,10 +1479,10 @@ state 52
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -1529,10 +1529,10 @@ state 53
 
     (73) postfix_expression -> primary_expression .
 
-    LBRACKET        reduce using rule 73 (postfix_expression -> primary_expression .)
-    LPAREN          reduce using rule 73 (postfix_expression -> primary_expression .)
     INCREASE        reduce using rule 73 (postfix_expression -> primary_expression .)
     DECREASE        reduce using rule 73 (postfix_expression -> primary_expression .)
+    LBRACKET        reduce using rule 73 (postfix_expression -> primary_expression .)
+    LPAREN          reduce using rule 73 (postfix_expression -> primary_expression .)
     EQUALS          reduce using rule 73 (postfix_expression -> primary_expression .)
     EQTIMES         reduce using rule 73 (postfix_expression -> primary_expression .)
     EQDIV           reduce using rule 73 (postfix_expression -> primary_expression .)
@@ -1620,10 +1620,10 @@ state 57
 
     (80) primary_expression -> ID .
 
-    LBRACKET        reduce using rule 80 (primary_expression -> ID .)
-    LPAREN          reduce using rule 80 (primary_expression -> ID .)
     INCREASE        reduce using rule 80 (primary_expression -> ID .)
     DECREASE        reduce using rule 80 (primary_expression -> ID .)
+    LBRACKET        reduce using rule 80 (primary_expression -> ID .)
+    LPAREN          reduce using rule 80 (primary_expression -> ID .)
     EQUALS          reduce using rule 80 (primary_expression -> ID .)
     EQTIMES         reduce using rule 80 (primary_expression -> ID .)
     EQDIV           reduce using rule 80 (primary_expression -> ID .)
@@ -1654,10 +1654,10 @@ state 58
 
     (81) primary_expression -> constant .
 
-    LBRACKET        reduce using rule 81 (primary_expression -> constant .)
-    LPAREN          reduce using rule 81 (primary_expression -> constant .)
     INCREASE        reduce using rule 81 (primary_expression -> constant .)
     DECREASE        reduce using rule 81 (primary_expression -> constant .)
+    LBRACKET        reduce using rule 81 (primary_expression -> constant .)
+    LPAREN          reduce using rule 81 (primary_expression -> constant .)
     EQUALS          reduce using rule 81 (primary_expression -> constant .)
     EQTIMES         reduce using rule 81 (primary_expression -> constant .)
     EQDIV           reduce using rule 81 (primary_expression -> constant .)
@@ -1688,10 +1688,10 @@ state 59
 
     (82) primary_expression -> STRING .
 
-    LBRACKET        reduce using rule 82 (primary_expression -> STRING .)
-    LPAREN          reduce using rule 82 (primary_expression -> STRING .)
     INCREASE        reduce using rule 82 (primary_expression -> STRING .)
     DECREASE        reduce using rule 82 (primary_expression -> STRING .)
+    LBRACKET        reduce using rule 82 (primary_expression -> STRING .)
+    LPAREN          reduce using rule 82 (primary_expression -> STRING .)
     EQUALS          reduce using rule 82 (primary_expression -> STRING .)
     EQTIMES         reduce using rule 82 (primary_expression -> STRING .)
     EQDIV           reduce using rule 82 (primary_expression -> STRING .)
@@ -1722,10 +1722,10 @@ state 60
 
     (102) constant -> INT_CONST .
 
-    LBRACKET        reduce using rule 102 (constant -> INT_CONST .)
-    LPAREN          reduce using rule 102 (constant -> INT_CONST .)
     INCREASE        reduce using rule 102 (constant -> INT_CONST .)
     DECREASE        reduce using rule 102 (constant -> INT_CONST .)
+    LBRACKET        reduce using rule 102 (constant -> INT_CONST .)
+    LPAREN          reduce using rule 102 (constant -> INT_CONST .)
     EQUALS          reduce using rule 102 (constant -> INT_CONST .)
     EQTIMES         reduce using rule 102 (constant -> INT_CONST .)
     EQDIV           reduce using rule 102 (constant -> INT_CONST .)
@@ -1756,10 +1756,10 @@ state 61
 
     (103) constant -> FLOAT_CONST .
 
-    LBRACKET        reduce using rule 103 (constant -> FLOAT_CONST .)
-    LPAREN          reduce using rule 103 (constant -> FLOAT_CONST .)
     INCREASE        reduce using rule 103 (constant -> FLOAT_CONST .)
     DECREASE        reduce using rule 103 (constant -> FLOAT_CONST .)
+    LBRACKET        reduce using rule 103 (constant -> FLOAT_CONST .)
+    LPAREN          reduce using rule 103 (constant -> FLOAT_CONST .)
     EQUALS          reduce using rule 103 (constant -> FLOAT_CONST .)
     EQTIMES         reduce using rule 103 (constant -> FLOAT_CONST .)
     EQDIV           reduce using rule 103 (constant -> FLOAT_CONST .)
@@ -1790,10 +1790,10 @@ state 62
 
     (104) constant -> CHAR_CONST .
 
-    LBRACKET        reduce using rule 104 (constant -> CHAR_CONST .)
-    LPAREN          reduce using rule 104 (constant -> CHAR_CONST .)
     INCREASE        reduce using rule 104 (constant -> CHAR_CONST .)
     DECREASE        reduce using rule 104 (constant -> CHAR_CONST .)
+    LBRACKET        reduce using rule 104 (constant -> CHAR_CONST .)
+    LPAREN          reduce using rule 104 (constant -> CHAR_CONST .)
     EQUALS          reduce using rule 104 (constant -> CHAR_CONST .)
     EQTIMES         reduce using rule 104 (constant -> CHAR_CONST .)
     EQDIV           reduce using rule 104 (constant -> CHAR_CONST .)
@@ -2081,10 +2081,10 @@ state 79
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -2144,10 +2144,10 @@ state 80
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -2207,10 +2207,10 @@ state 81
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -2270,10 +2270,10 @@ state 82
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -2333,10 +2333,10 @@ state 83
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -2396,10 +2396,10 @@ state 84
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -2459,10 +2459,10 @@ state 85
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -2522,10 +2522,10 @@ state 86
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -2585,10 +2585,10 @@ state 87
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -2648,10 +2648,10 @@ state 88
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -2711,10 +2711,10 @@ state 89
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -2774,10 +2774,10 @@ state 90
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -2837,10 +2837,10 @@ state 91
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -2902,10 +2902,10 @@ state 92
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -3058,7 +3058,75 @@ state 98
 
 state 99
 
-    (74) postfix_expression -> postfix_expression LBRACKET . expression RBRACKET
+    (74) postfix_expression -> postfix_expression INCREASE .
+
+    INCREASE        reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    DECREASE        reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    LBRACKET        reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    LPAREN          reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    EQUALS          reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    EQTIMES         reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    EQDIV           reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    EQMOD           reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    EQPLUS          reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    EQMINUS         reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    TIMES           reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    DIVIDE          reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    MOD             reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    PLUS            reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    MINUS           reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    LT              reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    LE              reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    GT              reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    GE              reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    EQ              reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    NQ              reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    AND             reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    OR              reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    COMMA           reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    SEMI            reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    RBRACKET        reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    RBRACE          reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+    RPAREN          reduce using rule 74 (postfix_expression -> postfix_expression INCREASE .)
+
+
+state 100
+
+    (75) postfix_expression -> postfix_expression DECREASE .
+
+    INCREASE        reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    DECREASE        reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    LBRACKET        reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    LPAREN          reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    EQUALS          reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    EQTIMES         reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    EQDIV           reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    EQMOD           reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    EQPLUS          reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    EQMINUS         reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    TIMES           reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    DIVIDE          reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    MOD             reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    PLUS            reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    MINUS           reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    LT              reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    LE              reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    GT              reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    GE              reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    EQ              reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    NQ              reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    AND             reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    OR              reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    COMMA           reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    SEMI            reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    RBRACKET        reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    RBRACE          reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+    RPAREN          reduce using rule 75 (postfix_expression -> postfix_expression DECREASE .)
+
+
+state 101
+
+    (76) postfix_expression -> postfix_expression LBRACKET . expression RBRACKET
     (30) expression -> . assignment_expression
     (31) expression -> . expression COMMA assignment_expression
     (53) assignment_expression -> . binary_expression
@@ -3084,10 +3152,10 @@ state 99
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -3125,9 +3193,9 @@ state 99
     primary_expression             shift and go to state 53
     constant                       shift and go to state 58
 
-state 100
+state 102
 
-    (75) postfix_expression -> postfix_expression LPAREN . argument_expression_opt RPAREN
+    (77) postfix_expression -> postfix_expression LPAREN . argument_expression_opt RPAREN
     (84) argument_expression_opt -> . argument_expression
     (85) argument_expression_opt -> . empty
     (86) argument_expression -> . assignment_expression
@@ -3156,10 +3224,10 @@ state 100
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -3199,74 +3267,6 @@ state 100
     unary_operator                 shift and go to state 51
     primary_expression             shift and go to state 53
     constant                       shift and go to state 58
-
-state 101
-
-    (76) postfix_expression -> postfix_expression INCREASE .
-
-    LBRACKET        reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    LPAREN          reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    INCREASE        reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    DECREASE        reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    EQUALS          reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    EQTIMES         reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    EQDIV           reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    EQMOD           reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    EQPLUS          reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    EQMINUS         reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    TIMES           reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    DIVIDE          reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    MOD             reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    PLUS            reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    MINUS           reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    LT              reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    LE              reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    GT              reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    GE              reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    EQ              reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    NQ              reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    AND             reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    OR              reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    COMMA           reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    SEMI            reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    RBRACKET        reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    RBRACE          reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-    RPAREN          reduce using rule 76 (postfix_expression -> postfix_expression INCREASE .)
-
-
-state 102
-
-    (77) postfix_expression -> postfix_expression DECREASE .
-
-    LBRACKET        reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    LPAREN          reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    INCREASE        reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    DECREASE        reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    EQUALS          reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    EQTIMES         reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    EQDIV           reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    EQMOD           reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    EQPLUS          reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    EQMINUS         reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    TIMES           reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    DIVIDE          reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    MOD             reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    PLUS            reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    MINUS           reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    LT              reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    LE              reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    GT              reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    GE              reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    EQ              reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    NQ              reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    AND             reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    OR              reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    COMMA           reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    SEMI            reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    RBRACKET        reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    RBRACE          reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-    RPAREN          reduce using rule 77 (postfix_expression -> postfix_expression DECREASE .)
-
 
 state 103
 
@@ -3326,10 +3326,10 @@ state 104
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -3506,10 +3506,10 @@ state 110
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -3722,10 +3722,10 @@ state 119
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -4441,7 +4441,7 @@ state 133
 
 state 134
 
-    (74) postfix_expression -> postfix_expression LBRACKET expression . RBRACKET
+    (76) postfix_expression -> postfix_expression LBRACKET expression . RBRACKET
     (31) expression -> expression . COMMA assignment_expression
 
     RBRACKET        shift and go to state 166
@@ -4450,7 +4450,7 @@ state 134
 
 state 135
 
-    (75) postfix_expression -> postfix_expression LPAREN argument_expression_opt . RPAREN
+    (77) postfix_expression -> postfix_expression LPAREN argument_expression_opt . RPAREN
 
     RPAREN          shift and go to state 167
 
@@ -4489,10 +4489,10 @@ state 139
     (71) unary_expression -> . DECREASE unary_expression
     (72) unary_expression -> . unary_operator cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -4531,10 +4531,10 @@ state 140
 
     (83) primary_expression -> LPAREN expression RPAREN .
 
-    LBRACKET        reduce using rule 83 (primary_expression -> LPAREN expression RPAREN .)
-    LPAREN          reduce using rule 83 (primary_expression -> LPAREN expression RPAREN .)
     INCREASE        reduce using rule 83 (primary_expression -> LPAREN expression RPAREN .)
     DECREASE        reduce using rule 83 (primary_expression -> LPAREN expression RPAREN .)
+    LBRACKET        reduce using rule 83 (primary_expression -> LPAREN expression RPAREN .)
+    LPAREN          reduce using rule 83 (primary_expression -> LPAREN expression RPAREN .)
     EQUALS          reduce using rule 83 (primary_expression -> LPAREN expression RPAREN .)
     EQTIMES         reduce using rule 83 (primary_expression -> LPAREN expression RPAREN .)
     EQDIV           reduce using rule 83 (primary_expression -> LPAREN expression RPAREN .)
@@ -4587,10 +4587,10 @@ state 141
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -5017,10 +5017,10 @@ state 158
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -5087,10 +5087,10 @@ state 159
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -5177,70 +5177,70 @@ state 165
 
 state 166
 
-    (74) postfix_expression -> postfix_expression LBRACKET expression RBRACKET .
+    (76) postfix_expression -> postfix_expression LBRACKET expression RBRACKET .
 
-    LBRACKET        reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    LPAREN          reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    INCREASE        reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    DECREASE        reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    EQUALS          reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    EQTIMES         reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    EQDIV           reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    EQMOD           reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    EQPLUS          reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    EQMINUS         reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    TIMES           reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    DIVIDE          reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    MOD             reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    PLUS            reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    MINUS           reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    LT              reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    LE              reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    GT              reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    GE              reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    EQ              reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    NQ              reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    AND             reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    OR              reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    COMMA           reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    SEMI            reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    RBRACKET        reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    RBRACE          reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
-    RPAREN          reduce using rule 74 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    INCREASE        reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    DECREASE        reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    LBRACKET        reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    LPAREN          reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    EQUALS          reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    EQTIMES         reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    EQDIV           reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    EQMOD           reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    EQPLUS          reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    EQMINUS         reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    TIMES           reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    DIVIDE          reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    MOD             reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    PLUS            reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    MINUS           reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    LT              reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    LE              reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    GT              reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    GE              reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    EQ              reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    NQ              reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    AND             reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    OR              reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    COMMA           reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    SEMI            reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    RBRACKET        reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    RBRACE          reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
+    RPAREN          reduce using rule 76 (postfix_expression -> postfix_expression LBRACKET expression RBRACKET .)
 
 
 state 167
 
-    (75) postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .
+    (77) postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .
 
-    LBRACKET        reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    LPAREN          reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    INCREASE        reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    DECREASE        reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    EQUALS          reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    EQTIMES         reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    EQDIV           reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    EQMOD           reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    EQPLUS          reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    EQMINUS         reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    TIMES           reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    DIVIDE          reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    MOD             reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    PLUS            reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    MINUS           reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    LT              reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    LE              reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    GT              reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    GE              reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    EQ              reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    NQ              reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    AND             reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    OR              reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    COMMA           reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    SEMI            reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    RBRACKET        reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    RBRACE          reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
-    RPAREN          reduce using rule 75 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    INCREASE        reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    DECREASE        reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    LBRACKET        reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    LPAREN          reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    EQUALS          reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    EQTIMES         reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    EQDIV           reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    EQMOD           reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    EQPLUS          reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    EQMINUS         reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    TIMES           reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    DIVIDE          reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    MOD             reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    PLUS            reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    MINUS           reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    LT              reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    LE              reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    GT              reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    GE              reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    EQ              reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    NQ              reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    AND             reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    OR              reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    COMMA           reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    SEMI            reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    RBRACKET        reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    RBRACE          reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
+    RPAREN          reduce using rule 77 (postfix_expression -> postfix_expression LPAREN argument_expression_opt RPAREN .)
 
 
 state 168
@@ -5269,10 +5269,10 @@ state 168
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -5409,10 +5409,10 @@ state 172
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -5478,10 +5478,10 @@ state 173
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -5662,10 +5662,10 @@ state 179
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -5734,10 +5734,10 @@ state 180
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -5962,10 +5962,10 @@ state 190
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -6076,10 +6076,10 @@ state 191
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -6169,10 +6169,10 @@ state 192
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -6338,10 +6338,10 @@ state 199
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -6496,10 +6496,10 @@ state 202
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -6589,10 +6589,10 @@ state 203
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -6709,10 +6709,10 @@ state 207
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -6805,10 +6805,10 @@ state 208
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS
@@ -6957,10 +6957,10 @@ state 211
     (78) cast_expression -> . unary_expression
     (79) cast_expression -> . LPAREN type_specifier RPAREN cast_expression
     (73) postfix_expression -> . primary_expression
-    (74) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
-    (75) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
-    (76) postfix_expression -> . postfix_expression INCREASE
-    (77) postfix_expression -> . postfix_expression DECREASE
+    (74) postfix_expression -> . postfix_expression INCREASE
+    (75) postfix_expression -> . postfix_expression DECREASE
+    (76) postfix_expression -> . postfix_expression LBRACKET expression RBRACKET
+    (77) postfix_expression -> . postfix_expression LPAREN argument_expression_opt RPAREN
     (97) unary_operator -> . ADDRESS
     (98) unary_operator -> . TIMES
     (99) unary_operator -> . PLUS

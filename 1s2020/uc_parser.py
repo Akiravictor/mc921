@@ -35,7 +35,7 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         p[0] = p[1]
-        p[0] = Program(p[1])
+        # p[0] = Program(p[1])
 
     def p_global_declaration_list(self, p):
         ''' global_declaration_list : global_declaration_list global_declaration
@@ -53,31 +53,46 @@ class UCParser:
         if len(p) == 3:
             p[0] = p[1] + [p[2]]
 
-    def p_global_declaration(self, p):
+    def p_global_declaration_1(self, p):
         ''' global_declaration : function_definition
-                               | declaration
         '''
         print("Inside p_global_declaration:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if isinstance(p[1], FuncDef):
-            p[0] = p[1]
-        else:
-            p[0] = GlobalDecl(p[1])
+        p[0] = p[1]
 
-    def p_function_definition(self, p):
+    def p_global_declaration_2(self, p):
+        ''' global_declaration : declaration
+        '''
+        print("Inside p_global_declaration:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # p[0] = GlobalDecl(p[1])
+        p[0] = p[1]
+
+    def p_function_definition_1(self, p):
         ''' function_definition : type_specifier declarator declaration_list_opt compound_statement
-                                | declarator declaration_list_opt compound_statement
         '''
         print("Inside p_function_definition:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 5:
-            p[0] = FuncDef(p[1], p[2], p[3], p[4])
-        elif len(p) == 4:
-            p[0] = FuncDef('void', p[1], p[2], p[3])
+        # if len(p) == 5:
+        #     p[0] = FuncDef(p[1], p[2], p[3], p[4])
+        p[0] = (p[1], p[2], p[3], p[4])
+
+    def p_function_definition_2(self, p):
+        ''' function_definition : declarator declaration_list_opt compound_statement
+        '''
+        print("Inside p_function_definition:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 4:
+        #     p[0] = FuncDef('void', p[1], p[2], p[3])
+        p[0] = ('void', p[1], p[2], p[3])
 
     def p_init_declarator_list_opt(self, p):
         ''' init_declarator_list_opt : init_declarator_list
@@ -88,38 +103,55 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if p[1] is not None:
-            p[0] = DeclList(p[1])
+            # p[0] = DeclList(p[1])
+            p[0] = p[1]
 
-    def p_init_declarator_list(self, p):
+    def p_init_declarator_list_1(self, p):
         ''' init_declarator_list : init_declarator
-                                 | init_declarator_list COMMA init_declarator
         '''
         print("Inside p_init_declarator_list:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 2:
-            p[0] = [p[1]]
-        elif len(p) == 4:
-            p[0] = p[1] + [p[3]]
+        # if len(p) == 2:
+        #     p[0] = [p[1]]
+        p[0] = [p[1]]
 
-    def p_init_declarator(self, p):
+    def p_init_declarator_list_2(self, p):
+        ''' init_declarator_list : init_declarator_list COMMA init_declarator
+        '''
+        print("Inside p_init_declarator_list:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 4:
+        #     p[0] = p[1] + [p[3]]
+        p[0] = p[1] + [p[3]]
+
+    def p_init_declarator_1(self, p):
         ''' init_declarator : declarator
-                            | declarator EQUALS initializer
         '''
         print("Inside p_init_declarator:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 2:
-            p[0] = Decl(p[1])
-        elif len(p) == 4:
-            p[0] = (p[2], p[1], p[3])
+        # if len(p) == 2:
+        #     p[0] = Decl(p[1])
+        p[0] = p[1]
 
-    def p_initializer(self, p):
+    def p_init_declarator_2(self, p):
+        ''' init_declarator : declarator EQUALS initializer
+        '''
+        print("Inside p_init_declarator:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 4:
+        #     p[0] = (p[2], p[1], p[3])
+        p[0] = (p[2], p[1], p[3])
+
+    def p_initializer_1(self, p):
         ''' initializer : assignment_expression
-                        | LBRACE initializer_list RBRACE
-                        | LBRACE initializer_list COMMA RBRACE
         '''
         print("Inside p_initializer:")
         for i in range(len(p)):
@@ -127,14 +159,29 @@ class UCParser:
         print('End')
         if len(p) == 2:
             p[0] = p[1]
-        elif len(p) == 4:
-            p[0] = p[2]
-        elif len(p) == 5:
+
+    def p_initializer_2(self, p):
+        ''' initializer : LBRACE initializer_list RBRACE
+        '''
+        print("Inside p_initializer:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        if len(p) == 4:
             p[0] = p[2]
 
-    def p_initializer_list(self, p):
+    def p_initializer_3(self, p):
+        ''' initializer : LBRACE initializer_list COMMA RBRACE
+        '''
+        print("Inside p_initializer:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        if len(p) == 5:
+            p[0] = p[2]
+
+    def p_initializer_list_1(self, p):
         ''' initializer_list : initializer
-                             | initializer_list COMMA initializer
         '''
         print("Inside p_initializer_list:")
         for i in range(len(p)):
@@ -142,7 +189,15 @@ class UCParser:
         print('End')
         if len(p) == 2:
             p[0] = [p[1]]
-        elif len(p) == 4:
+
+    def p_initializer_list_2(self, p):
+        ''' initializer_list : initializer_list COMMA initializer
+        '''
+        print("Inside p_initializer_list:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        if len(p) == 4:
             p[0] = p[1] + [p[3]]
 
     def p_declaration(self, p):
@@ -181,17 +236,24 @@ class UCParser:
         if p[1] is None:
             p[0] = p[2]
 
-    def p_parameter_list(self, p):
+    def p_parameter_list_1(self, p):
         ''' parameter_list : parameter_declaration
-                            | parameter_list COMMA parameter_declaration
         '''
-        print("Inside p_parameter_list:")
+        print("Inside p_parameter_list_1:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 2:
             p[0] = [p[1]]
-        elif len(p) == 4:
+
+    def p_parameter_list_2(self, p):
+        ''' parameter_list : parameter_list COMMA parameter_declaration
+        '''
+        print("Inside p_parameter_list_2:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        if len(p) == 4:
             p[0] = p[1] + [p[3]]
 
     def p_parameter_declaration(self, p):
@@ -232,17 +294,24 @@ class UCParser:
 
         p[0] = p[1]
 
-    def p_expression(self, p):
+    def p_expression_1(self, p):
         ''' expression : assignment_expression
-                       | expression COMMA assignment_expression
         '''
-        print("Inside p_expression:")
+        print("Inside p_expression_1:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 2:
             p[0] = p[1]
-        elif len(p) == 4:
+
+    def p_expression_2(self, p):
+        ''' expression : expression COMMA assignment_expression
+        '''
+        print("Inside p_expression_2:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        if len(p) == 4:
             p[0] = (p[1], p[3])
 
     def p_selection_statement(self, p):
@@ -258,35 +327,71 @@ class UCParser:
         elif len(p) == 8:
             p[0] = (p[1], p[3], p[5], p[6], p[7])
 
-    def p_iteration_statement(self, p):
+    def p_iteration_statement_1(self, p):
         ''' iteration_statement : WHILE LPAREN expression RPAREN statement
-                                | FOR LPAREN init_declarator SEMI expression_opt SEMI expression_opt RPAREN statement
-                                | FOR LPAREN type_specifier init_declarator SEMI expression_opt SEMI expression_opt RPAREN statement
         '''
         print("Inside p_iteration_statement:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 6:
-            p[0] = (p[1], p[3], p[5])
-        elif len(p) == 10:
-            p[0] = (p[1], p[3], p[5], p[7], p[9])
-        elif len(p) == 11:
-            p[0] = (p[1], p[3], p[4], p[6], p[8], p[10])
+        # if len(p) == 6:
+        #     p[0] = (p[1], p[3], p[5])
+        p[0] = (p[1], p[3], p[5])
 
-    def p_jump_statement(self, p):
+    def p_iteration_statement_2(self, p):
+        ''' iteration_statement : FOR LPAREN init_declarator SEMI expression_opt SEMI expression_opt RPAREN statement
+        '''
+        print("Inside p_iteration_statement:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 10:
+        #     p[0] = (p[1], p[3], p[5], p[7], p[9])
+        p[0] = (p[1], p[3], p[5], p[7], p[9])
+
+    def p_iteration_statement_3(self, p):
+        ''' iteration_statement : FOR LPAREN type_specifier init_declarator SEMI expression_opt SEMI expression_opt RPAREN statement
+        '''
+        print("Inside p_iteration_statement:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 11:
+        #     p[0] = (p[1], p[3], p[4], p[6], p[8], p[10])
+        p[0] = (p[1], p[3], p[4], p[6], p[8], p[10])
+
+    def p_jump_statement_1(self, p):
         ''' jump_statement : BREAK SEMI
-                           | RETURN expression SEMI
-                           | RETURN SEMI
         '''
         print("Inside p_jump_statement:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 3:
-            p[0] = (p[1])
-        elif len(p) == 4:
-            p[0] = (p[1], p[2])
+        # if len(p) == 3:
+        #     p[0] = (p[1])
+        p[0] = p[1]
+
+    def p_jump_statement_2(self, p):
+        ''' jump_statement : RETURN expression SEMI
+        '''
+        print("Inside p_jump_statement:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 4:
+        #     p[0] = (p[1], p[2])
+        p[0] = (p[1], p[2])
+
+    def p_jump_statement_3(self, p):
+        ''' jump_statement : RETURN SEMI
+        '''
+        print("Inside p_jump_statement:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 3:
+        #     p[0] = (p[1])
+        p[0] = p[1]
 
     def p_assert_statement(self, p):
         ''' assert_statement : ASSERT expression SEMI
@@ -349,32 +454,45 @@ class UCParser:
                 p[0] = p[1]
             else:
                 p[0] = p[1] + [p[2]]
-            # if p[1] is not None:
-            #     if p[2] is not None:
-            #         p[0] = p[1] + [p[2]]
-            #     else:
-            #         p[0] = [p[1]]
-            #
-            # elif p[1] is None:
-            #     if p[2] is not None:
-            #         p[0] = [p[2]]
 
-    def p_assignment_expression(self, p):
+    def p_assignment_expression_1(self, p):
         ''' assignment_expression : binary_expression
-                                  | unary_expression assignment_operator assignment_expression
         '''
         print("Inside p_assignment_expression:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 4:
-            p[0] = Assignment(p[2], p[1], p[3])
-        elif len(p) == 2:
-            p[0] = p[1]
+        # if len(p) == 2:
+        #     p[0] = p[1]
+        p[0] = p[1]
 
-    def p_binary_expression(self, p):
+    def p_assignment_expression_2(self, p):
+        ''' assignment_expression : unary_expression assignment_operator assignment_expression
+        '''
+        print("Inside p_assignment_expression:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 4:
+        #     p[0] = Assignment(p[2], p[1], p[3])
+        p[0] = (p[2], p[1], p[3])
+
+    def p_binary_expression_1(self, p):
         ''' binary_expression : cast_expression
-                              | binary_expression TIMES binary_expression
+        '''
+        print("Inside p_binary_expression:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 2:
+        #     if isinstance(p[1], Cast):
+        #         p[0] = p[1]
+        #     else:
+        #         p[0] = p[1]
+        p[0] = p[1]
+
+    def p_binary_expression_2(self, p):
+        ''' binary_expression : binary_expression TIMES binary_expression
                               | binary_expression DIVIDE binary_expression
                               | binary_expression MOD binary_expression
                               | binary_expression PLUS binary_expression
@@ -392,17 +510,23 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 2:
-            if isinstance(p[1], Cast):
-                p[0] = p[1]
-            else:
-                p[0] = p[1]
-        elif len(p) == 4:
-            p[0] = BinaryOp(p[2], p[1], p[3])
+        # if len(p) == 4:
+        #     p[0] = BinaryOp(p[2], p[1], p[3])
+        p[0] = (p[2], p[1], p[3])
 
-    def p_unary_expression(self, p):
+    def p_unary_expression_1(self, p):
         ''' unary_expression : postfix_expression
-                             | INCREASE unary_expression
+        '''
+        print("Inside p_unary_expression:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 2:
+        #     p[0] = p[1]
+        p[0] = p[1]
+
+    def p_unary_expression_2(self, p):
+        ''' unary_expression : INCREASE unary_expression
                              | DECREASE unary_expression
                              | unary_operator cast_expression
         '''
@@ -410,60 +534,98 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 2:
-            p[0] = p[1]
-        elif len(p) == 3:
-            if isinstance(p[2], Cast):
-                p[0] = p[2]
-            else:
-                p[0] = UnaryOp(p[1], p[2])
-            # p[0] = (p[1], p[2])
+        # if len(p) == 3:
+        #     if isinstance(p[2], Cast):
+        #         p[0] = p[2]
+        #     else:
+        #         p[0] = UnaryOp(p[1], p[2])
+        p[0] = (p[1], p[2])
 
-    def p_postfix_expression(self, p):
+    def p_postfix_expression_1(self, p):
         ''' postfix_expression : primary_expression
-                               | postfix_expression LBRACKET expression RBRACKET
-                               | postfix_expression LPAREN argument_expression_opt RPAREN
-                               | postfix_expression INCREASE
+        '''
+        print("Inside p_postfix_expression:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 2:
+        #     p[0] = p[1]
+        p[0] = p[1]
+
+    def p_postfix_expression_2(self, p):
+        ''' postfix_expression : postfix_expression INCREASE
                                | postfix_expression DECREASE
         '''
         print("Inside p_postfix_expression:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 2:
-            p[0] = p[1]
-        elif len(p) == 3:
-            p[0] = (p[2], p[1])
-        elif len(p) == 5:
-            p[0] = (p[1], p[3])
+        # if len(p) == 3:
+        #     p[0] = (p[2], p[1])
+        p[0] = (p[2], p[1])
 
-    def p_cast_expression(self, p):
+    def p_postfix_expression_3(self, p):
+        ''' postfix_expression : postfix_expression LBRACKET expression RBRACKET
+                               | postfix_expression LPAREN argument_expression_opt RPAREN
+        '''
+        print("Inside p_postfix_expression:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 5:
+        #     p[0] = (p[1], p[3])
+        p[0] = (p[1], p[2], p[3], p[4])
+
+    def p_cast_expression_1(self, p):
         ''' cast_expression : unary_expression
-                            | LPAREN type_specifier RPAREN cast_expression
         '''
         print("Inside p_cast_expression:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 2:
-            p[0] = p[1]
-        elif len(p) == 5:
-            p[0] = Cast(p[1],p[2])
+        # if len(p) == 2:
+        #     p[0] = p[1]
+        p[0] = p[1]
 
-    def p_primary_expression(self, p):
+    def p_cast_expression_2(self, p):
+        ''' cast_expression : LPAREN type_specifier RPAREN cast_expression
+        '''
+        print("Inside p_cast_expression:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 5:
+        #     p[0] = Cast(p[1], p[2])
+        p[0] = (p[2], p[4])
+
+    def p_primary_expression_1(self, p):
         ''' primary_expression : ID
                                | constant
                                | STRING
-                               | LPAREN expression RPAREN
         '''
         print("Inside p_primary_expression:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 2:
-            p[0] = ID(p[1])
-        elif len(p) == 4:
-            p[0] = p[2]
+        # if len(p) == 2:
+        #     if isinstance(p[1], ID):
+        #         p[0] = p[1]
+        #     elif isinstance(p[1], Constant):
+        #         p[0] = p[1]
+        #     else:
+        #         p[0] = Constant('string', p[1])
+        p[0] = p[1]
+
+    def p_primary_expression_2(self, p):
+        ''' primary_expression : LPAREN expression RPAREN
+        '''
+        print("Inside p_primary_expression:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 4:
+        #     p[0] = p[2]
+        p[0] = p[2]
 
     def p_argument_expression_opt(self, p):
         ''' argument_expression_opt : argument_expression
@@ -476,18 +638,27 @@ class UCParser:
         if p[1] is not None:
             p[0] = p[1]
 
-    def p_argument_expression(self, p):
+    def p_argument_expression_1(self, p):
         ''' argument_expression : assignment_expression
-                                | argument_expression COMMA assignment_expression
         '''
         print("Inside p_argument_expression:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 2:
-            p[0] = p[1]
-        elif len(p) == 4:
-            p[0] = (p[1], p[3])
+        # if len(p) == 2:
+        #     p[0] = p[1]
+        p[0] = p[1]
+
+    def p_argument_expression_2(self, p):
+        ''' argument_expression : argument_expression COMMA assignment_expression
+        '''
+        print("Inside p_argument_expression:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 4:
+        #     p[0] = (p[1], p[3])
+        p[0] = (p[1], p[3])
 
     def p_constant_expression_opt(self, p):
         ''' constant_expression_opt : constant_expression
@@ -553,7 +724,8 @@ class UCParser:
         elif p.slice[1].type == 'CHAR_CONST':
             type = 'char'
 
-        p[0] = Constant(type, p[1])
+        # p[0] = Constant(type, p[1])
+        p[0] = (type, p[1])
 
     def p_pointer_opt(self, p):
         ''' pointer_opt : pointer
@@ -566,21 +738,52 @@ class UCParser:
         if p[1] is not None:
             p[0] = p[1]
 
-    def p_pointer(self, p):
+    def p_pointer_1(self, p):
         ''' pointer : TIMES pointer
-                    | TIMES
         '''
         print("Inside p_pointer:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 3:
-            p[0] = PtrDecl(p[2])
+        # if len(p) == 3:
+        #     p[0] = PtrDecl(p[2])
+        p[0] = ('pointer', p[1])
 
-    def p_direct_declarator(self, p):
+    def p_pointer_2(self, p):
+        ''' pointer : TIMES
+        '''
+        print("Inside p_pointer:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 3:
+        #     p[0] = PtrDecl(p[2])
+        p[0] = 'pointer'
+
+    def p_direct_declarator_1(self, p):
         ''' direct_declarator : ID
-                              | LPAREN declarator RPAREN
-                              | direct_declarator LBRACKET constant_expression_opt RBRACKET
+        '''
+        print("Inside p_direct_declarator:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 2:
+        #     p[0] = p[1]
+        p[0] = ('id', p[1])
+
+    def p_direct_declarator_2(self, p):
+        ''' direct_declarator : LPAREN declarator RPAREN
+        '''
+        print("Inside p_direct_declarator:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        # if len(p) == 4:
+        #     p[0] = p[2]
+        p[0] = p[2]
+
+    def p_direct_declarator_3(self, p):
+        ''' direct_declarator : direct_declarator LBRACKET constant_expression_opt RBRACKET
                               | direct_declarator LPAREN parameter_list RPAREN
                               | direct_declarator LPAREN id_list RPAREN
         '''
@@ -588,19 +791,12 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 2:
-            p[0] = p[1]
-        elif len(p) == 4:
-            p[0] = p[2]
-        elif len(p) == 5:
-            if p[2] == '[' and p[4] == ']':
-                # ArrayDecl()
-                if p[3] is None:
-                    p[0] = ('Array', p[1], '')
-                else:
-                    p[0] = ('Array', p[1], p[3])
-            else:
-                p[0] = (p[1], p[3])
+        # if len(p) == 5:
+        #     if p[2] == '[' and p[4] == ']':
+        #         p[0] = ArrayDecl('type', p[3])
+        #     else:
+        #         p[0] = (p[1], p[3])
+        p[0] = (p[1], p[3])
 
     def p_id_list(self, p):
         ''' id_list : id_list ID
@@ -614,6 +810,7 @@ class UCParser:
             if p[1] is None:
                 p[0] = []
             else:
+                # p[0] = ID(p[1])
                 p[0] = p[1]
         if len(p) == 3:
             p[0] = p[1] + [p[2]]
@@ -628,7 +825,8 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = Type(p[1])
+        # p[0] = Type(p[1])
+        p[0] = p[1]
 
     def p_empty(self, p):
         ''' empty :'''
