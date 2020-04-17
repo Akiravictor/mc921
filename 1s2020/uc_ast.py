@@ -31,7 +31,7 @@ class Node(object):
             separator = ','
             indent = '\n ' + (' ' * len(self.__class__.__name__))
 
-        result += indent + ')'
+        result += '  )'
 
         return result
 
@@ -227,7 +227,7 @@ class Assert(Node):
         if self.expr is not None:
             yield self.expr
 
-    attr_names = ()
+    attr_names = ('coord',)
 
 
 class Assignment(Node):
@@ -251,7 +251,7 @@ class Assignment(Node):
         if self.rvalue is not None:
             yield self.rvalue
 
-    attr_names = ('op',)
+    attr_names = ('op', 'coord',)
 
 
 class BinaryOp(Node):
@@ -275,7 +275,7 @@ class BinaryOp(Node):
         if self.right is not None:
             yield self.right
 
-    attr_names = ('op',)
+    attr_names = ('op', 'coord',)
 
 
 class Break(Node):
@@ -333,7 +333,7 @@ class Compound(Node):
         for child in (self.block_items or []):
             yield child
 
-    attr_names = ()
+    attr_names = ('coord',)
 
 
 class Constant(Node):
@@ -351,7 +351,7 @@ class Constant(Node):
     def __iter__(self):
         return
 
-    attr_names = ('type', 'value',)
+    attr_names = ('type', 'value', 'coord')
 
 
 class Decl(Node):
@@ -430,7 +430,7 @@ class ExprList(Node):
         for child in (self.exprs or []):
             yield child
 
-    attr_names = ()
+    attr_names = ('coord', )
 
 
 class For(Node):
@@ -461,7 +461,7 @@ class For(Node):
         if self.stmt is not None:
             yield self.stmt
 
-    attr_names = ()
+    attr_names = ('coord',)
 
 
 class FuncCall(Node):
@@ -484,7 +484,7 @@ class FuncCall(Node):
         if self.args is not None:
             yield self.args
 
-    attr_names = ()
+    attr_names = ('coord', )
 
 
 class FuncDecl(Node):
@@ -660,7 +660,7 @@ class Print(Node):
         for child in (self.expr or []):
             yield child
 
-    attr_names = ()
+    attr_names = ('coord', )
 
 
 class Program(Node):
@@ -739,7 +739,7 @@ class Return(Node):
         if self.expr is not None:
             yield self.expr
 
-    attr_names = ()
+    attr_names = ('coord', )
 
 
 class Type(Node):
@@ -757,7 +757,7 @@ class Type(Node):
     def __iter__(self):
         return
 
-    attr_names = ('names',)
+    attr_names = ('names', 'coord')
 
 
 class VarDecl(Node):
@@ -820,4 +820,4 @@ class While(Node):
         if self.stmt is not None:
             yield self.stmt
 
-    attr_names = ()
+    attr_names = ('coord',)
