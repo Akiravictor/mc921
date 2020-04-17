@@ -22,9 +22,11 @@ class UCParser:
         return Coord(p.lineno(token_idx), column).__str__()
 
     def _type_modify_decl(self, decl, modifier):
-        print("Inside _type_modify_decl:")
-        print(decl)
-        print('End')
+        if self.debug:
+            print("Inside _type_modify_decl:")
+            print(decl)
+            print('End')
+
         modifier_head = modifier
         modifier_tail = modifier
 
@@ -53,26 +55,32 @@ class UCParser:
             print("Error at the end of input")
 
     def _build_function_definition(self, spec, decl, param_decls, body):
-        print("Inside _build_function_definition:")
-        print(spec)
-        print(decl)
-        print(param_decls)
-        print(body)
-        print('End')
+        if self.debug:
+            print("Inside _build_function_definition:")
+            print(spec)
+            print(decl)
+            print(param_decls)
+            print(body)
+            print('End')
+
         declaration = self._build_declarations(spec=spec, decls=[dict(decl=decl, init=None)])[0]
+
 
         return FuncDef(spec=spec, decl=declaration, param_decls=param_decls, body=body, coord=decl.coord)
 
     def _build_declarations(self, spec, decls):
-        print("Inside _build_declarations:")
-        for decl in decls:
-            print(decl)
-        print(spec)
-        print('End')
+        if self.debug:
+            print("Inside _build_declarations:")
+            for decl in decls:
+                print(decl)
+            print(spec)
+            print('End')
+
         declarations = []
 
         for decl in decls:
-            print(decl)
+            if self.debug:
+                print(decl)
             assert decl['decl'] is not None
             declaration = Decl(name=None, type=decl['decl'], init=decl.get('init'), coord=decl.get('coord'))
 
@@ -86,22 +94,29 @@ class UCParser:
         return declarations
 
     def _fix_decl_name_type(self, decl, typename):
-        print("Inside _fix_decl_name_type:")
-        print(decl)
-        print("typename")
-        print(typename)
-        print('End')
+        if self.debug:
+            print("Inside _fix_decl_name_type:")
+            print(decl)
+            print("typename")
+            print(typename)
+            print('End')
+
         type = decl
         while not isinstance(type, VarDecl):
-            print("no while")
-            print(type)
+            if self.debug:
+                print("no while")
+                print(type)
+
             type = type.type
 
         decl.name = type.declname
         type.type = typename
-        print("after while")
-        print(decl)
-        print('End')
+
+        if self.debug:
+            print("after while")
+            print(decl)
+            print('End')
+
         return decl
 
 
@@ -227,6 +242,7 @@ class UCParser:
         ''' function_definition : type_specifier declarator declaration_list_opt compound_statement
         '''
         if self.debug:
+        # if True:
             print("Inside p_function_definition_1:")
             for i in range(len(p)):
                 print("p[{0}] = {1}".format(i, p[i]))
@@ -235,6 +251,7 @@ class UCParser:
         p[0] = self._build_function_definition(spec=p[1], decl=p[2], param_decls=p[3], body=p[4])
 
         if self.debug:
+        # if True:
             print("p[0] = {0}".format(p[0]))
             print('End')
 
@@ -242,6 +259,7 @@ class UCParser:
         ''' function_definition : declarator declaration_list_opt compound_statement
         '''
         if self.debug:
+        # if True:
             print("Inside p_function_definition_2:")
             for i in range(len(p)):
                 print("p[{0}] = {1}".format(i, p[i]))
@@ -1378,8 +1396,6 @@ class UCParser:
 
         self.debug = False
 
-        print("I'm on parser! :D")
-
         self.lexer = UCLexer(self.print_error)
         self.lexer.build()
         # lexer.input(code)
@@ -1398,5 +1414,4 @@ class UCParser:
         # result = parser.parse("int a = 2;")
         result.show()
 
-
-        return self
+        return result

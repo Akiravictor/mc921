@@ -74,7 +74,7 @@ class Node(object):
 
         if showcoord:
             if self.coord:
-                buf.write(' (at %s)' % self.coord)
+                buf.write(' %s' % self.coord)
         buf.write('\n')
 
         for (child_name, child) in self.children():
@@ -522,6 +522,7 @@ class FuncDef(Node):
 
     def children(self):
         nodelist = []
+        if self.spec is not None: nodelist.append(("spec", self.spec))
         if self.decl is not None: nodelist.append(("decl", self.decl))
         if self.body is not None: nodelist.append(("body", self.body))
         for i, child in enumerate(self.param_decls or []):
@@ -529,6 +530,8 @@ class FuncDef(Node):
         return tuple(nodelist)
 
     def __iter__(self):
+        if self.spec is not None:
+            yield self.spec
         if self.decl is not None:
             yield self.decl
         if self.body is not None:

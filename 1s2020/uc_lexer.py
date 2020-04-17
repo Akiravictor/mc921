@@ -66,7 +66,6 @@ class UCLexer:
         self.last_token = None
 
     def build(self, **kwargs):
-        print("I'm on lexer!")
         self.lexer = lex.lex(module=self, **kwargs)
 
     def reset_lineno(self):
