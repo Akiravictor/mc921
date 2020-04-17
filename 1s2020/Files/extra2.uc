@@ -1,2 +1,12 @@
-int v[5] = { 1, 3, 5, 7, 9};
-assert v[3] == 7;
+int n = 3;
+
+int doubleMe (int x) {
+    return x * x;
+}
+
+void main () {
+    int v = n;
+    v = doubleMe (v);
+    assert v == n * n;
+    return 0;
+}

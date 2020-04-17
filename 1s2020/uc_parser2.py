@@ -909,7 +909,7 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
 
-        arr = ArrayDecl(type=None, dim=p[3], coord=p[1].coord)
+        arr = ArrayDecl(type=None, dim=p[3] if len(p) > 4 else None, coord=p[1].coord)
         p[0] = self._type_modify_decl(decl=p[1], modifier=arr)
 
     def p_direct_declarator_5(self, p):

@@ -1,4 +1,6 @@
 int a=10;
 int *p;
-p = &a;
+int main() {
+  p = &a;
+}
 int b = *p;

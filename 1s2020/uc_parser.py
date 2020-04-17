@@ -326,8 +326,7 @@ class UCParser:
                 print("p[{0}] = {1}".format(i, p[i]))
             print()
 
-        if len(p) == 2:
-            p[0] = p[1]
+        p[0] = p[1]
 
         if self.debug:
             print("p[0] = {0}".format(p[0]))
@@ -511,7 +510,9 @@ class UCParser:
                 print("p[{0}] = {1}".format(i, p[i]))
             print()
 
-        p[0] = (p[1], p[2])
+        spec = p[1]
+
+        p[0] = self._build_declarations(spec=spec, decls=[dict(decl=p[2])])[0]
 
         if self.debug:
             print("p[0] = {0}".format(p[0]))
@@ -651,7 +652,7 @@ class UCParser:
             print('End')
 
     def p_iteration_statement_3(self, p):
-        ''' iteration_statement : FOR LPAREN declaration SEMI expression_opt SEMI expression_opt RPAREN statement
+        ''' iteration_statement : FOR LPAREN declaration expression_opt SEMI expression_opt RPAREN statement
         '''
         if self.debug:
             print("Inside p_iteration_statement:")
@@ -1251,6 +1252,7 @@ class UCParser:
             print()
 
         func = FuncDecl(args=p[3], type=None, coord=p[1].coord)
+
         p[0] = self._type_modify_decl(decl=p[1], modifier=func)
 
         if self.debug:
