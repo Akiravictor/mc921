@@ -22,6 +22,9 @@ class UCParser:
         return Coord(p.lineno(token_idx), column).__str__()
 
     def _type_modify_decl(self, decl, modifier):
+        print("Inside _type_modify_decl:")
+        print(decl)
+        print('End')
         modifier_head = modifier
         modifier_tail = modifier
 
@@ -365,10 +368,7 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        spec = p[1]
-        if not spec['type']:
-            spec['type'] = [Type(['int'], coord=self._token_coord(p, 1))]
-        p[0] = self._build_declarations(spec=spec, decls=[dict(decl=p[2])])[0]
+        p[0] = (p[1], p[2])
 
     def p_compound_statement(self, p):
         ''' compound_statement : LBRACE block_item_list_opt RBRACE
@@ -874,7 +874,7 @@ class UCParser:
     def p_direct_declarator_1(self, p):
         ''' direct_declarator : identifier
         '''
-        print("Inside p_direct_declarator:")
+        print("Inside p_direct_declarator_1:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
@@ -883,7 +883,7 @@ class UCParser:
     def p_direct_declarator_2(self, p):
         ''' direct_declarator : LPAREN declarator RPAREN
         '''
-        print("Inside p_direct_declarator:")
+        print("Inside p_direct_declarator_2:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
@@ -894,7 +894,7 @@ class UCParser:
     def p_direct_declarator_3(self, p):
         ''' direct_declarator : direct_declarator LPAREN parameter_list RPAREN
         '''
-        print("Inside p_direct_declarator:")
+        print("Inside p_direct_declarator_3:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
@@ -905,7 +905,7 @@ class UCParser:
     def p_direct_declarator_4(self, p):
         ''' direct_declarator : direct_declarator LBRACKET constant_expression_opt RBRACKET
         '''
-        print("Inside p_direct_declarator:")
+        print("Inside p_direct_declarator_4:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
@@ -916,7 +916,7 @@ class UCParser:
     def p_direct_declarator_5(self, p):
         ''' direct_declarator : direct_declarator LPAREN id_list RPAREN
         '''
-        print("Inside p_direct_declarator:")
+        print("Inside p_direct_declarator_5:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
