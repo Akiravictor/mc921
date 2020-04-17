@@ -133,7 +133,7 @@ class UCParser:
         if len(p) == 2:
             p[0] = DeclList([p[1]])
         else:
-            p[0] = DeclList([p[1]]+[p[2]])
+            p[0] = [p[1]]+[p[2]]
 
         if self.debug:
             print("p[0] = {0}".format(p[0]))
@@ -448,7 +448,7 @@ class UCParser:
         if len(p) == 2:
             p[0] = DeclList(p[1])
         else:
-            p[0] = DeclList(p[1]+p[2])
+            p[0] = p[1]+[p[2]]
 
         if self.debug:
             print("p[0] = {0}".format(p[0]))
