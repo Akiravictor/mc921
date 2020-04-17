@@ -723,7 +723,7 @@ class Read(Node):
         for child in (self.names or []):
             yield child
 
-    attr_names = ()
+    attr_names = ('coord',)
 
 
 class Return(Node):
@@ -753,7 +753,6 @@ class Type(Node):
         self.coord = coord
 
     def children(self):
-        nodelist = []
         nodelist = []
         return tuple(nodelist)
 
