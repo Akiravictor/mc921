@@ -560,11 +560,10 @@ class GlobalDecl(Node):
 
 
 class ID(Node):
-    __slots__ = ('name', 'type', 'coord')
+    __slots__ = ('name', 'coord')
 
-    def __init__(self, name, type, coord=None):
+    def __init__(self, name,  coord=None):
         self.name = name
-        self.type = type
         self.coord = coord
 
     def children(self):
@@ -574,7 +573,7 @@ class ID(Node):
     def __iter__(self):
         return
 
-    attr_names = ('name', )
+    attr_names = ('name', 'coord')
 
 
 class If(Node):
@@ -762,10 +761,10 @@ class Type(Node):
 
 
 class VarDecl(Node):
-    __slots__ = ('name', 'type', 'coord')
+    __slots__ = ('declname', 'type', 'coord')
 
-    def __init__(self, name, type, coord=None):
-        self.name = name
+    def __init__(self, declname, type, coord=None):
+        self.declname = declname
         self.type = type
         self.coord = coord
 

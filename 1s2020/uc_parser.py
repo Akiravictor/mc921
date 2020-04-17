@@ -97,8 +97,11 @@ class UCParser:
             print(type)
             type = type.type
 
-        decl.name = type.name
+        decl.name = type.declname
         type.type = typename
+        print("after while")
+        print(decl)
+        print('End')
         return decl
 
 
@@ -1221,7 +1224,7 @@ class UCParser:
                 print("p[{0}] = {1}".format(i, p[i]))
             print()
 
-        p[0] = VarDecl(name=p[1], type=None, coord=self._token_coord(p, 1))
+        p[0] = VarDecl(p[1], type=None, coord=self._token_coord(p, 1))
 
         if self.debug:
             print("p[0] = {0}".format(p[0]))
@@ -1334,7 +1337,7 @@ class UCParser:
                 print("p[{0}] = {1}".format(i, p[i]))
             print()
 
-        p[0] = ID(p[1], self._token_coord(p, 1))
+        p[0] = ID(p[1], coord=self._token_coord(p, 1))
 
         if self.debug:
             print("p[0] = {0}".format(p[0]))
