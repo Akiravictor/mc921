@@ -117,7 +117,7 @@ class UCLexer:
         return t
 
     def t_CHAR_CONST(self, t):
-        r'\'[a-zA-Z]{1}\''
+        r'\'.{1}\''
         t.type = self.keyword_map.get(t.value, "CHAR_CONST")
         return t
 
