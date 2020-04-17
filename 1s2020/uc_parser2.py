@@ -29,7 +29,7 @@ class UCParser:
             modifier_tail = modifier_tail.type
 
         if isinstance(decl, VarDecl):
-            modifier_tail = decl
+            modifier_tail.type = decl
             return modifier
         else:
             decl_tail = decl
@@ -67,7 +67,7 @@ class UCParser:
             assert decl['decl'] is not None
             declaration = Decl(name=None, type=decl['decl'], init=decl.get('init'), coord=decl.get('coord'))
 
-            if isinstance(declaration.type, (Type)):
+            if isinstance(declaration.type, Type):
                 fixed_decl = declaration
             else:
                 fixed_decl = self._fix_decl_name_type(declaration, spec)
@@ -87,27 +87,7 @@ class UCParser:
             type = type.type
 
         decl.name = type.declname
-
-        for tn in typename.names:
-            if not isinstance(tn, Type):
-                if len(typename.names) > 1:
-                    self._parse_error("Invalid multiple types specified", tn.coord)
-
-                else:
-                    type.type = tn
-                    return decl
-
-        if not typename:
-            if not isinstance(decl.type, FuncDef):
-                self._parse_error("Missing type in declaration", decl.coord)
-
-            type.type = Type(['int'], coord=decl.coord)
-        else:
-            # At this point, we know that typename is a list of Type
-            # nodes. Concatenate all the names into a single list.
-            type.type = Type(
-                [typename.names[0]],
-                coord=typename.coord)
+        type.type = typename
         return decl
 
 
@@ -309,17 +289,18 @@ class UCParser:
             p[0] = p[1] + [p[2]]
 
     def p_declarator(self, p):
-        ''' declarator : pointer_opt direct_declarator
+        ''' declarator : pointer direct_declarator
+                       | direct_declarator
         '''
         print("Inside p_declarator:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
 
-        if p[1] is None:
-            p[0] = p[2]
+        if len(p) == 2:
+            p[0] = p[1]
         else:
-            p[0] = self._type_modify_decl(p[2], p[1])
+            p[0] = self._type_modify_decl(decl=p[2], modifier=p[1])
 
     def p_parameter_list_1(self, p):
         ''' parameter_list : parameter_declaration
@@ -846,17 +827,6 @@ class UCParser:
 
         p[0] = Constant('char', p[1], self._token_coord(p, 1))
 
-    def p_pointer_opt(self, p):
-        ''' pointer_opt : pointer
-                        | empty
-        '''
-        print("Inside p_pointer_opt:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if p[1] is not None:
-            p[0] = p[1]
-
     def p_pointer_1(self, p):
         ''' pointer : TIMES pointer
         '''
@@ -864,8 +834,10 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        # if len(p) == 3:
-        #     p[0] = PtrDecl(p[2])
+        tail_type = p[3]
+        while tail_type.type is not None:
+            tail_type = tail_type.type
+        tail_type.type = PtrDecl(type=None, coord=self._token_coord(p, 1))
         p[0] = p[2]
 
     def p_pointer_2(self, p):
@@ -875,8 +847,6 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        # if len(p) == 3:
-        #     p[0] = PtrDecl(p[2])
         p[0] = PtrDecl(type=None, coord=self._token_coord(p, 1))
 
     def p_direct_declarator_1(self, p):
