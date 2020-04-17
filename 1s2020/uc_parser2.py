@@ -102,20 +102,17 @@ class UCParser:
         p[0] = Program(p[1])
 
     def p_global_declaration_list(self, p):
-        ''' global_declaration_list : global_declaration_list global_declaration
-                                    | empty
+        ''' global_declaration_list : global_declaration
+                                    | global_declaration_list global_declaration
         '''
         print("Inside p_global_declaration_list:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 2:
-            if p[1] is None:
-                p[0] = []
-            else:
-                p[0] = [p[1]]
-        if len(p) == 3:
-            p[0] = p[1] + [p[2]]
+            p[0] = DeclList([p[1]])
+        else:
+            p[0] = DeclList([p[1]]+[p[2]])
 
     def p_global_declaration_1(self, p):
         ''' global_declaration : function_definition
@@ -134,7 +131,6 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         p[0] = GlobalDecl(p[1])
-        # p[0] = p[1]
 
     def p_block_item_list_opt(self, p):
         ''' block_item_list_opt : block_item_list
@@ -309,20 +305,27 @@ class UCParser:
         p[0] = decls
 
     def p_declaration_list_opt(self, p):
-        ''' declaration_list_opt : declaration_list_opt declaration
+        ''' declaration_list_opt : declaration_list
                                  | empty
         '''
         print("Inside p_declaration_list_opt:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
+        p[0] = p[1]
+
+    def p_declaration_list(self, p):
+        ''' declaration_list : declaration
+                            | declaration_list declaration
+        '''
+        print("Inside p_declaration_list:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
         if len(p) == 2:
-            if p[1] is None:
-                p[0] = []
-            else:
-                p[0] = p[1]
-        if len(p) == 3:
-            p[0] = p[1] + [p[2]]
+            p[0] = DeclList(p[1])
+        else:
+            p[0] = DeclList(p[1]+p[2])
 
     def p_declarator(self, p):
         ''' declarator : pointer direct_declarator
