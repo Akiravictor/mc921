@@ -150,7 +150,7 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 2 or p[2] ==[None]:
+        if len(p) == 2 or p[2] == [None]:
             p[0] = p[1]
         else:
             p[0] = p[1] + p[2]
@@ -222,8 +222,6 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        # if len(p) == 4:
-        #     p[0] = p[1] + [p[3]]
         p[0] = p[1] + [p[3]]
 
     def p_init_declarator(self, p):
@@ -348,8 +346,7 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 2:
-            p[0] = ParamList([p[1]], coord=self._token_coord(p, 1) )
+        p[0] = ParamList([p[1]], coord=self._token_coord(p, 1) )
 
     def p_parameter_list_2(self, p):
         ''' parameter_list : parameter_list COMMA parameter_declaration
@@ -368,7 +365,10 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = (p[1], p[2])
+        spec = p[1]
+        if not spec['type']:
+            spec['type'] = [Type(['int'], coord=self._token_coord(p, 1))]
+        p[0] = self._build_declarations(spec=spec, decls=[dict(decl=p[2])])[0]
 
     def p_compound_statement(self, p):
         ''' compound_statement : LBRACE block_item_list_opt RBRACE
@@ -550,24 +550,7 @@ class UCParser:
         print('End')
         p[0] = p[1]
 
-    def p_statement_list_opt(self, p):
-        ''' statement_list_opt : statement_list_opt statement
-                               | empty
-        '''
-        print("Inside p_statement_list_opt:")
-        for i in range(len(p)):
-            print("p[{0}] = {1}".format(i, p[i]))
-        print('End')
-        if len(p) == 2:
-            if p[1] is None:
-                p[0] = []
-            else:
-                p[0] = p[1]
-        if len(p) == 3:
-            if p[2] is None:
-                p[0] = p[1]
-            else:
-                p[0] = p[1] + [p[2]]
+
 
     def p_assignment_expression_1(self, p):
         ''' assignment_expression : binary_expression
@@ -910,7 +893,6 @@ class UCParser:
 
     def p_direct_declarator_3(self, p):
         ''' direct_declarator : direct_declarator LPAREN parameter_list RPAREN
-                              | direct_declarator LPAREN id_list RPAREN
         '''
         print("Inside p_direct_declarator:")
         for i in range(len(p)):
@@ -931,15 +913,15 @@ class UCParser:
         arr = ArrayDecl(type=None, dim=p[3] if len(p) > 4 else None, coord=p[1].coord)
         p[0] = self._type_modify_decl(decl=p[1], modifier=arr)
 
-    def p_id_list_opt(self, p):
-        ''' id_list_opt : id_list
-                        | empty
+    def p_direct_declarator_5(self, p):
+        ''' direct_declarator : direct_declarator LPAREN id_list RPAREN
         '''
-        print("Inside p_id_list:")
+        print("Inside p_direct_declarator:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        p[0] = p[1]
+
+        p[0] = FuncDecl(args=p[3], type=None, coord=p[1].coord)
 
     def p_id_list(self, p):
         ''' id_list : identifier
