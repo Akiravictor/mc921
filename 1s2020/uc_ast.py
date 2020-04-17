@@ -208,7 +208,7 @@ class ArrayRef(Node):
         if self.subscript is not None:
             yield self.subscript
 
-    attr_names = ()
+    attr_names = ('coord',)
 
 
 class Assert(Node):
@@ -395,7 +395,7 @@ class DeclList(Node):
         for child in enumerate(self.decls or []):
             yield child
 
-    attr_names = ()
+    attr_names = ('coord',)
 
 
 class EmptyStatement(Node):
@@ -507,7 +507,7 @@ class FuncDecl(Node):
         if self.type is not None:
             yield self.type
 
-    attr_names = ()
+    attr_names = ( )
 
 
 class FuncDef(Node):
@@ -620,7 +620,7 @@ class InitList(Node):
         for child in (self.exprs or []):
             yield child
 
-    attr_names = ()
+    attr_names = ('coord',)
 
 
 class ParamList(Node):
@@ -797,7 +797,7 @@ class UnaryOp(Node):
         if self.expr is not None:
             yield self.expr
 
-    attr_names = ('op', )
+    attr_names = ('op', 'coord',)
 
 
 class While(Node):
