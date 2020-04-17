@@ -558,10 +558,11 @@ class GlobalDecl(Node):
 
 
 class ID(Node):
-    __slots__ = ('name', 'coord')
+    __slots__ = ('name', 'type', 'coord')
 
-    def __init__(self, name, coord=None):
+    def __init__(self, name, type, coord=None):
         self.name = name
+        self.type = type
         self.coord = coord
 
     def children(self):
@@ -749,6 +750,7 @@ class Type(Node):
 
     def children(self):
         nodelist = []
+        nodelist = []
         return tuple(nodelist)
 
     def __iter__(self):
@@ -758,10 +760,10 @@ class Type(Node):
 
 
 class VarDecl(Node):
-    __slots__ = ('declname', 'type', 'coord')
+    __slots__ = ('name', 'type', 'coord')
 
-    def __init__(self, declname, type, coord=None):
-        self.declname = declname
+    def __init__(self, name, type, coord=None):
+        self.name = name
         self.type = type
         self.coord = coord
 
@@ -774,7 +776,7 @@ class VarDecl(Node):
         if self.type is not None:
             yield self.type
 
-    attr_names = ('declname',)
+    attr_names = ('name',)
 
 
 class UnaryOp(Node):
