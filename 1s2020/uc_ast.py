@@ -392,7 +392,7 @@ class DeclList(Node):
         return tuple(nodelist)
 
     def __iter__(self):
-        for child in (self.decls or []):
+        for child in enumerate(self.decls or []):
             yield child
 
     attr_names = ()

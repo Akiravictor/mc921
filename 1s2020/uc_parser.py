@@ -131,9 +131,9 @@ class UCParser:
             print()
 
         if len(p) == 2:
-            p[0] = DeclList([p[1]])
+            p[0] = [p[1]]
         else:
-            p[0] = [p[1]]+[p[2]]
+            p[0] = p[1]+[p[2]]
 
         if self.debug:
             print("p[0] = {0}".format(p[0]))
@@ -1376,7 +1376,7 @@ class UCParser:
             print("Code: {0}".format(code))
             print("Filename: {0}".format(filename))
 
-        self.debug = True
+        self.debug = False
 
         print("I'm on parser! :D")
 
@@ -1394,7 +1394,7 @@ class UCParser:
 
         parser = yacc.yacc(module=self, write_tables=False)
         # print(code)
-        result = parser.parse(code, tracking=True)
+        result = parser.parse(code, tracking=False)
         # result = parser.parse("int a = 2;")
         result.show()
 
