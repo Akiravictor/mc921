@@ -86,7 +86,7 @@ class UCParser:
         while not isinstance(type, VarDecl):
             type = type.type
 
-        decl.name = type.declname
+        decl.name = type.name
         type.type = typename
         return decl
 
@@ -135,6 +135,42 @@ class UCParser:
         print('End')
         p[0] = GlobalDecl(p[1])
         # p[0] = p[1]
+
+    def p_block_item_list_opt(self, p):
+        ''' block_item_list_opt : block_item_list
+                                | empty
+        '''
+        print("Inside p_block_item_list_opt:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        p[0] = p[1]
+
+    def p_block_item_list(self, p):
+        ''' block_item_list : block_item
+                            | block_item_list block_item
+        '''
+        print("Inside p_block_item_list:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        if len(p) == 2 or p[2] ==[None]:
+            p[0] = p[1]
+        else:
+            p[0] = p[1] + p[2]
+
+    def p_block_item(self, p):
+        ''' block_item : statement
+                       | declaration
+        '''
+        print("Inside p_block_item:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        if isinstance(p[1], list):
+            p[0] = p[1]
+        else:
+            p[0] = [p[1]]
 
     def p_function_definition_1(self, p):
         ''' function_definition : type_specifier declarator declaration_list_opt compound_statement
@@ -310,7 +346,7 @@ class UCParser:
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 2:
-            p[0] = [p[1]]
+            p[0] = ParamList([p[1]], coord=self._token_coord(p, 1) )
 
     def p_parameter_list_2(self, p):
         ''' parameter_list : parameter_list COMMA parameter_declaration
@@ -319,8 +355,8 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        if len(p) == 4:
-            p[0] = p[1] + [p[3]]
+        p[1].params.append(p[3])
+        p[0] = p[1]
 
     def p_parameter_declaration(self, p):
         ''' parameter_declaration : type_specifier declarator
@@ -332,7 +368,7 @@ class UCParser:
         p[0] = (p[1], p[2])
 
     def p_compound_statement(self, p):
-        ''' compound_statement : LBRACE declaration_list_opt statement_list_opt RBRACE
+        ''' compound_statement : LBRACE block_item_list_opt RBRACE
         '''
         print("Inside p_compound_statement:")
         for i in range(len(p)):
@@ -856,9 +892,7 @@ class UCParser:
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
-        # if len(p) == 2:
-        #     p[0] = p[1]
-        p[0] = VarDecl(declname=p[1], type=None, coord=self._token_coord(p, 1))
+        p[0] = VarDecl(name=p[1], type=None, coord=self._token_coord(p, 1))
 
     def p_direct_declarator_2(self, p):
         ''' direct_declarator : LPAREN declarator RPAREN
@@ -894,27 +928,33 @@ class UCParser:
         arr = ArrayDecl(type=None, dim=p[3] if len(p) > 4 else None, coord=p[1].coord)
         p[0] = self._type_modify_decl(decl=p[1], modifier=arr)
 
+    def p_id_list_opt(self, p):
+        ''' id_list_opt : id_list
+                        | empty
+        '''
+        print("Inside p_id_list:")
+        for i in range(len(p)):
+            print("p[{0}] = {1}".format(i, p[i]))
+        print('End')
+        p[0] = p[1]
+
     def p_id_list(self, p):
-        ''' id_list : id_list identifier
-                    | empty
+        ''' id_list : identifier
+                    | id_list identifier
         '''
         print("Inside p_id_list:")
         for i in range(len(p)):
             print("p[{0}] = {1}".format(i, p[i]))
         print('End')
         if len(p) == 2:
-            if p[1] is None:
-                p[0] = []
-            else:
-                # p[0] = ID(p[1])
-                p[0] = p[1]
-        if len(p) == 3:
+            p[0] = [p[1]]
+        else:
             p[0] = p[1] + [p[2]]
 
     def p_identifier(self, p):
         ''' identifier : ID
         '''
-        p[0] = ID(p[1], self._token_coord(p, 1))
+        p[0] = ID(p[1], 'None', self._token_coord(p, 1))
 
     def p_type_specifier(self, p):
         ''' type_specifier : VOID
