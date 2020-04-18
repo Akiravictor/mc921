@@ -70,12 +70,12 @@ class Node(object):
             else:
                 # vlist = [getattr(self, n) for n in self.attr_names]
                 vlist = [getattr(self, n) for n in self.attr_names[:-1]]
-                attrstr = ' '.join('%s' % v for v in vlist)
+                attrstr = ', '.join('%s' % v for v in vlist)
             buf.write(attrstr)
 
         if showcoord:
             if self.coord:
-                buf.write(' %s' % self.coord)
+                buf.write('%s' % self.coord)
         buf.write('\n')
 
         for (child_name, child) in self.children():
