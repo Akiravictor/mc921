@@ -69,7 +69,7 @@ class Node(object):
                 attrstr = ', '.join('%s=%s' % nv for nv in nvlist)
             else:
                 vlist = [getattr(self, n) for n in self.attr_names]
-                attrstr = ', '.join('%s' % v for v in vlist)
+                attrstr = ' '.join('%s' % v for v in vlist)
             buf.write(attrstr)
 
         if showcoord:
@@ -321,7 +321,7 @@ class Compound(Node):
 
     def __init__(self, block_items, coord=None):
         self.block_items = block_items
-        self.coord = coord
+        self.coord = coord.split(":")[0]+":1"
 
     def children(self):
         nodelist = []
