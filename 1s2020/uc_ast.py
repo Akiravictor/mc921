@@ -603,7 +603,7 @@ class If(Node):
         if self.iffalse is not None:
             yield self.iffalse
 
-    attr_names = ()
+    attr_names = ('coord',)
 
 
 class InitList(Node):
