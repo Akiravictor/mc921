@@ -68,7 +68,8 @@ class Node(object):
                 nvlist = [(n, getattr(self, n)) for n in self.attr_names if getattr(self, n) is not None]
                 attrstr = ', '.join('%s=%s' % nv for nv in nvlist)
             else:
-                vlist = [getattr(self, n) for n in self.attr_names]
+                # vlist = [getattr(self, n) for n in self.attr_names]
+                vlist = [getattr(self, n) for n in self.attr_names[:-1]]
                 attrstr = ' '.join('%s' % v for v in vlist)
             buf.write(attrstr)
 

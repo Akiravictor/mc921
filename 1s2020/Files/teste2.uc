@@ -1,18 +1,12 @@
-int f(int n, int k) {
-    int p, q, t;
-    if (n < 2) {
-        k = 0;
-        return n;
-    }
-    else {
-        t = f(n-1, p) + f(n-2, q);
-        k = p + q + 1;
-        return t;
-    }
+int n = 3;
+
+int doubleMe (int x) {
+    return x * x;
 }
 
-int main() {
-    int m = 9;
-    print(f(3, m), m);
+void main () {
+    int v = n;
+    v = doubleMe (v);
+    assert v == n * n;
     return 0;
 }

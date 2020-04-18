@@ -1,12 +1,15 @@
 int main() {
-    int n, reverse = 0, rem;
-    print("Enter a number: ");
+    int i, n, t1 = 0, t2 = 1, nextTerm;
+    print("Enter the number of terms: ");
     read(n);
-    while (n != 0) {
-        rem = n % 10;
-        reverse = reverse * 10 + rem;
-        n /= 10;
+    print("Fibonacci Series: ");
+
+    for (i = 1; i <= n; ++i) {
+        print(t1, " ");
+        nextTerm = t1 + t2;
+        t1 = t2;
+        t2 = nextTerm;
     }
-    print("Reversed Number: ", reverse);
+
     return 0;
 }

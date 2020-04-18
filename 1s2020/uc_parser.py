@@ -1412,6 +1412,6 @@ class UCParser:
         # print(code)
         result = parser.parse(code, tracking=False)
         # result = parser.parse("int a = 2;")
-        result.show()
+        # result.show()
 
         return result
