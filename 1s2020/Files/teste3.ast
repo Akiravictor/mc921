@@ -1,25 +1,25 @@
 Program: 
     FuncDef: 
         Type: ['int']   @ 1:1
-        Decl: 
+        Decl: ID(name='f'  )
             FuncDecl: 
                 ParamList: 
-                    Decl: 
+                    Decl: ID(name='n'  )
                         VarDecl: 
                             Type: ['int']   @ 1:7
-                    Decl: 
+                    Decl: ID(name='k'  )
                         VarDecl: 
                             Type: ['int']   @ 1:14
                 VarDecl: 
                     Type: ['int']   @ 1:1
         Compound:    @ 1:1
-            Decl: 
+            Decl: ID(name='p'  )
                 VarDecl: 
                     Type: ['int']   @ 2:5
-            Decl: 
+            Decl: ID(name='q'  )
                 VarDecl: 
                     Type: ['int']   @ 2:5
-            Decl: 
+            Decl: ID(name='t'  )
                 VarDecl: 
                     Type: ['int']   @ 2:5
             If:    @ 3:5
@@ -61,12 +61,12 @@ Program:
                         ID: t   @ 10:16
     FuncDef: 
         Type: ['int']   @ 14:1
-        Decl: 
+        Decl: ID(name='main'  )
             FuncDecl: 
                 VarDecl: 
                     Type: ['int']   @ 14:1
         Compound:    @ 14:1
-            Decl: 
+            Decl: ID(name='m'  )
                 VarDecl: 
                     Type: ['int']   @ 15:5
                 Constant: int, 9   @ 15:13

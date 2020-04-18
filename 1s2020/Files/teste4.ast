@@ -1,26 +1,26 @@
 Program: 
     FuncDef: 
         Type: ['int']   @ 1:1
-        Decl: 
+        Decl: ID(name='main'  )
             FuncDecl: 
                 VarDecl: 
                     Type: ['int']   @ 1:1
         Compound:    @ 1:1
-            Decl: 
+            Decl: ID(name='i'  )
                 VarDecl: 
                     Type: ['int']   @ 2:5
-            Decl: 
+            Decl: ID(name='n'  )
                 VarDecl: 
                     Type: ['int']   @ 2:5
-            Decl: 
+            Decl: ID(name='t1'  )
                 VarDecl: 
                     Type: ['int']   @ 2:5
                 Constant: int, 0   @ 2:20
-            Decl: 
+            Decl: ID(name='t2'  )
                 VarDecl: 
                     Type: ['int']   @ 2:5
                 Constant: int, 1   @ 2:28
-            Decl: 
+            Decl: ID(name='nextTerm'  )
                 VarDecl: 
                     Type: ['int']   @ 2:5
             Print:    @ 3:5

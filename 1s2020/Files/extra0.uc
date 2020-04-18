@@ -1,2 +1,5 @@
-for (int i = 0; i < 100; i++)
-    (*a)[i];
+int main(){
+    int a[10][20];
+    float b = 1.2;
+    print("teste", a, "teste2");
+}

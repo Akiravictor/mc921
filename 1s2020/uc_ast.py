@@ -68,9 +68,10 @@ class Node(object):
                 nvlist = [(n, getattr(self, n)) for n in self.attr_names if getattr(self, n) is not None]
                 attrstr = ', '.join('%s=%s' % nv for nv in nvlist)
             else:
-                # vlist = [getattr(self, n) for n in self.attr_names]
-                vlist = [getattr(self, n) for n in self.attr_names[:-1]]
+                vlist = [getattr(self, n) for n in self.attr_names]
+                # vlist = [getattr(self, n) for n in self.attr_names[:-1]]
                 attrstr = ', '.join('%s' % v for v in vlist)
+
             buf.write(attrstr)
 
         if showcoord:
@@ -209,7 +210,7 @@ class ArrayRef(Node):
         if self.subscript is not None:
             yield self.subscript
 
-    attr_names = ('coord',)
+    attr_names = ()
 
 
 class Assert(Node):
@@ -228,7 +229,7 @@ class Assert(Node):
         if self.expr is not None:
             yield self.expr
 
-    attr_names = ('coord',)
+    attr_names = ()
 
 
 class Assignment(Node):
@@ -252,7 +253,7 @@ class Assignment(Node):
         if self.rvalue is not None:
             yield self.rvalue
 
-    attr_names = ('op', 'coord',)
+    attr_names = ('op',)
 
 
 class BinaryOp(Node):
@@ -276,7 +277,7 @@ class BinaryOp(Node):
         if self.right is not None:
             yield self.right
 
-    attr_names = ('op', 'coord',)
+    attr_names = ('op', )
 
 
 class Break(Node):
@@ -334,7 +335,7 @@ class Compound(Node):
         for child in (self.block_items or []):
             yield child
 
-    attr_names = ('coord',)
+    attr_names = ()
 
 
 class Constant(Node):
@@ -352,7 +353,7 @@ class Constant(Node):
     def __iter__(self):
         return
 
-    attr_names = ('type', 'value', 'coord')
+    attr_names = ('type', 'value',)
 
 
 class Decl(Node):
@@ -396,7 +397,7 @@ class DeclList(Node):
         for child in enumerate(self.decls or []):
             yield child
 
-    attr_names = ('coord',)
+    attr_names = ()
 
 
 class EmptyStatement(Node):
@@ -431,7 +432,7 @@ class ExprList(Node):
         for child in (self.exprs or []):
             yield child
 
-    attr_names = ('coord', )
+    attr_names = ()
 
 
 class For(Node):
@@ -462,7 +463,7 @@ class For(Node):
         if self.stmt is not None:
             yield self.stmt
 
-    attr_names = ('coord',)
+    attr_names = ()
 
 
 class FuncCall(Node):
@@ -485,7 +486,7 @@ class FuncCall(Node):
         if self.args is not None:
             yield self.args
 
-    attr_names = ('coord', )
+    attr_names = ( )
 
 
 class FuncDecl(Node):
@@ -577,7 +578,7 @@ class ID(Node):
     def __iter__(self):
         return
 
-    attr_names = ('name', 'coord')
+    attr_names = ('name',)
 
 
 class If(Node):
@@ -604,7 +605,7 @@ class If(Node):
         if self.iffalse is not None:
             yield self.iffalse
 
-    attr_names = ('coord',)
+    attr_names = ()
 
 
 class InitList(Node):
@@ -624,7 +625,7 @@ class InitList(Node):
         for child in (self.exprs or []):
             yield child
 
-    attr_names = ('coord',)
+    attr_names = ()
 
 
 class ParamList(Node):
@@ -664,7 +665,7 @@ class Print(Node):
         for child in (self.expr or []):
             yield child
 
-    attr_names = ('coord', )
+    attr_names = ()
 
 
 class Program(Node):
@@ -724,7 +725,7 @@ class Read(Node):
         for child in (self.names or []):
             yield child
 
-    attr_names = ('coord',)
+    attr_names = ()
 
 
 class Return(Node):
@@ -743,7 +744,7 @@ class Return(Node):
         if self.expr is not None:
             yield self.expr
 
-    attr_names = ('coord', )
+    attr_names = ()
 
 
 class Type(Node):
@@ -760,7 +761,7 @@ class Type(Node):
     def __iter__(self):
         return
 
-    attr_names = ('names', 'coord')
+    attr_names = ('names', )
 
 
 class VarDecl(Node):
@@ -800,7 +801,7 @@ class UnaryOp(Node):
         if self.expr is not None:
             yield self.expr
 
-    attr_names = ('op', 'coord',)
+    attr_names = ('op', )
 
 
 class While(Node):
@@ -823,4 +824,4 @@ class While(Node):
         if self.stmt is not None:
             yield self.stmt
 
-    attr_names = ('coord',)
+    attr_names = ()
