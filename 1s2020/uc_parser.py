@@ -22,7 +22,8 @@ class UCParser:
         return Coord(p.lineno(token_idx), column).__str__()
 
     def _type_modify_decl(self, decl, modifier):
-        if self.debug:
+        # if self.debug:
+        if False:
             print("Inside _type_modify_decl:")
             print(decl)
             print('End')
@@ -46,8 +47,6 @@ class UCParser:
             decl_tail.type = modifier_head
             return decl
 
-
-
     def p_error(self, p):
         if p:
             print("Error near the symbol %s" % p.value)
@@ -55,7 +54,8 @@ class UCParser:
             print("Error at the end of input")
 
     def _build_function_definition(self, spec, decl, param_decls, body):
-        if self.debug:
+        # if self.debug:
+        if False:
             print("Inside _build_function_definition:")
             print(spec)
             print(decl)
@@ -65,11 +65,11 @@ class UCParser:
 
         declaration = self._build_declarations(spec=spec, decls=[dict(decl=decl, init=None)])[0]
 
-
         return FuncDef(spec=spec, decl=declaration, param_decls=param_decls, body=body, coord=decl.coord)
 
     def _build_declarations(self, spec, decls):
-        if self.debug:
+        # if self.debug:
+        if False:
             print("Inside _build_declarations:")
             for decl in decls:
                 print(decl)
@@ -94,7 +94,8 @@ class UCParser:
         return declarations
 
     def _fix_decl_name_type(self, decl, typename):
-        if self.debug:
+        # if self.debug:
+        if False:
             print("Inside _fix_decl_name_type:")
             print(decl)
             print("typename")
@@ -112,7 +113,8 @@ class UCParser:
         decl.name = type.declname
         type.type = typename
 
-        if self.debug:
+        # if self.debug:
+        if False:
             print("after while")
             print(decl)
             print('End')
@@ -1001,7 +1003,7 @@ class UCParser:
         ''' string_literal : STRING
         '''
         if self.debug:
-            print("Inside p_constant:")
+            print("Inside p_string_literal:")
             for i in range(len(p)):
                 print("p[{0}] = {1}".format(i, p[i]))
             print()
@@ -1388,17 +1390,17 @@ class UCParser:
         pass
 
     def parse(self, code, filename='', debug=0):
-        # self.debug = debug
+        self.debug = debug
 
         if debug:
             print("Code: {0}".format(code))
             print("Filename: {0}".format(filename))
 
-        self.debug = False
+        #self.debug = False
 
         self.lexer = UCLexer(self.print_error)
         self.lexer.build()
-        # lexer.input(code)
+        # self.lexer.input(code)
 
         self.tokens = self.lexer.tokens
         self.precedence = (
@@ -1411,7 +1413,6 @@ class UCParser:
         parser = yacc.yacc(module=self, write_tables=False)
         # print(code)
         result = parser.parse(code, tracking=False)
-        # result = parser.parse("int a = 2;")
         result.show(showcoord=True)
 
         return result

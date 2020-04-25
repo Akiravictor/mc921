@@ -1,6 +1,5 @@
 import ply.lex as lex
 
-
 class UCLexer:
     keywords = ('ASSERT', 'BREAK', 'PRINT', 'READ', 'FOR', 'RETURN', 'WHILE', 'IF', 'ELSE',
                 'VOID', 'INT', 'FLOAT', 'CHAR')
@@ -105,14 +104,14 @@ class UCLexer:
         t.type = self.keyword_map.get(t.value, "ID")
         return t
 
+    def t_FLOAT_CONST(self, t):
+        r'\d*\.\d*'
+        t.type = self.keyword_map.get(t.value, "FLOAT_CONST")
+        return t
+
     def t_INT_CONST(self, t):
         r'[0-9]+'
         t.type = self.keyword_map.get(t.value, "INT_CONST")
-        return t
-
-    def t_FLOAT_CONST(self, t):
-        r'[0-9]+\.[0-9]*'
-        t.type = self.keyword_map.get(t.value, "FLOAT_CONST")
         return t
 
     def t_CHAR_CONST(self, t):
