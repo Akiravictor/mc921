@@ -1,9 +1,6 @@
 Program: 
     GlobalDecl: 
         Decl: ID(name='a'  )
-            ArrayDecl: 
-                ArrayDecl: 
-                    VarDecl: 
-                        Type: ['float']   @ 1:1
-                    Constant: int, 2   @ 1:12
-                Constant: int, 1   @ 1:9
+            VarDecl: 
+                Type: ['int']   @ 1:1
+            Constant: int, 2   @ 1:9

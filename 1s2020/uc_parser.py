@@ -22,8 +22,8 @@ class UCParser:
         return Coord(p.lineno(token_idx), column).__str__()
 
     def _type_modify_decl(self, decl, modifier):
-        # if self.debug:
-        if False:
+        if self.debug:
+        # if False:
             print("Inside _type_modify_decl:")
             print(decl)
             print('End')
@@ -54,8 +54,8 @@ class UCParser:
             print("Error at the end of input")
 
     def _build_function_definition(self, spec, decl, param_decls, body):
-        # if self.debug:
-        if False:
+        if self.debug:
+        # if False:
             print("Inside _build_function_definition:")
             print(spec)
             print(decl)
@@ -68,8 +68,8 @@ class UCParser:
         return FuncDef(spec=spec, decl=declaration, param_decls=param_decls, body=body, coord=decl.coord)
 
     def _build_declarations(self, spec, decls):
-        # if self.debug:
-        if False:
+        if self.debug:
+        # if False:
             print("Inside _build_declarations:")
             for decl in decls:
                 print(decl)
@@ -94,8 +94,8 @@ class UCParser:
         return declarations
 
     def _fix_decl_name_type(self, decl, typename):
-        # if self.debug:
-        if False:
+        if self.debug:
+        # if False:
             print("Inside _fix_decl_name_type:")
             print(decl)
             print("typename")
@@ -113,14 +113,13 @@ class UCParser:
         decl.name = type.declname
         type.type = typename
 
-        # if self.debug:
-        if False:
+        if self.debug:
+        # if False:
             print("after while")
             print(decl)
             print('End')
 
         return decl
-
 
     def p_program(self, p):
         ''' program : global_declaration_list
@@ -1400,7 +1399,7 @@ class UCParser:
 
         self.lexer = UCLexer(self.print_error)
         self.lexer.build()
-        # self.lexer.input(code)
+        # self.lexer.input(code)z
 
         self.tokens = self.lexer.tokens
         self.precedence = (
@@ -1413,6 +1412,6 @@ class UCParser:
         parser = yacc.yacc(module=self, write_tables=False)
         # print(code)
         result = parser.parse(code, tracking=False)
-        result.show(showcoord=True)
+        # result.show(showcoord=True)
 
         return result

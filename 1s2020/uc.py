@@ -11,6 +11,7 @@
 import sys
 from contextlib import contextmanager
 from uc_parser import UCParser
+from uc_sema import *
 
 """
 One of the most important (and difficult) parts of writing a compiler
@@ -123,6 +124,10 @@ class Compiler:
             self.ast.show(showcoord=True)
         elif ast_file is not None:
             self.ast.show(buf=ast_file, showcoord=True)
+
+    def _semantic(self, susy, debug):
+        self.semantic = Visitor(debug)
+        self.semantic.visit(self.ast)
 
     def _do_compile(self, susy, ast_file, debug):
         """ Compiles the code to the given file object. """
