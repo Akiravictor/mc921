@@ -37,11 +37,39 @@ class GenerateCode(NodeVisitor):
         else:
             return ''.join(self.visit(c) for c_name, c in node.children())
 
-    def visit_Constant(self, n):
-        return n.value
+    def visit_Constant(self, node):
+        if node.rawtype == 'string':
+            _target = self.new_text()
+            inst = ('global_string'. _target, node.value)
+            self.text.append(inst)
+        else:
+            _target = self.new_temp()
+            inst = ('literal_' + node.rawtype, node.value, _target)
+            self.code.append(inst)
+        node.gen_location = _target
 
-    def visit_ID(self, n):
-        return n.name
+    def visit_ID(self, node):
+        if node.gen_location is None:
+            _type = node.bind
+            while not isinstance(_type, VarDecl):
+                _type = _type.type
+            node.gen_location = _type.declname.gen_location
+
+    def visit_Print(self, node):
+        if node.expr is not None:
+            for _expr in node.expr:
+                self.visit(_expr)
+                if isinstance(_expr, ID) or isinstance(_expr, ArrayRef):
+                    self._loadLocation(_expr)
+                inst = ('print_' + _expr.type.names[-1].typename, _expr.gen_location)
+                self.code.append(inst)
+        else:
+            inst = ('print_void',)
+            self.code.append(inst)
+
+    def visit_Program(self, node):
+        for _decl in node.gdecls:
+            self.visit(_decl)
 
     def visit_Pragma(self, n):
         ret = '#pragma'
@@ -49,43 +77,145 @@ class GenerateCode(NodeVisitor):
             ret += ' ' + n.string
         return ret
 
-    def visit_ArrayRef(self, n):
-        arrref = self._parenthesize_unless_simple(n.name)
-        return arrref + '[' + self.visit(n.subscript) + ']'
+    def visit_ArrayRef(self, node):
+        _subs = node.subscript
+        self.visit(_subs)
+        if isinstance(_subs, ID) or isinstance(_subs, ArrayRef):
+            self._loadLocation(_subs)
+        _var = node.name.bind.type.declname.gen_location
+        _index = _subs.gen_location
+        _target = self.new_temp()
+        node.gen_location = _target
+        inst = ('elem_' + node.type.names[-1].typename, _var, _index, _target)
+        self.code.append(inst)
 
     def visit_StructRef(self, n):
         sref = self._parenthesize_unless_simple(n.name)
         return sref + n.type + self.visit(n.field)
 
-    def visit_FuncCall(self, n):
-        fref = self._parenthesize_unless_simple(n.name)
-        return fref + '(' + self.visit(n.args) + ')'
+    def visit_FuncCall(self, node):
+        if node.args is not None:
+            if isinstance(node.args, ExprList):
+                _tcode = []
+                for _arg in node.args.exprs:
+                    self.visit(_arg)
+                    if isinstance(_arg, ID) or isinstance(_arg, ArrayRef):
+                        self._loadLocation(_arg)
+                    inst = ('param_' + _arg.type.names[-1].typename, _arg.gen_location)
+                    _tcode.append(inst)
+                for _inst in _tcode:
+                    self.code.append(_inst)
 
-    def visit_UnaryOp(self, n):
-        operand = self._parenthesize_unless_simple(n.expr)
-        if n.op == 'p++':
-            return '%s++' % operand
-        elif n.op == 'p--':
-            return '%s--' % operand
-        elif n.op == 'sizeof':
-            # Always parenthesize the argument of sizeof since it can be
-            # a name.
-            return 'sizeof(%s)' % self.visit(n.expr)
+            else:
+                self.visit(node.args)
+                if isinstance(node.args, ID) or isinstance(node.args, ArrayRef):
+                    self._loadLocation(node.args)
+                inst = ('param_' + node.args.type.names[-1].typename, node.args.gen_location)
+                self.code.append(inst)
+
+        node.gen_location = self.new_temp()
+        self.visit(node.name)
+        inst = ('call', node.name.name, node.gen_location)
+        self.code.append(inst)
+
+
+    def visit_UnaryOp(self, node):
+        self.visit(node.expr)
+        _source = node.expr.gen_location
+
+        if node.op == '&':
+            node.gen_location = node.expr.gen_location
         else:
-            return '%s%s' % (n.op, operand)
+            if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
+                self._loadLocation(node.expr)
+            TODO
+            TODO
+            TODO
 
-    def visit_BinaryOp(self, n):
-        lval_str = self._parenthesize_if(n.left,
-                            lambda d: not self._is_simple_node(d))
-        rval_str = self._parenthesize_if(n.right,
-                            lambda d: not self._is_simple_node(d))
-        return '%s %s %s' % (lval_str, n.op, rval_str)
 
-    def visit_Assignment(self, n):
-        rval_str = self._parenthesize_if(
-                            n.rvalue,
-                            lambda n: isinstance(n, c_ast.Assignment))
-        return '%s %s %s' % (self.visit(n.lvalue), n.op, rval_str)
+    def visit_BinaryOp(self, node):
+        self.visit(node.left)
+        self.visit(node.right)
+
+        if isinstance(node.left, ID) or isinstance(node.left, ArrayRef):
+            self._loadLocation(node.left)
+        if isinstance(node.right, ID) or isinstance(node.right, ArrayRef):
+            self._loadLocation(node.right)
+
+        target = self.new_temp()
+
+        opcode = self.binary_opcodes[node.op] + "_" + node.left.type.names[-1].typename
+        inst = (opcode, node.left.gen_location, node.right.gen_location, target)
+        self.code.append(inst)
+
+        node.gen_location = target
+
+
+    def _readLocation(self, typename, target, source):
+        self.code.append(('read_' + typename, target))
+        self.code.append(('store_' + typename, target, source))
+
+    def visit_Assert(self, node):
+        _expr = node.expr
+        self.visit(_expr)
+
+        true_label = self.new_temp()
+        false_label = self.new_temp()
+        exit_label = self.new_temp()
+
+        inst = ('cbranch', expr.gen_location, true_label, false_label)
+        self.code.append(inst)
+
+        self.code.append((true_label[1:],))
+        self.code.append(('jump', exit_label))
+        self.code.append((false_label[1:],))
+
+        _target = self.new_text()
+        inst = ('global_string', _target, "assertion_fail on " + ) FALTA PREENCHER AQUI
+        self.text.append(inst)
+
+        inst = ('print_string', _target)
+        self.code.append(inst)
+        self.code.append(('jump', self.ret_label))
+
+        self.code.append((exit_label[1:],))
+
+    def visit_Assignment(self, node):
+        self.visit(node.rvalue)
+        if isinstance(node.rvalue, ID) or isinstance(node.rvalue, ArrayRef):
+            self._loadLocation(node.rvalue)
+        _lvar = node.lvalue
+        self.visit(_lvar)
+        if node.op in self.assign_opcodes:
+            _lval = self.new_temp()
+            _target = self.new_temp()
+            _typename = _lvar.type.names[-1].typename
+            if isinstance(node.rvalue, ArrayRef):
+                _typename += '_*'
+            inst = ('load_' + _typename, _lvar.gen_location, _lval)
+            self.code.append(inst)
+            inst = (self.assign_opcodes[node.op] + '_' + _lvar.type.names[-1].typename,
+                    node.rvalue.gen_location, _lval, _target)
+            self.code.append(inst)
+            inst = ('store_' + _lvar.type.names[-1].typename, _target, _lvar.gen_location)
+            self.code.append(inst)
+        else:
+            if isinstance(_lvar, ID) or isinstance(_lvar, ArrayRef):
+                _typename = _lvar.type.names[-1].typename
+                if isinstance(_lvar, ArrayRef):
+                    _typename += '_*'
+                elif _lvar.type.names[0] == PtrType:
+                    if _lvar.kind == 'func':
+                        _lvar.bind.type.gen_location = _lvar.gen_location
+                    else:
+                        _typename += '_*'
+                inst = ('store_' + _typename, node.rvalue.gen_location, _lvar.gen_location)
+                self.code.append(inst)
+            else:
+                _typename = _lvar.type.names[-1].typename
+                inst = ('store' + _typename, node.rvalue.gen_location, _lvar.gen_location)
+                self.code.append()
+
 
     def visit_IdentifierType(self, n):
         return ' '.join(n.names)
@@ -98,22 +228,21 @@ class GenerateCode(NodeVisitor):
         else:
             return self.visit(n)
 
-    def visit_Decl(self, n, no_type=False):
-        # no_type is used when a Decl is part of a DeclList, where the type is
-        # explicitly only for the first declaration in a list.
-        #
-        s = n.name if no_type else self._generate_decl(n)
-        if n.bitsize: s += ' : ' + self.visit(n.bitsize)
-        if n.init:
-            s += ' = ' + self._visit_expr(n.init)
-        return s
+    def visit_Decl(self, node):
+        _type = node.type
+        _dim = ""
+        if isinstance(_type, VarDecl):
+            self.visit_VarDecl(_type, node, _dim)
+        elif isinstance(_type, ArrayDecl):
+            self.visit_ArrayDecl(_type, node, _dim)
+        elif isinstance(_type, PrtDecl):
+            self.visit_PtrDecl(_type, node, _dim)
+        elif isinstance(_type, FuncDecl):
+            self.visit_FuncDecl(_type)
 
-    def visit_DeclList(self, n):
-        s = self.visit(n.decls[0])
-        if len(n.decls) > 1:
-            s += ', ' + ', '.join(self.visit_Decl(decl, no_type=True)
-                                    for decl in n.decls[1:])
-        return s
+    def visit_DeclList(self, node):
+        for decl in node.decls:
+            self.visit(decl)
 
     def visit_Typedef(self, n):
         s = ''
@@ -121,21 +250,27 @@ class GenerateCode(NodeVisitor):
         s += self._generate_type(n.type)
         return s
 
-    def visit_Cast(self, n):
-        s = '(' + self._generate_type(n.to_type, emit_declname=False) + ')'
-        return s + ' ' + self._parenthesize_unless_simple(n.expr)
+    def visit_Cast(self, node):
+        self.visit(node.expr)
+        if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
+            self._loadLocation(node.expr)
+        _temp = self.new_temp()
+        if node.to_type.names[-1].typename == IntType.typename:
+            inst = ('fptosi', node.expr.gen_location, _temp)
+        else:
+            inst = ('sitofp', node.expr.gen_location, _temp)
+        self.code.append(inst)
+        node.gen_location = _temp
 
-    def visit_ExprList(self, n):
-        visited_subexprs = []
-        for expr in n.exprs:
-            visited_subexprs.append(self._visit_expr(expr))
-        return ', '.join(visited_subexprs)
+    def visit_ExprList(self, node):
+        pass
 
-    def visit_InitList(self, n):
-        visited_subexprs = []
-        for expr in n.exprs:
-            visited_subexprs.append(self._visit_expr(expr))
-        return ', '.join(visited_subexprs)
+    def visit_InitList(self, node):
+        node.value = []
+        for _expr in node.exprs:
+            if isinstance(_expr, InitList):
+                self.visit(_expr)
+            node.value.append(_expr.value)
 
     def visit_Enum(self, n):
         return self._generate_struct_union_enum(n, name='enum')
@@ -153,15 +288,35 @@ class GenerateCode(NodeVisitor):
                 value=self.visit(n.value),
             )
 
-    def visit_FuncDef(self, n):
-        decl = self.visit(n.decl)
-        self.indent_level = 0
-        body = self.visit(n.body)
-        if n.param_decls:
-            knrdecls = ';\n'.join(self.visit(p) for p in n.param_decls)
-            return decl + '\n' + knrdecls + ';\n' + body + '\n'
+    def visit_FuncDef(self, node):
+        self.alloc_phase = None
+        self.visit(node.decl)
+
+        if node.param_decls is not None:
+            for _par in node.param_decls:
+                self.visit(_par)
+
+        if node.body is not None:
+            self.alloc_phase = 'var_decl'
+            for _body in node.body:
+                if isinstance(_body, Decl):
+                    self.visit(_body)
+            for _decl in node.decls:
+                self.visit(_decl)
+
+            self.alloc_phase = 'var_init'
+            for _body in node.body:
+                self.visit(_body)
+
+        self.code.append((self.ret_label[1:],))
+        if node.spec.names[-1].typename == 'void':
+            self.code.append(('return_void',))
         else:
-            return decl + '\n' + body + '\n'
+            _rvalue = self.new_temp()
+            inst = ('load_' + node.spec.names[-1].typename. self.ret_location, _rvalue)
+            self.code.append(inst)
+            self.code.append(('return_' + node.spec.names[-1].typename, _rvalue))
+
 
     def visit_FileAST(self, n):
         s = ''
@@ -174,32 +329,47 @@ class GenerateCode(NodeVisitor):
                 s += self.visit(ext) + ';\n'
         return s
 
-    def visit_Compound(self, n):
-        s = self._make_indent() + '{\n'
-        self.indent_level += 2
-        if n.block_items:
-            s += ''.join(self._generate_stmt(stmt) for stmt in n.block_items)
-        self.indent_level -= 2
-        s += self._make_indent() + '}\n'
-        return s
+    def visit_Compound(self, node):
+        for item in node.block_items:
+            self.visit(item)
 
     def visit_CompoundLiteral(self, n):
         return '(' + self.visit(n.type) + '){' + self.visit(n.init) + '}'
 
 
-    def visit_EmptyStatement(self, n):
-        return ';'
+    def visit_EmptyStatement(self, node):
+        pass
 
-    def visit_ParamList(self, n):
-        return ', '.join(self.visit(param) for param in n.params)
+    def visit_ParamList(self, node):
+        for _par in node.params:
+            self.visit(_par)
 
-    def visit_Return(self, n):
-        s = 'return'
-        if n.expr: s += ' ' + self.visit(n.expr)
-        return s + ';'
+    def visit_Read(self, node):
+        _target = self.new_temp()
+        for _loc in node.names:
+            self.visit(_loc)
 
-    def visit_Break(self, n):
-        return 'break;'
+            if isinstance(_loc, ID) or isinstance(_loc, ArrayRef):
+                self._readLocation(_loc.type.names[-1].typename, _target, _loc.gen_location)
+
+            elif isinstance(_loc, ExprList):
+                for _var in _loc.exprs:
+                    if isinstance(_var, ID) or isinstance(_var, ArrayRef):
+                        self._readLocation(_var.type.names[-1].typename, _target, _var.gen_location)
+
+
+    def visit_Return(self, node):
+        if node.expr is not None:
+            self.visit(node.expr)
+            if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
+                self._loadLocation(node.expr)
+            inst = ('store_' + node.expr.type.names[-1].typename, node.expr.gen_location, self.ret_location)
+            self.code.append(inst)
+
+        self.code.append(('jump', self.ret_label))
+
+    def visit_Break(self, node):
+        self.code.append(('jump', node.bind.exit_label))
 
     def visit_Continue(self, n):
         return 'continue;'
@@ -210,26 +380,44 @@ class GenerateCode(NodeVisitor):
         s += '(' + self._visit_expr(n.iffalse) + ')'
         return s
 
-    def visit_If(self, n):
-        s = 'if ('
-        if n.cond: s += self.visit(n.cond)
-        s += ')\n'
-        s += self._generate_stmt(n.iftrue, add_indent=True)
-        if n.iffalse:
-            s += self._make_indent() + 'else\n'
-            s += self._generate_stmt(n.iffalse, add_indent=True)
-        return s
+    def visit_If(self, node):
+        true_label = self.new_temp()
+        false_label = self.new_temp()
+        exit_label = self.new_temp()
 
-    def visit_For(self, n):
-        s = 'for ('
-        if n.init: s += self.visit(n.init)
-        s += ';'
-        if n.cond: s += ' ' + self.visit(n.cond)
-        s += ';'
-        if n.next: s += ' ' + self.visit(n.next)
-        s += ')\n'
-        s += self._generate_stmt(n.stmt, add_indent=True)
-        return s
+        self.visit(node.cond)
+        inst = ('cbranch', node.cond.gen_location, true_label, false_label)
+        self.code.append(inst)
+
+        self.code.append((true_label[1:], ))
+        self.visit(node.iftrue)
+
+        if node.iffalse is not None:
+            self.code.append(('jump', exit_label))
+            self.code.append((false_label[1:], ))
+            self.visit(node.iffalse)
+            self.code.append((exit_label[1:],))
+        else:
+            self.code.append((false_label[1:],))
+
+    def visit_For(self, node):
+        entry_label = self.new_temp()
+        body_label = self.new_temp()
+        exit_label = self.new_temp()
+        node.exit_label = exit_label
+
+        self.visit(node.init)
+        self.code.append((entry_label[1:], ))
+
+        self.visit(node.cond)
+        inst = ('cbranch', node.cond.gen_location, body_label, exit_label)
+        self.code.append(inst)
+
+        self.code.append((body_label[1:], ))
+        self.visit(node.stat)
+        self.visit(node.next)
+        self.code.append(('jump', entry_label))
+        self.code.append((exit_label[1:], ))
 
     def visit_While(self, n):
         s = 'while ('
@@ -275,6 +463,9 @@ class GenerateCode(NodeVisitor):
     def visit_Struct(self, n):
         return self._generate_struct_union_enum(n, 'struct')
 
+    def visit_Type(self, node):
+        pass
+
     def visit_Typename(self, n):
         return self._generate_type(n.type)
 
@@ -291,17 +482,77 @@ class GenerateCode(NodeVisitor):
         s += ' = ' + self._visit_expr(n.expr)
         return s
 
-    def visit_FuncDecl(self, n):
-        return self._generate_type(n)
+    def visit_FuncDecl(self, node):
+        self.fname = node.type.declname.name
 
-    def visit_ArrayDecl(self, n):
-        return self._generate_type(n, emit_declname=False)
+        inst = ('define', self.fname)
+        self.code.append(inst)
+        node.type.declname.gen_location = self.fname
+
+        if node.args is not None:
+            self.clean()
+            for _ in node.args.params:
+                self.enqueue(self.new_temp())
+
+        self.ret_location = self.new_temp()
+        self.alloc_phase = 'arg_decl'
+        if node.args is not None:
+            for _arg in node.args:
+                self.visit(_arg)
+
+        self.ret_label = self.new_temp()
+
+        self.alloc_phase = 'arg_init'
+        if node.args is not None:
+            for _arg in node.args:
+                self.visit(_arg)
+    def visit_ArrayDecl(self, node, decl, dim):
+        _type = node
+        dim += "_" + str(node.dim.value)
+        while not isinstance(_type, VarDecl):
+            _type = _type.type
+            if isinstance(_type, ArrayDecl):
+                dim += "_" + _type.dim.vale
+            elif isinstance(_type, PtrDecl):
+                dim += "_*"
+        self.visit_VarDecl(_type, decl, dim)
 
     def visit_TypeDecl(self, n):
         return self._generate_type(n, emit_declname=False)
 
-    def visit_PtrDecl(self, n):
-        return self._generate_type(n, emit_declname=False)
+    def visit_PtrDecl(self, node, decl, dim):
+        _type = node
+        dim += "_*"
+        while not isinstance(_type, VarDecl):
+            _type = _type.type
+            if isinstance(_type, PtrDecl):
+                dim += "_*"
+            elif isinstance(_type, ArrayDecl):
+                dim += "_" + str(_type.dim.value)
+        self.visit_VarDecl(_type, decl, dim)
+
+    def visit_GlobalDecl(self, node):
+        for _decl in node.decls:
+            self.visit(_decl)
+
+    def visit_VarDecl(self, node, decl, dim):
+        if node.declname.scope == 1:
+            self._globalLocation(node, decl, dim)
+        else:
+            _typename = node.type.names[-1].typename + dim
+            if self.alloc_phase == 'arg_decl' or self.alloc_phase == 'var_decl':
+                _varname = self.new_temp()
+                inst = ('alloc_' + _typename, _varname)
+                self.code.append(inst)
+                node.declname.gen_location = _varname
+                decl.name.gen_location = _varname
+            elif self.alloc_phase == 'arg_init':
+                inst = ('store_' + _typename, self.dequeue(), node.declname.gen_location)
+                self.code.append(inst)
+            elif self.alloc_phase == 'var_init':
+                if decl.init is not None:
+                    self._storeLocation(_typename, decl.init, node.declname.gen_location)
+
 
     def _generate_struct_union_enum(self, n, name):
         """ Generates code for structs, unions, and enums. name should be
