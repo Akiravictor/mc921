@@ -15,6 +15,21 @@ class UCSemantic:
         # Visitor.visit_Program(ast)
 
 
+class SymbolTable(object):
+    '''
+    Class representing a symbol table.  It should provide functionality
+    for adding and looking up nodes associated with identifiers.
+    '''
+    def __init__(self):
+        self.symtab = {}
+
+    def lookup(self, a):
+        return self.symtab.get(a)
+
+    def add(self, a, v):
+        self.symtab[a] = v
+
+
 class NodeVisitor(object):
     """ A base NodeVisitor class for visiting uc_ast nodes.
         Subclass it and define your own visit_XXX methods, where
@@ -201,6 +216,7 @@ class Visitor(NodeVisitor):
             self.visit(item)
 
     def visit_Constant(self, node):
+        print("@visit_Compound")
         if not isinstance(node.type, UCType):
             consType = self.typemap(node.rawtype)
             node.type = Type([consType], node.coord)
@@ -210,6 +226,7 @@ class Visitor(NodeVisitor):
                 node.value = float(node.value)
 
     def setDim(self, _type, length, line, var):
+        print("@setDim")
         if type.dim is None:
             type.dim = Constant('int', length)
             self.visit_Constant(type.dim)
@@ -218,6 +235,7 @@ class Visitor(NodeVisitor):
                 print(f"Size mismatch on {var}")
 
     def checkInit(self, _type, init, var, line):
+        print("@checkInit")
         self.visit(init)
         if isinstance(init, Constant):
             if init.rawtype == 'string':
@@ -228,4 +246,298 @@ class Visitor(NodeVisitor):
                 if _type.type.names[0] != init.type.names[0]:
                     print(f"Initialization type mismatch {line}")
         elif isinstance(init, InitList):
-            
+            length = len(init.exprs)
+            exprs = init.exprs
+            if isinstance(_type, VarDecl):
+                if length != 1:
+                    print(f"Initialization must be a single element {line}")
+                if _type.type != exprs[0].type:
+                    print(f"Initialization type missing {line}")
+            elif isinstance(_type, ArrayDecl):
+                size = length
+                head = exprs
+                decl = _type
+                while isinstance(_type.type, ArrayDecl):
+                    _type = _type.type
+                    length = len(exprs[0].exprs)
+                    for i in range(len(exprs)):
+                        if len(exprs[i].exprs) != length:
+                            print(f"List have a different length {line}")
+                    exprs = exprs[0].exprs
+                    if isinstance(type, ArrayDecl):
+                        self.setDim(type, length, line, var)
+                        size += length
+                    else:
+                        if exprs[0].type != _type.type.type.names[-1]:
+                            print(f"{var} Initialization type mismatch {line}")
+                _type = decl
+                exprs = head
+                length = size
+                if _type.dim is None:
+                    _type.dim = Constant('int', size)
+                    self.visit_Constant(type.dim)
+                else:
+                    if _type.dim.value != length:
+                        print(f"Size mismatch {var} initialization {line}")
+        elif isinstance(init, ArrayRef):
+            id = self.environment.lookup(init.name.name)
+            if isinstance(init.subscript, Constant):
+                rtype = id.type.names[1]
+                if _type.type.names[0] != rtype:
+                    print(f"Initialization type mismatch {var} {line}")
+        elif isinstance(init, ID):
+            if isinstance(_type, ArrayDecl):
+                anotherType = _type.type
+                while not isinstance(anotherType, VarDecl):
+                    anotherType = anotherType.type
+                if anotherType.type.names != init.type.names:
+                    print(f"Initialization type mismatch {line}")
+                self.setDim(_type, init.bind.dim.value, line, var)
+            else:
+                if _type.type.names[-1] != init.type.names[-1]:
+                    print(f"Initialization type mismatch {line}")
+
+    def visit_Decl(self, node):
+        coord = f"{node.name.coord}"
+        print("@visit_Assert")
+        print(coord)
+        declType = node.type
+        self.visit(declType)
+        node.name.bind = declType
+        declVar = node.name.name
+        if isinstance(declType, PtrDecl):
+            while isinstance(declType, PtrDecl):
+                declType = declType.type
+        if isinstance(declType, FuncDecl):
+            if self.environment.lookup(declVar) is None:
+                print(f"{declVar} is not defined {coord}")
+        else:
+            if self.environment.find(declVar) is None:
+                print(f"{declVar} is not defined")
+            if node.init is not None:
+                self.checkInit(declType, node.init, declVar, coord)
+
+    def visit_DeclList(self, node):
+        print("@visit_DeclList")
+        for decl in node.decls:
+            self.visit(decl)
+            self.environment.funcdef.decls.append(decl)
+
+    def visit_EmptyStatement(self, node):
+        print("@visit_EmptyStatement")
+        pass
+
+    def visit_ExprList(self, node):
+        print("@visit_ExprList")
+        for expr in node.exprs:
+            self.visit(expr)
+            if isinstance(expr, ID):
+                coord = f"@{expr.coord.line}:{expr.coord.column}"
+                if expr.scope is None:
+                    print(f"{expr.name} is not defined {coord}")
+
+    def visit_For(self, node):
+        print("@visit_For")
+        if isinstance(node.init, DeclList):
+            self.environment.push(node)
+        self.envitonment.cur_loop.append(node)
+        self.visit(node.init)
+        self.visit(node.cond)
+        self.visit(node.next)
+        self.visit(node.stmt)
+        self.environment.cur_loop.pop()
+        if isinstance(node.init, DeclList):
+            self.environment.pop()
+
+    def visit_FuncCall(self, node):
+        print("@visit_FuncCall")
+        coord = f"@{node.coord.line}:{node.coord.column}"
+        funcLabel = self.environment.lookup(node.name.name)
+        if funcLabel.kind != "func":
+            print(f"{funcLabel} is not a function {coord}")
+        node.type = funcLabel.type
+        if node.args is not None:
+            sig = funcLabel.bind
+            if isinstance(node.args, ExprList):
+                if len(sig.args.params) != len(node.args.exprs):
+                    print(f"Number of arguments mismatch {coord}")
+                for(arg, fpar) in zip(node.args.exprs, sig.args.params):
+                    self.visit(arg)
+                    coord = f"@{arg.coord.line}:{arg.coord.column}"
+                    if isinstance(arg, ID):
+                        if not self.environment.find(arg.name):
+                            print(f"{arg.name} is not defined {coord}")
+                    if arg.type.names != fpar.type.type.names:
+                        print(f"Type mismatch for {fpar.type.declname.name} {coord}")
+            else:
+                self.visit(node.args)
+                if len(sig.args.params) != 1:
+                    print(f"Number of arguments mismatch {coord}")
+                argType = sig.args.params[0].type
+                while not isinstance(argType, VarDecl):
+                    argType = argType.type
+                if node.args.type.names != argType.type.names:
+                    print(f"Type mismatch for {sig.args.params[0].name.name} {coord}")
+
+    def visit_FuncDecl(self, node):
+        print("@visit_FuncDecl")
+        self.visit(node.type)
+        func = self.environment.lookup(node.type.declname.name)
+        func.kind = 'func'
+        func.bind = node.args
+        self.environment.push(node)
+        if node.args is not None:
+            for arg in node.args:
+                self.visit(arg)
+
+    def visit_FuncDef(self, node):
+        print("@visit_FuncDef")
+        node.decls = []
+        self.environment.funcdef = node
+        self.visit(node.spec)
+        self.visit(node.decl)
+        if node.param_decls is not None:
+            for par in node.param_decls:
+                self.visit(par)
+        if node.body is not None:
+            for body in node.body:
+                self.visit(body)
+        self.environment.pop()
+        func = self.environment.lookup(node.decls.name.name)
+        node.spec = func.type
+
+    def visit_GlobalDecl(self, node):
+        print("@visit_GlobalDecl")
+        for decl in node.decls:
+            self.visit(decl)
+
+    def visit_ID(self, node):
+        print("@visit_ID")
+        varId = self.environment.lookup(node.name)
+        if varId is not None:
+            node.type = varId.type
+            node.kind = varId.kind
+            node.scope = varId.scope
+            node.bind = varId.bind
+
+    def visit_If(self, node):
+        coord = f"@ {node.cond.coord.line}:{node.cond.coord.column}"
+        print("@visit_If")
+        print(coord)
+        self.visit(node.cond)
+        if hasattr(node.cond, 'type'):
+            if node.cond.type.names[0] != self.typemap["bool"]:
+                print(f"The condition must be a boolean type {coord}")
+        else:
+            print(f"The condition must be a boolean type {coord}")
+        self.visit(node.iftrue)
+        if node.iffalse is not None:
+            self.visit(node.iffalse)
+
+    def visit_InitList(self, node):
+        print("@visit_InitList")
+        for expr in node.exprs:
+            self.visit(expr)
+
+    def visit_ParamList(self, node):
+        print("@visit_ParamList")
+        for par in node.params:
+            self.visit(par)
+
+    def visit_Print(self, node):
+        print("@visit_Print")
+        if node.expr is not None:
+            for expr in node.exprs:
+                self.visit(expr)
+
+    def visit_PtrDecl(self, node):
+        print("@visit_PtrDecl")
+        self.visit(node.type)
+        ptrType = node.type
+        while not isinstance(ptrType, VarDecl):
+            ptrType = ptrType.type
+        ptrType.type.names.insert(0, self.typemap["ptr"])
+
+    def checkLocation(self, var):
+        print("@checkLocation")
+        coord = f"@ {var.coord.line}:{var.coord.column}"
+        test = (isinstance(var, ArrayRef) and len(var.type.names) == 1) or isinstance(var, ID)
+        name = var.name
+        if isinstance(name, ArrayRef):
+            name = name.name.name + f"[{name.subscript.name}][{var.subscript.name}]"
+        elif hasattr(var, 'subscript'):
+            name = name.name + f"[{var.subscript.name}]"
+        if not test:
+            print(f"{name} is not a simple variable {coord}")
+        if isinstance(var, ID):
+            if var.scope is None:
+                print(f"{name} is not defined {coord}")
+        if len(var.type.names) != 1:
+            print(f"Type of {name} is not a primitive type")
+
+    def visit_Read(self, node):
+        print("@visit_Read")
+        for loc in node.names:
+            self.visit(loc)
+            if isinstance(loc, ID) or isinstance(loc, ArrayRef):
+                self.checkLocation(loc)
+            elif isinstance(loc, ExprList):
+                for var in loc.exprs:
+                    if isinstance(var, ID) or isinstance(var, ArrayRef):
+                        self.checkLocation(var)
+                    else:
+                        coord = f"@ {var.coord.line}:{var.coord.column}"
+                        print(f"{var} is not a variable {coord}")
+            else:
+                coord = f"@ {loc.coord.line}:{loc.coord.column}"
+                print(f"{loc} is not a variable {coord}")
+
+    def visit_Return(self, node):
+        if node.expr is not None:
+            self.visit(node.expr)
+            returnType = node.expr.type.names
+        else:
+            returnType = [self.typemap['void']]
+        rtype = self.environment.cur_rtype
+        coord = f"@ {node.coord.line}:{node.coord.column}"
+        if returnType != rtype:
+            print(f"Return type {returnType} is not compatible with {rtype} {coord}")
+
+    def visit_Type(self, node):
+        for i, name in enumerate(node.names or []):
+            if not isinstance(name, UCType):
+                node.names[i] = self.typemap[name]
+
+    def visit_VarDecl(self, node):
+        self.visit(node.type)
+        var = node.declname
+        self.visit(var)
+        if isinstance(var, ID):
+            coord = f"@ {var.coord.line}:{var.coord.column}"
+            if self.environment.find(var.name):
+                print(f"{var.name} already defined in this scope")
+            self.environment.add_local(var, 'var')
+            var.type = node.type
+
+    def visit_UnaryOp(self, node):
+        self.visit(node.expr)
+        unaryType = node.expr.type.names[-1]
+        coord = f"@ {node.coord.line}:{node.coord.column}"
+        if node.op not in unaryType.unary_ops:
+            print(f"Unary operator {node.op} not supported {coord}")
+        node.type = Type(list(node.expr.type.names), node.coord)
+        if node.op == "*":
+            node.type.names.pop(0)
+        elif node.op == "&":
+            node.type.names.insert(0, self.typemap["ptr"])
+
+    def visit_While(self, node):
+        self.visit(node.cond)
+        ctype = node.cond.type.names[0]
+        coord = f"@ {node.coord.line}:{node.coord.column}"
+        if ctype != BoolType:
+            print(f"Conditional expression must be a Boolean type {coord}")
+        if node.stmt is not None:
+            self.visit(node.stmt)
+
+

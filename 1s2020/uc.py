@@ -132,6 +132,7 @@ class Compiler:
     def _do_compile(self, susy, ast_file, debug):
         """ Compiles the code to the given file object. """
         self._parse(susy, ast_file, debug)
+        self._semantic(susy, debug)
 
     def compile(self, code, susy, ast_file, debug):
         """ Compiles the given code string """
