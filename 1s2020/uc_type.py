@@ -15,20 +15,4 @@ class UCType(object):
         self.assign_ops = assign_ops or set()
 
 
-# Create specific instances of types. You will need to add
-# appropriate arguments depending on your definition of uCType
-IntType = UCType("int",
-                 unary_ops={"-", "+", "--", "++", "p--", "p++", "*", "&"},
-                 binary_ops={"+", "-", "*", "/", "%"},
-                 rel_ops={"==", "!=", "<", ">", "<=", ">="},
-                 assign_ops={"=", "+=", "-=", "*=", "/=", "%="}
-                 )
 
-FloatType = UCType("float"
-                   )
-CharType = UCType("char"
-                  )
-ArrayType = UCType("array",
-                   unary_ops={"*", "&"},
-                   rel_ops={"==", "!="}
-                   )

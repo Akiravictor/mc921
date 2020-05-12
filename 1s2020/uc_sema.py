@@ -15,7 +15,7 @@ class UCSemantic:
         # Visitor.visit_Program(ast)
 
 
-class SymbolTable(object):
+class Environment(object):
     '''
     Class representing a symbol table.  It should provide functionality
     for adding and looking up nodes associated with identifiers.
@@ -101,7 +101,44 @@ class Visitor(NodeVisitor):
     '''
     def __init__(self, debug):
         # Initialize the symbol table
-        self.symtab = SymbolTable()
+        self.environment = Environment()
+
+        # Create specific instances of types. You will need to add
+        # appropriate arguments depending on your definition of uCType
+        IntType = UCType("int",
+                         unary_ops={"-", "+", "--", "++", "p--", "p++", "*", "&"},
+                         binary_ops={"+", "-", "*", "/", "%"},
+                         rel_ops={"==", "!=", "<", ">", "<=", ">="},
+                         assign_ops={"=", "+=", "-=", "*=", "/=", "%="}
+                         )
+
+        FloatType = UCType("float"
+                           )
+        CharType = UCType("char"
+                          )
+        ArrayType = UCType("array",
+                           unary_ops={"*", "&"},
+                           rel_ops={"==", "!="}
+                           )
+
+        StringType = UCType("string")
+
+        BoolType = UCType("bool")
+
+        PtrType = UCType("ptr")
+
+        VoidType = UCType("void")
+
+        self.typemap = {
+            'int': IntType,
+            'float': FloatType,
+            'char': CharType,
+            'array': ArrayType,
+            'string': StringType,
+            'bool': BoolType,
+            'ptr': PtrType,
+            'void': VoidType
+        }
         self.debug = debug
 
         # Add built-in type names (int, float, char) to the symbol table
@@ -513,7 +550,7 @@ class Visitor(NodeVisitor):
         var = node.declname
         self.visit(var)
         if isinstance(var, ID):
-            coord = f"@ {var.coord.line}:{var.coord.column}"
+            coord = f"@ {var.coord}"
             if self.environment.find(var.name):
                 print(f"{var.name} already defined in this scope")
             self.environment.add_local(var, 'var')
