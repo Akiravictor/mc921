@@ -29,6 +29,15 @@ class Environment(object):
     def add(self, a, v):
         self.symtab[a] = v
 
+    def find(self, obj):
+        if obj in self.symtab is not None:
+            return self.symtab[obj]
+        else:
+            return None
+
+    def add_local(self, obj, val):
+        self.symtab[obj] = val
+
 
 class NodeVisitor(object):
     """ A base NodeVisitor class for visiting uc_ast nodes.

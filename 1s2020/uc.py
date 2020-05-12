@@ -10,6 +10,9 @@
 
 import sys
 from contextlib import contextmanager
+
+from uc_code import GenerateCode
+from uc_interpreter import Interpreter
 from uc_parser import UCParser
 from uc_sema import *
 
@@ -129,18 +132,32 @@ class Compiler:
         self.semantic = Visitor(debug)
         self.semantic.visit(self.ast)
 
-    def _do_compile(self, susy, ast_file, debug):
+    def _gencode(self, susy, ir_file):
+        self.gen = GenerateCode()
+        self.gen.visit(self.ast)
+        self.gencode = self.gen.code
+        _str = ''
+        if not susy and ir_file is not None:
+            for _code in self.gencode:
+                _str += f"{_code}\n"
+            ir_file.write(_str)
+
+    def _do_compile(self, susy, ast_file, ir_file, debug):
         """ Compiles the code to the given file object. """
         self._parse(susy, ast_file, debug)
         self._semantic(susy, debug)
+        # self._gencode(susy, ir_file)
 
-    def compile(self, code, susy, ast_file, debug):
+    def compile(self, code, susy, ast_file, ir_file, run_ir, debug):
         """ Compiles the given code string """
         self.code = code
         with subscribe_errors(lambda msg: sys.stderr.write(msg+"\n")):
-            self._do_compile(susy, ast_file, debug)
+            self._do_compile(susy, ast_file, ir_file, debug)
             if errors_reported():
                 sys.stderr.write("{} error(s) encountered.".format(errors_reported()))
+            elif run_ir:
+                self.vm = Interpreter()
+                self.vm.run(self.gencode)
         return 0
 
 
@@ -152,8 +169,10 @@ def run_compiler():
         sys.exit(1)
 
     emit_ast = True
+    emit_ir = True
     susy = False
     debug = False
+    run_ir = True
 
     params = sys.argv[1:]
     files = sys.argv[1:]
@@ -162,6 +181,10 @@ def run_compiler():
         if param[0] == '-':
             if param == '-no-ast':
                 emit_ast = False
+            elif param == '-no-ir':
+                emit_ir = False
+            elif param == '-no-run':
+                run_ir = False
             elif param == '-at-susy':
                 susy = True
             elif param == '-debug':
@@ -185,11 +208,18 @@ def run_compiler():
             ast_file = open(ast_filename, 'w')
             open_files.append(ast_file)
 
+        ir_file = None
+        if emit_ir and not susy:
+            ir_filename = source_filename[:-3] + '.ir'
+            print("Outputting the uCIR to %s." % ir_filename)
+            ir_file = open(ir_filename, 'w')
+            open_files.append(ir_file)
+
         source = open(source_filename, 'r')
         code = source.read()
         source.close()
 
-        retval = Compiler().compile(code, susy, ast_file, debug)
+        retval = Compiler().compile(code, susy, ast_file, ir_file, run_ir, debug)
         for f in open_files:
             f.close()
         if retval != 0:

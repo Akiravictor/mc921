@@ -282,12 +282,13 @@ class Compound(Node):
 
 
 class Constant(Node):
-    __slots__ = ('type', 'value', 'coord')
+    __slots__ = ('type', 'value', 'coord', 'rawtype')
 
     def __init__(self, type, value, coord=None):
         self.type = type
         self.value = value
         self.coord = coord
+        self.rawtype = type
 
     def children(self):
         nodelist = []
@@ -508,11 +509,14 @@ class GlobalDecl(Node):
 
 
 class ID(Node):
-    __slots__ = ('name', 'coord')
+    __slots__ = ('name', 'coord', 'type', 'bind', 'scope')
 
     def __init__(self, name,  coord=None):
         self.name = name
         self.coord = coord
+        self.type = None
+        self.bind = None
+        self.scope = None
 
     def children(self):
         nodelist = []
