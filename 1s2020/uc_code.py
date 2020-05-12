@@ -125,12 +125,41 @@ class GenerateCode(NodeVisitor):
 
         if node.op == '&':
             node.gen_location = node.expr.gen_location
+        elif node.op == '*':
+            node.gen_location = self.new_temp()
+            inst = ('load_' + node.expr.type.names[-1].typename + '_*', node.expr.gen_location, node.gen_location)
+            self.code.append(inst)
         else:
             if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
                 self._loadLocation(node.expr)
-            TODO
-            TODO
-            TODO
+            if node.op == '+':
+                node.gen_location = node.expr.gen_location
+
+            elif node.op == '-':
+                _typename = node.expr.type.names[-1].typename
+                opcode = self.unary_opcodes[node.op] + "_" + _typename
+                _aux = self.new_temp()
+                self.code.append(('literal_' + _typename, 0, _aux))
+                node.gen_location = self.new_temp()
+                inst = (opcode, _aux, node.expr.gen_location, node.gen_location)
+                self.code.append(inst)
+
+            elif node.op in ["++", "p++", "--", "p--"]:
+                if node.op == "++" or node.op == "p++":
+                    _val = 1
+                else:
+                    _val = -1
+                _value = self.new_temp()
+                self.code.append(('literal_int', _val, _value))
+                opcode = self.unary_opcodes[node.op] + "_" + node.expr.type.names[-1].typename
+                node.gen_location = self.new_temp()
+                inst = (opcode, node.expr.gen_location, _value, node.gen_location)
+                self.code.append(inst)
+                opcode = 'store_' +  node.expr.type.names[-1].typename
+                inst = (opcode, node.gen_location, _source)
+                self.code.append(inst)
+                if node.op in ["p++", "p--"]:
+                    node.gen_location = node.expr.gen_location
 
 
     def visit_BinaryOp(self, node):
@@ -151,9 +180,11 @@ class GenerateCode(NodeVisitor):
         node.gen_location = target
 
 
-    def _readLocation(self, typename, target, source):
-        self.code.append(('read_' + typename, target))
-        self.code.append(('store_' + typename, target, source))
+    def _readLocation(self, source):
+        _typename = self.new_temp()
+        _target = source.type.names[-1].typename
+        self.code.append(('read_' + _typename, _target))
+        self.code.append(('store_' + _typename, _target, source))
 
     def visit_Assert(self, node):
         _expr = node.expr
@@ -163,7 +194,7 @@ class GenerateCode(NodeVisitor):
         false_label = self.new_temp()
         exit_label = self.new_temp()
 
-        inst = ('cbranch', expr.gen_location, true_label, false_label)
+        inst = ('cbranch', _expr.gen_location, true_label, false_label)
         self.code.append(inst)
 
         self.code.append((true_label[1:],))
@@ -419,37 +450,23 @@ class GenerateCode(NodeVisitor):
         self.code.append(('jump', entry_label))
         self.code.append((exit_label[1:], ))
 
-    def visit_While(self, n):
-        s = 'while ('
-        if n.cond: s += self.visit(n.cond)
-        s += ')\n'
-        s += self._generate_stmt(n.stmt, add_indent=True)
-        return s
+    def visit_While(self, node):
+        entry_label = self.new_temp()
+        true_label = self.new_temp()
+        exit_label = self.new_temp()
+        node.exit_label = exit_label
 
-    def visit_DoWhile(self, n):
-        s = 'do\n'
-        s += self._generate_stmt(n.stmt, add_indent=True)
-        s += self._make_indent() + 'while ('
-        if n.cond: s += self.visit(n.cond)
-        s += ');'
-        return s
+        self.code.append((entry_label[1:], ))
+        self.visit(node.cond)
+        inst = ('cbranch', node.cond.gen_location, true_label, exit_label)
+        self.code.append(inst)
 
-    def visit_Switch(self, n):
-        s = 'switch (' + self.visit(n.cond) + ')\n'
-        s += self._generate_stmt(n.stmt, add_indent=True)
-        return s
+        self.code.append((true_label[1:], ))
+        if node.stmt is not None:
+            self.visit(node.stmt)
+        self.code.append(('jump', entry_label))
+        self.code.append((exit_label[1:], ))
 
-    def visit_Case(self, n):
-        s = 'case ' + self.visit(n.expr) + ':\n'
-        for stmt in n.stmts:
-            s += self._generate_stmt(stmt, add_indent=True)
-        return s
-
-    def visit_Default(self, n):
-        s = 'default:\n'
-        for stmt in n.stmts:
-            s += self._generate_stmt(stmt, add_indent=True)
-        return s
 
     def visit_Label(self, n):
         return n.name + ':\n' + self._generate_stmt(n.stmt)
@@ -506,6 +523,8 @@ class GenerateCode(NodeVisitor):
         if node.args is not None:
             for _arg in node.args:
                 self.visit(_arg)
+
+                
     def visit_ArrayDecl(self, node, decl, dim):
         _type = node
         dim += "_" + str(node.dim.value)
@@ -534,6 +553,34 @@ class GenerateCode(NodeVisitor):
     def visit_GlobalDecl(self, node):
         for _decl in node.decls:
             self.visit(_decl)
+
+    def _globalLocation(self, node, decl, dim):
+        _type = node.type.names[-1].typename
+        if dim is not None:
+            _type += dim
+        _varname = "@" + node.declname.name
+        if decl.init is None:
+            self.text.append('global_' + _type, _varname)
+        elif isinstance(decl.init, Constant):
+            self.text.append(('global_' + _type, _varname, decl.init.value))
+        elif isinstance(decl.init, InitList):
+            self.visit(decl.init)
+            self.text.append(('global_' + _type, _varname, decl.init.value))
+        node.declname.gen_location = _varname
+
+    def _loadLocation(self, node):
+        _varname = self.new_temp()
+        _typename = node.type.names[-1].typename
+        if isinstance(node, ArrayRef):
+            _typename += '_*'
+        inst = ('load_' + _typename, node.gen_location, _varname)
+        self.code.append(inst)
+        node.gen_location = _varname
+
+    def _storeLocation(self, typename, init, target):
+        self.visit(init)
+        inst = ('store_' + typename, init.gen_location, target)
+        self.code.append(inst)
 
     def visit_VarDecl(self, node, decl, dim):
         if node.declname.scope == 1:
