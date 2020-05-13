@@ -108,20 +108,45 @@ class Visitor(NodeVisitor):
                          assign_ops={"=", "+=", "-=", "*=", "/=", "%="}
                          )
 
-        FloatType = UCType("float"
+        FloatType = UCType("float",
+                           unary_ops={"-", "*", "&"},
+                           binary_ops={"+", "-", "*", "/", "%"},
+                           rel_ops={"==", "!=", "<", ">", "<=", ">="},
+                           assign_ops={"=", "+=", "-=", "*=", "/=", "%="}
                            )
-        CharType = UCType("char"
+        CharType = UCType("char",
+                          unary_ops={"*", "&"},
+                          binary_ops={"+"},
+                          rel_ops={"==", "!=", "<", ">", "<=", ">="},
+                          assign_ops={"="}
                           )
         ArrayType = UCType("array",
                            unary_ops={"*", "&"},
-                           rel_ops={"==", "!="}
+                           binary_ops={},
+                           rel_ops={"==", "!="},
+                           assign_ops={"="}
                            )
 
-        StringType = UCType("string")
+        StringType = UCType("string",
+                            unary_ops={},
+                            binary_ops={"+"},
+                            rel_ops={"==", "!="},
+                            assign_ops={"="}
+                            )
 
-        BoolType = UCType("bool")
+        BoolType = UCType("bool",
+                          unary_ops={"!"},
+                          binary_ops={"||", "&&"},
+                          rel_ops={"==", "!="},
+                          assign_ops={"="}
+                          )
 
-        PtrType = UCType("ptr")
+        PtrType = UCType("ptr",
+                         unary_ops={},
+                         binary_ops={},
+                         rel_ops={},
+                         assign_ops={}
+                         )
 
         VoidType = UCType("void")
 
@@ -138,9 +163,14 @@ class Visitor(NodeVisitor):
         self.debug = debug
 
         # Add built-in type names (int, float, char) to the symbol table
-        # self.symtab.add("int", uctype.IntType)
-        # self.symtab.add("float", uctype.FloatType)
-        # self.symtab.add("char", uctype.CharType)
+        self.environment.add("int", IntType)
+        self.environment.add("float", FloatType)
+        self.environment.add("char", CharType)
+        self.environment.add("array", ArrayType)
+        self.environment.add("string", StringType)
+        self.environment.add("bool", BoolType)
+        self.environment.add("ptr", PtrType)
+        self.environment.add("void", VoidType)
 
     def visit_Program(self, node):
         print("@visit_Program")
