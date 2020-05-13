@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from uc_code import GenerateCode
 from uc_interpreter import Interpreter
 from uc_parser import UCParser
-from uc_sema import *
+from uc_sema2 import *
 
 """
 One of the most important (and difficult) parts of writing a compiler
@@ -157,7 +157,7 @@ class Compiler:
                 sys.stderr.write("{} error(s) encountered.".format(errors_reported()))
             elif run_ir:
                 self.vm = Interpreter()
-                self.vm.run(self.gencode)
+                # self.vm.run(self.gencode)
         return 0
 
 

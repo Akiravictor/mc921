@@ -509,14 +509,15 @@ class GlobalDecl(Node):
 
 
 class ID(Node):
-    __slots__ = ('name', 'coord', 'type', 'bind', 'scope')
+    # __slots__ = ('name', 'coord', 'type', 'bind', 'scope')
+    __slots__ = ('name', 'coord')
 
     def __init__(self, name,  coord=None):
         self.name = name
         self.coord = coord
-        self.type = None
-        self.bind = None
-        self.scope = None
+        # self.type = None
+        # self.bind = None
+        # self.scope = None
 
     def children(self):
         nodelist = []
