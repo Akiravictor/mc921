@@ -310,7 +310,7 @@ class GenerateCode(NodeVisitor):
             self.visit_VarDecl(_type, node, _dim)
         elif isinstance(_type, ArrayDecl):
             self.visit_ArrayDecl(_type, node, _dim)
-        elif isinstance(_type, PrtDecl):
+        elif isinstance(_type, PtrDecl):
             self.visit_PtrDecl(_type, node, _dim)
         elif isinstance(_type, FuncDecl):
             self.visit_FuncDecl(_type)
