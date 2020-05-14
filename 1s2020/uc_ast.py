@@ -457,7 +457,7 @@ class FuncDecl(Node):
 
 
 class FuncDef(Node):
-    __slots__ = ('spec', 'decl', 'param_decls', 'body', 'coord')
+    __slots__ = ('spec', 'decl', 'param_decls', 'body', 'coord', 'decls')
 
     def __init__(self, spec, decl, param_decls, body, coord=None):
         self.spec = spec
@@ -465,6 +465,7 @@ class FuncDef(Node):
         self.param_decls = param_decls
         self.body = body
         self.coord = coord
+        self.decls = None
 
     def children(self):
         nodelist = []
@@ -509,15 +510,17 @@ class GlobalDecl(Node):
 
 
 class ID(Node):
-    # __slots__ = ('name', 'coord', 'type', 'bind', 'scope')
-    __slots__ = ('name', 'coord')
+    __slots__ = ('name', 'coord', 'type', 'bind', 'scope', 'gen_location', 'kind')
+    # __slots__ = ('name', 'coord')
 
     def __init__(self, name,  coord=None):
         self.name = name
         self.coord = coord
-        # self.type = None
-        # self.bind = None
-        # self.scope = None
+        self.type = None
+        self.bind = None
+        self.scope = None
+        self.kind = None
+        self.gen_location = None
 
     def children(self):
         nodelist = []

@@ -121,20 +121,45 @@ class Visitor(NodeVisitor):
                          assign_ops={"=", "+=", "-=", "*=", "/=", "%="}
                          )
 
-        FloatType = UCType("float"
+        FloatType = UCType("float",
+                           unary_ops={"-", "*", "&"},
+                           binary_ops={"+", "-", "*", "/", "%"},
+                           rel_ops={"==", "!=", "<", ">", "<=", ">="},
+                           assign_ops={"=", "+=", "-=", "*=", "/=", "%="}
                            )
-        CharType = UCType("char"
+        CharType = UCType("char",
+                          unary_ops={"*", "&"},
+                          binary_ops={"+"},
+                          rel_ops={"==", "!=", "<", ">", "<=", ">="},
+                          assign_ops={"="}
                           )
         ArrayType = UCType("array",
                            unary_ops={"*", "&"},
-                           rel_ops={"==", "!="}
+                           binary_ops={},
+                           rel_ops={"==", "!="},
+                           assign_ops={"="}
                            )
 
-        StringType = UCType("string")
+        StringType = UCType("string",
+                            unary_ops={},
+                            binary_ops={"+"},
+                            rel_ops={"==", "!="},
+                            assign_ops={"="}
+                            )
 
-        BoolType = UCType("bool")
+        BoolType = UCType("bool",
+                          unary_ops={"!"},
+                          binary_ops={"||", "&&"},
+                          rel_ops={"==", "!="},
+                          assign_ops={"="}
+                          )
 
-        PtrType = UCType("ptr")
+        PtrType = UCType("ptr",
+                         unary_ops={},
+                         binary_ops={},
+                         rel_ops={},
+                         assign_ops={}
+                         )
 
         VoidType = UCType("void")
 
@@ -151,9 +176,14 @@ class Visitor(NodeVisitor):
         self.debug = debug
 
         # Add built-in type names (int, float, char) to the symbol table
-        # self.symtab.add("int", uctype.IntType)
-        # self.symtab.add("float", uctype.FloatType)
-        # self.symtab.add("char", uctype.CharType)
+        self.environment.add("int", IntType)
+        self.environment.add("float", FloatType)
+        self.environment.add("char", CharType)
+        self.environment.add("array", ArrayType)
+        self.environment.add("string", StringType)
+        self.environment.add("bool", BoolType)
+        self.environment.add("ptr", PtrType)
+        self.environment.add("void", VoidType)
 
     def visit_Program(self, node):
         # 1. Visit all of the global declarations
@@ -168,8 +198,8 @@ class Visitor(NodeVisitor):
         # 1. Make sure left and right operands have the same type
         # 2. Make sure the operation is supported
         # 3. Assign the result type
-        print("@visit_BinaryOp")
-        print(coord)
+        print(f"@visit_BinaryOp {coord}")
+        print(node)
         self.visit(node.left)
         ltype = node.left.type.names[-1]
         self.visit(node.right)
@@ -242,13 +272,13 @@ class Visitor(NodeVisitor):
         if node.dim is not None:
             self.visit(node.dim)
 
-    # def visit_Break(self, node):
-    #     coord = f"@{node.coord.line}:{node.coord.column}"
-    #     print("@visit_Break")
-    #     print(coord)
-    #     if self.environment.cur_loop == []:
-    #         print(f"Break statement must be inside a loop block {coord}")
-    #     node.bind = self.environment.cur_loop[-1]
+    def visit_Break(self, node):
+        coord = f"@{node.coord.line}:{node.coord.column}"
+        print("@visit_Break")
+        print(coord)
+        if self.environment.cur_loop == []:
+            print(f"Break statement must be inside a loop block {coord}")
+        node.bind = self.environment.cur_loop[-1]
 
     def visit_Cast(self, node):
         print("@visit_Cast")
@@ -262,7 +292,7 @@ class Visitor(NodeVisitor):
             self.visit(item)
 
     def visit_Constant(self, node):
-        print("@visit_Compound")
+        print("@visit_Constant")
         if not isinstance(node.type, UCType):
             consType = self.typemap(node.rawtype)
             node.type = Type([consType], node.coord)
@@ -271,40 +301,40 @@ class Visitor(NodeVisitor):
             elif consType.typename == 'float':
                 node.value = float(node.value)
 
-    def setDim(self, _type, length, line, var):
+    def setDim(self, nodeType, length, line, var):
         print("@setDim")
-        if type.dim is None:
-            type.dim = Constant('int', length)
-            self.visit_Constant(type.dim)
+        if nodeType.dim is None:
+            nodeType.dim = Constant('int', length)
+            self.visit_Constant(nodeType.dim)
         else:
-            if type.dim.value != length:
+            if nodeType.dim.value != length:
                 print(f"Size mismatch on {var}")
 
-    def checkInit(self, _type, init, var, line):
+    def checkInit(self, nodeType, init, var, line):
         print("@checkInit")
         self.visit(init)
         if isinstance(init, Constant):
             if init.rawtype == 'string':
-                if _type.type.type.names != self.typemap["array"]:
+                if nodeType.type.type.names != self.typemap["array"]:
                     print(f"Initialization type mismatch {line}")
-                self.setDim(_type, len(init.value), line, var)
+                self.setDim(nodeType, len(init.value), line, var)
             else:
-                if _type.type.names[0] != init.type.names[0]:
+                if nodeType.type.names[0] != init.type.names[0]:
                     print(f"Initialization type mismatch {line}")
         elif isinstance(init, InitList):
             length = len(init.exprs)
             exprs = init.exprs
-            if isinstance(_type, VarDecl):
+            if isinstance(nodeType, VarDecl):
                 if length != 1:
                     print(f"Initialization must be a single element {line}")
-                if _type.type != exprs[0].type:
+                if nodeType.type != exprs[0].type:
                     print(f"Initialization type missing {line}")
-            elif isinstance(_type, ArrayDecl):
+            elif isinstance(nodeType, ArrayDecl):
                 size = length
                 head = exprs
-                decl = _type
-                while isinstance(_type.type, ArrayDecl):
-                    _type = _type.type
+                decl = nodeType
+                while isinstance(nodeType.type, ArrayDecl):
+                    nodeType = nodeType.type
                     length = len(exprs[0].exprs)
                     for i in range(len(exprs)):
                         if len(exprs[i].exprs) != length:
@@ -314,7 +344,7 @@ class Visitor(NodeVisitor):
                         self.setDim(type, length, line, var)
                         size += length
                     else:
-                        if exprs[0].type != _type.type.type.names[-1]:
+                        if exprs[0].type != nodeType.type.type.names[-1]:
                             print(f"{var} Initialization type mismatch {line}")
                 _type = decl
                 exprs = head
@@ -329,23 +359,23 @@ class Visitor(NodeVisitor):
             id = self.environment.lookup(init.name.name)
             if isinstance(init.subscript, Constant):
                 rtype = id.type.names[1]
-                if _type.type.names[0] != rtype:
+                if nodeType.type.names[0] != rtype:
                     print(f"Initialization type mismatch {var} {line}")
         elif isinstance(init, ID):
-            if isinstance(_type, ArrayDecl):
-                anotherType = _type.type
+            if isinstance(nodeType, ArrayDecl):
+                anotherType = nodeType.type
                 while not isinstance(anotherType, VarDecl):
                     anotherType = anotherType.type
                 if anotherType.type.names != init.type.names:
                     print(f"Initialization type mismatch {line}")
-                self.setDim(_type, init.bind.dim.value, line, var)
+                self.setDim(nodeType, init.bind.dim.value, line, var)
             else:
-                if _type.type.names[-1] != init.type.names[-1]:
+                if nodeType.type.names[-1] != init.type.names[-1]:
                     print(f"Initialization type mismatch {line}")
 
     def visit_Decl(self, node):
         coord = f"{node.name.coord}"
-        print("@visit_Assert")
+        print("@visit_Decl")
         print(coord)
         declType = node.type
         self.visit(declType)

@@ -256,10 +256,18 @@ class Visitor(NodeVisitor):
     def visit_ArrayDecl(self, node):
         print("@visit_ArrayDecl")
         print(node)
-        if node.type is not None:
-            self.visit(node.type)
+        arrayType = node.type
+        while not isinstance(node.type, VarDecl):
+            arrayType = arrayType.type
+        key = arrayType.declname.name
+        arrayId = self.environment.lookup(key)
+        arrayId['type'] = ['array'] + arrayType.type.names
+        arrayId['kind'] = 'var'
         if node.dim is not None:
-            self.visit(node.dim)
+            arrayId['dim'] = node.dim.value
+            if node.dim.type != 'int':
+                print(f"{node.dim.value} is not valid for Array Dimension")
+
         print("visit_ArrayDecl END")
 
     def visit_Break(self, node):
@@ -376,9 +384,13 @@ class Visitor(NodeVisitor):
         print(f"@visit_Decl {coord}")
         print(node)
         declType = node.type
-        self.visit(node.name)
+        self.environment.add(node.name.name, {'type': None, 'init': None})
+
+        # self.visit(node.name)
         self.visit(declType)
         self.checkInit(node.type, node.init, node.name.name, coord)
+        # if isinstance(node.type, ArrayDecl):
+
         # node.name.bind = declType
         # declVar = node.name.name
         # if isinstance(declType, PtrDecl):
@@ -624,6 +636,8 @@ class Visitor(NodeVisitor):
     def visit_VarDecl(self, node):
         print("@visit_VarDecl")
         print(node)
+        # if self.environment.lookup(node.declname.name) is not None:
+
         self.visit(node.type)
         var = node.declname
         self.visit(var)
