@@ -6,15 +6,24 @@ class GenerateCode(NodeVisitor):
     '''
     Node visitor class that creates 3-address encoded instruction sequences.
     '''
+
     def __init__(self):
         super(GenerateCode, self).__init__()
 
         # version dictionary for temporaries
         self.fname = 'main'  # We use the function name as a key
-        self.versions = {self.fname:0}
+        self.versions = {self.fname: 0}
 
         # The generated code (list of tuples)
+        self.text = []
         self.code = []
+
+        self.binary_opcodes = {"+": "add", "-": "sub", "*": "mul", "/": "div", "%": "mod",
+                               "==": "eq", "!=": "ne", "<": "lt", ">": "gt", "<=": "le", ">=": "ge", "&&": "and",
+                               "||": "or"}
+        self.unary_opcodes = {"-": "sub", "+": "", "--": "sub", "++": "add", "p--": "sub", "p++": "add", "!": "not",
+                              "*": "", "&": ""}
+        self.assign_opcodes = {"+=": "add", "-=": "sub", "*=": "mul", "/=": "div", "%=": "mod"}
 
     def new_temp(self):
         '''
@@ -31,7 +40,7 @@ class GenerateCode(NodeVisitor):
         return getattr(self, method, self.generic_visit)(node)
 
     def generic_visit(self, node):
-        #~ print('generic:', type(node))
+        # ~ print('generic:', type(node))
         if node is None:
             return ''
         else:
@@ -40,7 +49,7 @@ class GenerateCode(NodeVisitor):
     def visit_Constant(self, node):
         if node.rawtype == 'string':
             _target = self.new_text()
-            inst = ('global_string'. _target, node.value)
+            inst = ('global_string'._target, node.value)
             self.text.append(inst)
         else:
             _target = self.new_temp()
@@ -108,7 +117,6 @@ class GenerateCode(NodeVisitor):
         inst = ('call', node.name.name, node.gen_location)
         self.code.append(inst)
 
-
     def visit_UnaryOp(self, node):
         self.visit(node.expr)
         _source = node.expr.gen_location
@@ -145,12 +153,11 @@ class GenerateCode(NodeVisitor):
                 node.gen_location = self.new_temp()
                 inst = (opcode, node.expr.gen_location, _value, node.gen_location)
                 self.code.append(inst)
-                opcode = 'store_' +  node.expr.type.names[-1].typename
+                opcode = 'store_' + node.expr.type.names[-1].typename
                 inst = (opcode, node.gen_location, _source)
                 self.code.append(inst)
                 if node.op in ["p++", "p--"]:
                     node.gen_location = node.expr.gen_location
-
 
     def visit_BinaryOp(self, node):
         self.visit(node.left)
@@ -168,7 +175,6 @@ class GenerateCode(NodeVisitor):
         self.code.append(inst)
 
         node.gen_location = target
-
 
     def _readLocation(self, source):
         _typename = self.new_temp()
@@ -192,7 +198,7 @@ class GenerateCode(NodeVisitor):
         self.code.append((false_label[1:],))
 
         _target = self.new_text()
-        inst = ('global_string', _target, "assertion_fail on " ) # FALTA PREENCHER AQUI
+        inst = ('global_string', _target, "assertion_fail on ")  # FALTA PREENCHER AQUI
         self.text.append(inst)
 
         inst = ('print_string', _target)
@@ -306,7 +312,7 @@ class GenerateCode(NodeVisitor):
             self.code.append(('return_void',))
         else:
             _rvalue = self.new_temp()
-            inst = ('load_' + node.spec.names[-1].typename. self.ret_location, _rvalue)
+            inst = ('load_' + node.spec.names[-1].typename.self.ret_location, _rvalue)
             self.code.append(inst)
             self.code.append(('return_' + node.spec.names[-1].typename, _rvalue))
 
@@ -334,7 +340,6 @@ class GenerateCode(NodeVisitor):
                     if isinstance(_var, ID) or isinstance(_var, ArrayRef):
                         self._readLocation(_var.type.names[-1].typename, _target, _var.gen_location)
 
-
     def visit_Return(self, node):
         if node.expr is not None:
             self.visit(node.expr)
@@ -349,7 +354,7 @@ class GenerateCode(NodeVisitor):
         self.code.append(('jump', node.bind.exit_label))
 
     def visit_TernaryOp(self, n):
-        s  = '(' + self._visit_expr(n.cond) + ') ? '
+        s = '(' + self._visit_expr(n.cond) + ') ? '
         s += '(' + self._visit_expr(n.iftrue) + ') : '
         s += '(' + self._visit_expr(n.iffalse) + ')'
         return s
@@ -363,12 +368,12 @@ class GenerateCode(NodeVisitor):
         inst = ('cbranch', node.cond.gen_location, true_label, false_label)
         self.code.append(inst)
 
-        self.code.append((true_label[1:], ))
+        self.code.append((true_label[1:],))
         self.visit(node.iftrue)
 
         if node.iffalse is not None:
             self.code.append(('jump', exit_label))
-            self.code.append((false_label[1:], ))
+            self.code.append((false_label[1:],))
             self.visit(node.iffalse)
             self.code.append((exit_label[1:],))
         else:
@@ -381,17 +386,17 @@ class GenerateCode(NodeVisitor):
         node.exit_label = exit_label
 
         self.visit(node.init)
-        self.code.append((entry_label[1:], ))
+        self.code.append((entry_label[1:],))
 
         self.visit(node.cond)
         inst = ('cbranch', node.cond.gen_location, body_label, exit_label)
         self.code.append(inst)
 
-        self.code.append((body_label[1:], ))
+        self.code.append((body_label[1:],))
         self.visit(node.stat)
         self.visit(node.next)
         self.code.append(('jump', entry_label))
-        self.code.append((exit_label[1:], ))
+        self.code.append((exit_label[1:],))
 
     def visit_While(self, node):
         entry_label = self.new_temp()
@@ -399,17 +404,16 @@ class GenerateCode(NodeVisitor):
         exit_label = self.new_temp()
         node.exit_label = exit_label
 
-        self.code.append((entry_label[1:], ))
+        self.code.append((entry_label[1:],))
         self.visit(node.cond)
         inst = ('cbranch', node.cond.gen_location, true_label, exit_label)
         self.code.append(inst)
 
-        self.code.append((true_label[1:], ))
+        self.code.append((true_label[1:],))
         if node.stmt is not None:
             self.visit(node.stmt)
         self.code.append(('jump', entry_label))
-        self.code.append((exit_label[1:], ))
-
+        self.code.append((exit_label[1:],))
 
     def visit_Label(self, n):
         return n.name + ':\n' + self._generate_stmt(n.stmt)
@@ -448,7 +452,6 @@ class GenerateCode(NodeVisitor):
             for _arg in node.args:
                 self.visit(_arg)
 
-                
     def visit_ArrayDecl(self, node, decl, dim):
         _type = node
         dim += "_" + str(node.dim.value)
