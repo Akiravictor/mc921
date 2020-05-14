@@ -71,12 +71,6 @@ class GenerateCode(NodeVisitor):
         for _decl in node.gdecls:
             self.visit(_decl)
 
-    def visit_Pragma(self, n):
-        ret = '#pragma'
-        if n.string:
-            ret += ' ' + n.string
-        return ret
-
     def visit_ArrayRef(self, node):
         _subs = node.subscript
         self.visit(_subs)
@@ -88,10 +82,6 @@ class GenerateCode(NodeVisitor):
         node.gen_location = _target
         inst = ('elem_' + node.type.names[-1].typename, _var, _index, _target)
         self.code.append(inst)
-
-    def visit_StructRef(self, n):
-        sref = self._parenthesize_unless_simple(n.name)
-        return sref + n.type + self.visit(n.field)
 
     def visit_FuncCall(self, node):
         if node.args is not None:
@@ -247,18 +237,6 @@ class GenerateCode(NodeVisitor):
                 inst = ('store' + _typename, node.rvalue.gen_location, _lvar.gen_location)
                 self.code.append()
 
-
-    def visit_IdentifierType(self, n):
-        return ' '.join(n.names)
-
-    def _visit_expr(self, n):
-        if isinstance(n, c_ast.InitList):
-            return '{' + self.visit(n) + '}'
-        elif isinstance(n, c_ast.ExprList):
-            return '(' + self.visit(n) + ')'
-        else:
-            return self.visit(n)
-
     def visit_Decl(self, node):
         _type = node.type
         _dim = ""
@@ -303,22 +281,6 @@ class GenerateCode(NodeVisitor):
                 self.visit(_expr)
             node.value.append(_expr.value)
 
-    def visit_Enum(self, n):
-        return self._generate_struct_union_enum(n, name='enum')
-
-    def visit_Enumerator(self, n):
-        if not n.value:
-            return '{indent}{name},\n'.format(
-                indent=self._make_indent(),
-                name=n.name,
-            )
-        else:
-            return '{indent}{name} = {value},\n'.format(
-                indent=self._make_indent(),
-                name=n.name,
-                value=self.visit(n.value),
-            )
-
     def visit_FuncDef(self, node):
         self.alloc_phase = None
         self.visit(node.decl)
@@ -348,25 +310,9 @@ class GenerateCode(NodeVisitor):
             self.code.append(inst)
             self.code.append(('return_' + node.spec.names[-1].typename, _rvalue))
 
-
-    def visit_FileAST(self, n):
-        s = ''
-        for ext in n.ext:
-            if isinstance(ext, c_ast.FuncDef):
-                s += self.visit(ext)
-            elif isinstance(ext, c_ast.Pragma):
-                s += self.visit(ext) + '\n'
-            else:
-                s += self.visit(ext) + ';\n'
-        return s
-
     def visit_Compound(self, node):
         for item in node.block_items:
             self.visit(item)
-
-    def visit_CompoundLiteral(self, n):
-        return '(' + self.visit(n.type) + '){' + self.visit(n.init) + '}'
-
 
     def visit_EmptyStatement(self, node):
         pass
@@ -401,9 +347,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_Break(self, node):
         self.code.append(('jump', node.bind.exit_label))
-
-    def visit_Continue(self, n):
-        return 'continue;'
 
     def visit_TernaryOp(self, n):
         s  = '(' + self._visit_expr(n.cond) + ') ? '
@@ -471,33 +414,14 @@ class GenerateCode(NodeVisitor):
     def visit_Label(self, n):
         return n.name + ':\n' + self._generate_stmt(n.stmt)
 
-    def visit_Goto(self, n):
-        return 'goto ' + n.name + ';'
-
     def visit_EllipsisParam(self, n):
         return '...'
-
-    def visit_Struct(self, n):
-        return self._generate_struct_union_enum(n, 'struct')
 
     def visit_Type(self, node):
         pass
 
     def visit_Typename(self, n):
         return self._generate_type(n.type)
-
-    def visit_Union(self, n):
-        return self._generate_struct_union_enum(n, 'union')
-
-    def visit_NamedInitializer(self, n):
-        s = ''
-        for name in n.name:
-            if isinstance(name, c_ast.ID):
-                s += '.' + name.name
-            else:
-                s += '[' + self.visit(name) + ']'
-        s += ' = ' + self._visit_expr(n.expr)
-        return s
 
     def visit_FuncDecl(self, node):
         self.fname = node.type.declname.name
@@ -599,147 +523,3 @@ class GenerateCode(NodeVisitor):
             elif self.alloc_phase == 'var_init':
                 if decl.init is not None:
                     self._storeLocation(_typename, decl.init, node.declname.gen_location)
-
-
-    def _generate_struct_union_enum(self, n, name):
-        """ Generates code for structs, unions, and enums. name should be
-            'struct', 'union', or 'enum'.
-        """
-        if name in ('struct', 'union'):
-            members = n.decls
-            body_function = self._generate_struct_union_body
-        else:
-            assert name == 'enum'
-            members = None if n.values is None else n.values.enumerators
-            body_function = self._generate_enum_body
-        s = name + ' ' + (n.name or '')
-        if members is not None:
-            # None means no members
-            # Empty sequence means an empty list of members
-            s += '\n'
-            s += self._make_indent()
-            self.indent_level += 2
-            s += '{\n'
-            s += body_function(members)
-            self.indent_level -= 2
-            s += self._make_indent() + '}'
-        return s
-
-    def _generate_struct_union_body(self, members):
-        return ''.join(self._generate_stmt(decl) for decl in members)
-
-    def _generate_enum_body(self, members):
-        # `[:-2] + '\n'` removes the final `,` from the enumerator list
-        return ''.join(self.visit(value) for value in members)[:-2] + '\n'
-
-    def _generate_stmt(self, n, add_indent=False):
-        """ Generation from a statement node. This method exists as a wrapper
-            for individual visit_* methods to handle different treatment of
-            some statements in this context.
-        """
-        typ = type(n)
-        if add_indent: self.indent_level += 2
-        indent = self._make_indent()
-        if add_indent: self.indent_level -= 2
-
-        if typ in (
-                c_ast.Decl, c_ast.Assignment, c_ast.Cast, c_ast.UnaryOp,
-                c_ast.BinaryOp, c_ast.TernaryOp, c_ast.FuncCall, c_ast.ArrayRef,
-                c_ast.StructRef, c_ast.Constant, c_ast.ID, c_ast.Typedef,
-                c_ast.ExprList):
-            # These can also appear in an expression context so no semicolon
-            # is added to them automatically
-            #
-            return indent + self.visit(n) + ';\n'
-        elif typ in (c_ast.Compound,):
-            # No extra indentation required before the opening brace of a
-            # compound - because it consists of multiple lines it has to
-            # compute its own indentation.
-            #
-            return self.visit(n)
-        else:
-            return indent + self.visit(n) + '\n'
-
-    def _generate_decl(self, n):
-        """ Generation from a Decl node.
-        """
-        s = ''
-        if n.funcspec: s = ' '.join(n.funcspec) + ' '
-        if n.storage: s += ' '.join(n.storage) + ' '
-        s += self._generate_type(n.type)
-        return s
-
-    def _generate_type(self, n, modifiers=[], emit_declname = True):
-        """ Recursive generation from a type node. n is the type node.
-            modifiers collects the PtrDecl, ArrayDecl and FuncDecl modifiers
-            encountered on the way down to a TypeDecl, to allow proper
-            generation from it.
-        """
-        typ = type(n)
-        #~ print(n, modifiers)
-
-        if typ == c_ast.TypeDecl:
-            s = ''
-            if n.quals: s += ' '.join(n.quals) + ' '
-            s += self.visit(n.type)
-
-            nstr = n.declname if n.declname and emit_declname else ''
-            # Resolve modifiers.
-            # Wrap in parens to distinguish pointer to array and pointer to
-            # function syntax.
-            #
-            for i, modifier in enumerate(modifiers):
-                if isinstance(modifier, c_ast.ArrayDecl):
-                    if (i != 0 and
-                        isinstance(modifiers[i - 1], c_ast.PtrDecl)):
-                            nstr = '(' + nstr + ')'
-                    nstr += '['
-                    if modifier.dim_quals:
-                        nstr += ' '.join(modifier.dim_quals) + ' '
-                    nstr += self.visit(modifier.dim) + ']'
-                elif isinstance(modifier, c_ast.FuncDecl):
-                    if (i != 0 and
-                        isinstance(modifiers[i - 1], c_ast.PtrDecl)):
-                            nstr = '(' + nstr + ')'
-                    nstr += '(' + self.visit(modifier.args) + ')'
-                elif isinstance(modifier, c_ast.PtrDecl):
-                    if modifier.quals:
-                        nstr = '* %s%s' % (' '.join(modifier.quals),
-                                           ' ' + nstr if nstr else '')
-                    else:
-                        nstr = '*' + nstr
-            if nstr: s += ' ' + nstr
-            return s
-        elif typ == c_ast.Decl:
-            return self._generate_decl(n.type)
-        elif typ == c_ast.Typename:
-            return self._generate_type(n.type, emit_declname = emit_declname)
-        elif typ == c_ast.IdentifierType:
-            return ' '.join(n.names) + ' '
-        elif typ in (c_ast.ArrayDecl, c_ast.PtrDecl, c_ast.FuncDecl):
-            return self._generate_type(n.type, modifiers + [n],
-                                       emit_declname = emit_declname)
-        else:
-            return self.visit(n)
-
-    def _parenthesize_if(self, n, condition):
-        """ Visits 'n' and returns its string representation, parenthesized
-            if the condition function applied to the node returns True.
-        """
-        s = self._visit_expr(n)
-        if condition(n):
-            return '(' + s + ')'
-        else:
-            return s
-
-    def _parenthesize_unless_simple(self, n):
-        """ Common use case for _parenthesize_if
-        """
-        return self._parenthesize_if(n, lambda d: not self._is_simple_node(d))
-
-    def _is_simple_node(self, n):
-        """ Returns True for nodes that are "simple" - i.e. nodes that always
-            have higher precedence than operators.
-        """
-        return isinstance(n, (c_ast.Constant, c_ast.ID, c_ast.ArrayRef,
-                              c_ast.StructRef, c_ast.FuncCall))
