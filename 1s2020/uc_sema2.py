@@ -202,16 +202,11 @@ class Visitor(NodeVisitor):
         #     print(f"Assign operator {node.op} is not supported by {ltype} {coord}")
 
     def visit_Assignment(self, node):
-        coord = f"@{node.coord.line}:{node.coord.column}"
+        coord = f"@{node.coord}"
         print(f"@visit_Assignment {coord}")
         print(f"{node}")
         self.visit(node.rvalue)
-        rtype = node.rvalue.type.names
-        val = node.lvalue
         self.visit(node.lvalue)
-
-        print(f"rtype = {rtype}")
-        print(f"lvalue = {node.lvalue}")
 
         print(f"visit_Assignment END")
 
@@ -244,7 +239,7 @@ class Visitor(NodeVisitor):
         #     print(f"Expression must be boolean {coord}")
 
     def visit_ArrayRef(self, node):
-        coord = f"@{node.subscript.coord.line}:{node.subscript.coord.column}"
+        coord = f"@{node.subscript.coord}"
         print(f"@visit_ArrayRef {coord}")
         print(node)
         self.visit(node.subscript)
@@ -261,22 +256,19 @@ class Visitor(NodeVisitor):
     def visit_ArrayDecl(self, node):
         print("@visit_ArrayDecl")
         print(node)
-        # arrayType = node.type
-        # while not isinstance(arrayType, VarDecl):
-        #     arrayType = arrayType.type
-        # arrayId = arrayType.declname
-        # arrayId.type.names.insert(0, self.typemap["array"])
+        if node.type is not None:
+            self.visit(node.type)
         if node.dim is not None:
             self.visit(node.dim)
         print("visit_ArrayDecl END")
 
-    # def visit_Break(self, node):
-    #     coord = f"@{node.coord.line}:{node.coord.column}"
-    #     print("@visit_Break")
-    #     print(coord)
-    #     if self.environment.cur_loop == []:
-    #         print(f"Break statement must be inside a loop block {coord}")
-    #     node.bind = self.environment.cur_loop[-1]
+    def visit_Break(self, node):
+        coord = f"@{node.coord.line}:{node.coord.column}"
+        print("@visit_Break")
+        print(coord)
+        # if self.environment.cur_loop == []:
+        #     print(f"Break statement must be inside a loop block {coord}")
+        # node.bind = self.environment.cur_loop[-1]
 
     def visit_Cast(self, node):
         print("@visit_Cast")
@@ -294,8 +286,9 @@ class Visitor(NodeVisitor):
         print("visit_Compound END")
 
     def visit_Constant(self, node):
-        print("@visit_Compound")
+        print("@visit_Constant")
         print(node)
+        # node.type, node.value
         # if not isinstance(node.type, UCType):
         #     # consType = self.typemap(node.rawtype)
         #     node.type = Type([consType], node.coord)
@@ -317,7 +310,7 @@ class Visitor(NodeVisitor):
 
     def checkInit(self, _type, init, var, line):
         print("@checkInit")
-        self.visit(init)
+        # self.visit(init)
         if isinstance(init, Constant):
             if init.rawtype == 'string':
                 if _type.type.type.names != self.typemap["array"]:
@@ -358,7 +351,7 @@ class Visitor(NodeVisitor):
                     _type.dim = Constant('int', size)
                     self.visit_Constant(type.dim)
                 else:
-                    if _type.dim.value != length:
+                    if int(_type.dim.value) != length:
                         print(f"Size mismatch {var} initialization {line}")
         elif isinstance(init, ArrayRef):
             id = self.environment.lookup(init.name.name)
@@ -380,10 +373,12 @@ class Visitor(NodeVisitor):
 
     def visit_Decl(self, node):
         coord = f"{node.name.coord}"
-        print(f"@visit_Assert {coord}")
+        print(f"@visit_Decl {coord}")
         print(node)
         declType = node.type
+        self.visit(node.name)
         self.visit(declType)
+        self.checkInit(node.type, node.init, node.name.name, coord)
         # node.name.bind = declType
         # declVar = node.name.name
         # if isinstance(declType, PtrDecl):
@@ -438,35 +433,37 @@ class Visitor(NodeVisitor):
         print("visit_For END")
 
     def visit_FuncCall(self, node):
-        coord = f"@{node.coord.line}:{node.coord.column}"
+        coord = f"@{node.coord}"
         print(f"@visit_FuncCall {coord}")
         print(node)
-        funcLabel = self.environment.lookup(node.name.name)
-        if funcLabel.kind != "func":
-            print(f"{funcLabel} is not a function {coord}")
-        node.type = funcLabel.type
-        if node.args is not None:
-            sig = funcLabel.bind
-            if isinstance(node.args, ExprList):
-                if len(sig.args.params) != len(node.args.exprs):
-                    print(f"Number of arguments mismatch {coord}")
-                for(arg, fpar) in zip(node.args.exprs, sig.args.params):
-                    self.visit(arg)
-                    coord = f"@{arg.coord.line}:{arg.coord.column}"
-                    if isinstance(arg, ID):
-                        if not self.environment.find(arg.name):
-                            print(f"{arg.name} is not defined {coord}")
-                    if arg.type.names != fpar.type.type.names:
-                        print(f"Type mismatch for {fpar.type.declname.name} {coord}")
-            else:
-                self.visit(node.args)
-                if len(sig.args.params) != 1:
-                    print(f"Number of arguments mismatch {coord}")
-                argType = sig.args.params[0].type
-                while not isinstance(argType, VarDecl):
-                    argType = argType.type
-                if node.args.type.names != argType.type.names:
-                    print(f"Type mismatch for {sig.args.params[0].name.name} {coord}")
+        self.visit(node.name)
+        self.visit(node.args)
+        # funcLabel = self.environment.lookup(node.name.name)
+        # if funcLabel.kind != "func":
+        #     print(f"{funcLabel} is not a function {coord}")
+        # node.type = funcLabel.type
+        # if node.args is not None:
+        #     sig = funcLabel.bind
+        #     if isinstance(node.args, ExprList):
+        #         if len(sig.args.params) != len(node.args.exprs):
+        #             print(f"Number of arguments mismatch {coord}")
+        #         for(arg, fpar) in zip(node.args.exprs, sig.args.params):
+        #             self.visit(arg)
+        #             coord = f"@{arg.coord.line}:{arg.coord.column}"
+        #             if isinstance(arg, ID):
+        #                 if not self.environment.find(arg.name):
+        #                     print(f"{arg.name} is not defined {coord}")
+        #             if arg.type.names != fpar.type.type.names:
+        #                 print(f"Type mismatch for {fpar.type.declname.name} {coord}")
+        #     else:
+        #         self.visit(node.args)
+        #         if len(sig.args.params) != 1:
+        #             print(f"Number of arguments mismatch {coord}")
+        #         argType = sig.args.params[0].type
+        #         while not isinstance(argType, VarDecl):
+        #             argType = argType.type
+        #         if node.args.type.names != argType.type.names:
+        #             print(f"Type mismatch for {sig.args.params[0].name.name} {coord}")
         print("visit_FuncCall END")
 
     def visit_FuncDecl(self, node):
