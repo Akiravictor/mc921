@@ -121,12 +121,13 @@ class GenerateCode(NodeVisitor):
         self.visit(node.expr)
         _source = node.expr.gen_location
 
-        if node.op == '&':
+        if node.op == '&' or node.op == '*':
             node.gen_location = node.expr.gen_location
-        elif node.op == '*':
+        elif node.op == '!':
+            if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
+                self._loadLocation(node.expr)
             node.gen_location = self.new_temp()
-            inst = ('load_' + node.expr.type.names[-1].typename + '_*', node.expr.gen_location, node.gen_location)
-            self.code.append(inst)
+            self.code.append(('not_bool', _source, node.gen_location))
         else:
             if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
                 self._loadLocation(node.expr)
