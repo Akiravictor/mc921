@@ -259,12 +259,6 @@ class GenerateCode(NodeVisitor):
         for decl in node.decls:
             self.visit(decl)
 
-    def visit_Typedef(self, n):
-        s = ''
-        if n.storage: s += ' '.join(n.storage) + ' '
-        s += self._generate_type(n.type)
-        return s
-
     def visit_Cast(self, node):
         self.visit(node.expr)
         if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
@@ -353,12 +347,6 @@ class GenerateCode(NodeVisitor):
     def visit_Break(self, node):
         self.code.append(('jump', node.bind.exit_label))
 
-    def visit_TernaryOp(self, n):
-        s = '(' + self._visit_expr(n.cond) + ') ? '
-        s += '(' + self._visit_expr(n.iftrue) + ') : '
-        s += '(' + self._visit_expr(n.iffalse) + ')'
-        return s
-
     def visit_If(self, node):
         true_label = self.new_temp()
         false_label = self.new_temp()
@@ -415,17 +403,8 @@ class GenerateCode(NodeVisitor):
         self.code.append(('jump', entry_label))
         self.code.append((exit_label[1:],))
 
-    def visit_Label(self, n):
-        return n.name + ':\n' + self._generate_stmt(n.stmt)
-
-    def visit_EllipsisParam(self, n):
-        return '...'
-
     def visit_Type(self, node):
         pass
-
-    def visit_Typename(self, n):
-        return self._generate_type(n.type)
 
     def visit_FuncDecl(self, node):
         self.fname = node.type.declname.name
@@ -462,9 +441,6 @@ class GenerateCode(NodeVisitor):
             elif isinstance(_type, PtrDecl):
                 dim += "_*"
         self.visit_VarDecl(_type, decl, dim)
-
-    def visit_TypeDecl(self, n):
-        return self._generate_type(n, emit_declname=False)
 
     def visit_PtrDecl(self, node, decl, dim):
         _type = node
