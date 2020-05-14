@@ -25,6 +25,22 @@ class GenerateCode(NodeVisitor):
                               "*": "", "&": ""}
         self.assign_opcodes = {"+=": "add", "-=": "sub", "*=": "mul", "/=": "div", "%=": "mod"}
 
+        self.alloc_phase = None
+
+        self.items = []
+
+        self.ret_location = None
+        self.ret_label = None
+
+    def clean(self):
+        self.items = []
+
+    def enqueue(self, item):
+        self.items.insert(0, item)
+
+    def dequeue(self):
+        return self.items.pop()
+
     def new_temp(self):
         '''
         Create a new temporary variable of a given scope (function name).
@@ -33,6 +49,11 @@ class GenerateCode(NodeVisitor):
             self.versions[self.fname] = 0
         name = "%" + "%d" % (self.versions[self.fname])
         self.versions[self.fname] += 1
+        return name
+
+    def new_text(self):
+        name = "@.str." + "%d" % (self.versions['_glob_'])
+        self.versions['_glob_'] += 1
         return name
 
     def visit(self, node):
@@ -62,16 +83,21 @@ class GenerateCode(NodeVisitor):
             _type = node.bind
             while not isinstance(_type, VarDecl):
                 _type = _type.type
-            node.gen_location = _type.declname.gen_location
+            if _type.declname.gen_location is None:
+                if node.kind == 'func' and node.scope == 1:
+                    node.gen_location = '@' + node.name
+            else:
+                node.gen_location = _type.declname.gen_location
 
     def visit_Print(self, node):
         if node.expr is not None:
-            for _expr in node.expr:
-                self.visit(_expr)
-                if isinstance(_expr, ID) or isinstance(_expr, ArrayRef):
-                    self._loadLocation(_expr)
-                inst = ('print_' + _expr.type.names[-1].typename, _expr.gen_location)
-                self.code.append(inst)
+            if isinstance(node.expr[0], ExprList):
+                for _expr in node.expr[0].exprs:
+                    self.visit(_expr)
+                    if isinstance(_expr, ID) or isinstance(_expr, ArrayRef):
+                        self._loadLocation(_expr)
+                    inst = ('print_' + _expr.type.names[-1].typename, _expr.gen_location)
+                    self.code.append(inst)
         else:
             inst = ('print_void',)
             self.code.append(inst)
@@ -112,21 +138,29 @@ class GenerateCode(NodeVisitor):
                 inst = ('param_' + node.args.type.names[-1].typename, node.args.gen_location)
                 self.code.append(inst)
 
-        node.gen_location = self.new_temp()
-        self.visit(node.name)
-        inst = ('call', node.name.name, node.gen_location)
-        self.code.append(inst)
+        if isinstance(node.name.bind, PtrDecl):
+            _target = self.new_temp()
+            self.code.append(('load_' + node.type.names[-1].typename + '_*',
+                              node.name.bind.type.gen_location, _target))
+            node.gen_location = self.new_temp()
+            self.code.append(('call', _target, node.gen_location))
+        else:
+            node.gen_location = self.new_temp()
+            self.visit(node.name)
+            inst = ('call', node.name.name, node.gen_location)
+            self.code.append(inst)
 
     def visit_UnaryOp(self, node):
         self.visit(node.expr)
         _source = node.expr.gen_location
 
-        if node.op == '&':
+        if node.op == '&' or node.op == '*':
             node.gen_location = node.expr.gen_location
-        elif node.op == '*':
+        elif node.op == '!':
+            if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
+                self._loadLocation(node.expr)
             node.gen_location = self.new_temp()
-            inst = ('load_' + node.expr.type.names[-1].typename + '_*', node.expr.gen_location, node.gen_location)
-            self.code.append(inst)
+            self.code.append(('not_bool', _source, node.gen_location))
         else:
             if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
                 self._loadLocation(node.expr)
@@ -165,8 +199,13 @@ class GenerateCode(NodeVisitor):
 
         if isinstance(node.left, ID) or isinstance(node.left, ArrayRef):
             self._loadLocation(node.left)
+        elif isinstance(node.left, UnaryOp) and node.left.op == '*':
+            self._loadReference(node.left)
+
         if isinstance(node.right, ID) or isinstance(node.right, ArrayRef):
             self._loadLocation(node.right)
+        elif isinstance(node.right, UnaryOp) and node.right.op == '*':
+            self._loadReference(node.right)
 
         target = self.new_temp()
 
@@ -176,11 +215,21 @@ class GenerateCode(NodeVisitor):
 
         node.gen_location = target
 
+    def _loadReference(self, node):
+        node.gen_location = self.new_temp()
+        inst = ('load_' + node.expr.type.names[-1].typename + "_*",
+                node.expr.gen_location, node.gen_location)
+        self.code.append(inst)
+
     def _readLocation(self, source):
         _typename = self.new_temp()
         _target = source.type.names[-1].typename
         self.code.append(('read_' + _typename, _target))
-        self.code.append(('store_' + _typename, _target, source))
+        if isinstance(source, ArrayRef):
+            _typename += "_*"
+        if isinstance(source, UnaryOp) and source.op == "*":
+            self._loadReference(source)
+        self.code.append(('store_' + _typename, _target, source.gen_location))
 
     def visit_Assert(self, node):
         _expr = node.expr
@@ -198,7 +247,7 @@ class GenerateCode(NodeVisitor):
         self.code.append((false_label[1:],))
 
         _target = self.new_text()
-        inst = ('global_string', _target, "assertion_fail on ")  # FALTA PREENCHER AQUI
+        inst = ('global_string', _target, "assertion_fail on " + f"{_expr.coord.line}:{_expr.coord.column}")
         self.text.append(inst)
 
         inst = ('print_string', _target)
@@ -208,9 +257,12 @@ class GenerateCode(NodeVisitor):
         self.code.append((exit_label[1:],))
 
     def visit_Assignment(self, node):
-        self.visit(node.rvalue)
-        if isinstance(node.rvalue, ID) or isinstance(node.rvalue, ArrayRef):
-            self._loadLocation(node.rvalue)
+        _rval = node.rvalue
+        self.visit(_rval)
+        if isinstance(_rval, ID) or isinstance(_rval, ArrayRef):
+            self._loadLocation(_rval)
+        elif isinstance(_rval, UnaryOp) and _rval.op == "*":
+            self._loadReference(_rval)
         _lvar = node.lvalue
         self.visit(_lvar)
         if node.op in self.assign_opcodes:
@@ -218,7 +270,7 @@ class GenerateCode(NodeVisitor):
             _target = self.new_temp()
             _typename = _lvar.type.names[-1].typename
             if isinstance(node.rvalue, ArrayRef):
-                _typename += '_*'
+                _typename += "_*"
             inst = ('load_' + _typename, _lvar.gen_location, _lval)
             self.code.append(inst)
             inst = (self.assign_opcodes[node.op] + '_' + _lvar.type.names[-1].typename,
@@ -231,17 +283,25 @@ class GenerateCode(NodeVisitor):
                 _typename = _lvar.type.names[-1].typename
                 if isinstance(_lvar, ArrayRef):
                     _typename += '_*'
+                elif isinstance(_lvar.bind, ArrayDecl):
+                    _typename += '_' + str(_lvar.bind.dim.value)
                 elif _lvar.type.names[0] == PtrType:
                     if _lvar.kind == 'func':
                         _lvar.bind.type.gen_location = _lvar.gen_location
-                    else:
-                        _typename += '_*'
+                    _typename += '_*'
+                    inst = ('get_' + _typename, node.rvalue.gen_location, _lvar.gen_location)
+                    self.code.append(inst)
+                    return
                 inst = ('store_' + _typename, node.rvalue.gen_location, _lvar.gen_location)
                 self.code.append(inst)
             else:
                 _typename = _lvar.type.names[-1].typename
-                inst = ('store' + _typename, node.rvalue.gen_location, _lvar.gen_location)
-                self.code.append()
+                if isinstance(_lvar, UnaryOp):
+                    if _lvar.op == '*':
+                        _typename += '_*'
+                    inst = ('store_' + _typename, node.rvalue.gen_location, _lvar.gen_location)
+                    self.code.append(inst)
+
 
     def visit_Decl(self, node):
         _type = node.type
@@ -250,7 +310,7 @@ class GenerateCode(NodeVisitor):
             self.visit_VarDecl(_type, node, _dim)
         elif isinstance(_type, ArrayDecl):
             self.visit_ArrayDecl(_type, node, _dim)
-        elif isinstance(_type, PrtDecl):
+        elif isinstance(_type, PtrDecl):
             self.visit_PtrDecl(_type, node, _dim)
         elif isinstance(_type, FuncDecl):
             self.visit_FuncDecl(_type)
@@ -455,7 +515,8 @@ class GenerateCode(NodeVisitor):
 
     def visit_GlobalDecl(self, node):
         for _decl in node.decls:
-            self.visit(_decl)
+            if not isinstance(_decl.type, FuncDecl):
+                self.visit(_decl)
 
     def _globalLocation(self, node, decl, dim):
         _type = node.type.names[-1].typename
