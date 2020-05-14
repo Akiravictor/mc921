@@ -327,12 +327,12 @@ class GenerateCode(NodeVisitor):
             self.visit(_loc)
 
             if isinstance(_loc, ID) or isinstance(_loc, ArrayRef):
-                self._readLocation(_loc.type.names[-1].typename, _target, _loc.gen_location)
+                self._readLocation(_loc.type.names[-1].typename)
 
             elif isinstance(_loc, ExprList):
                 for _var in _loc.exprs:
                     if isinstance(_var, ID) or isinstance(_var, ArrayRef):
-                        self._readLocation(_var.type.names[-1].typename, _target, _var.gen_location)
+                        self._readLocation(_var.type.names[-1].typename)
 
     def visit_Return(self, node):
         if node.expr is not None:
@@ -463,7 +463,7 @@ class GenerateCode(NodeVisitor):
             _type += dim
         _varname = "@" + node.declname.name
         if decl.init is None:
-            self.text.append('global_' + _type, _varname)
+            self.text.append(('global_' + _type, _varname))
         elif isinstance(decl.init, Constant):
             self.text.append(('global_' + _type, _varname, decl.init.value))
         elif isinstance(decl.init, InitList):
