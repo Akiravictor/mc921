@@ -21,6 +21,7 @@ class Environment(object):
     for adding and looking up nodes associated with identifiers.
     '''
     def __init__(self):
+        self.cur_loop = None
         self.symtab = {}
 
     def lookup(self, a):
@@ -30,13 +31,17 @@ class Environment(object):
         self.symtab[a] = v
 
     def find(self, obj):
-        if obj in self.symtab is not None:
-            return self.symtab[obj]
+        cur_symtable = self.stack[-1]
+        if obj in cur_symtable:
+            return True
         else:
-            return None
+            return False
 
     def add_local(self, obj, val):
         self.symtab[obj] = val
+
+    def add_root(self, obj, value):
+        self.root.add(obj, value)
 
 
 class NodeVisitor(object):
@@ -190,9 +195,12 @@ class Visitor(NodeVisitor):
         # 2. Record the associated symbol table
         print("@visit_Program")
         print(node)
+        self.environment.push(node)
+        node.symtab = self.environment.peek_root()
         # print(f"@ {node.coord.line}:{node.coord.column}")
         for _decl in node.gdecls:
             self.visit(_decl)
+        self.environment.pop()
         print("visit_Program END")
 
     def visit_BinaryOp(self, node):
@@ -222,6 +230,9 @@ class Visitor(NodeVisitor):
         print(node)
         self.visit(node.rvalue)
         rtype = node.rvalue.type.names
+        if isinstance(node.rvalue, FuncCall):
+            if isinstance(node.rvalue.name.bind, PtrDecl):
+                rtype = node.rvalue.type.names[1:]
         val = node.lvalue
         self.visit(node.lvalue)
         if isinstance(val, ID):
@@ -233,12 +244,6 @@ class Visitor(NodeVisitor):
         if node.op not in ltype[-1].assign_ops:
             print(f"Assign operator {node.op} not supported by {ltype[-1]}")
         print(f"visit_Assignment END")
-        # ## 1. Make sure the location of the assignment is defined
-        # sym = self.symtab.lookup(node.location)
-        # assert sym, "Assigning to unknown sym"
-        # ## 2. Check that the types match
-        # self.visit(node.value)
-        # assert sym.type == node.value.type, "Type mismatch in assignment"
 
     def visit_Assert(self, node):
         coord = f"@{node.expr.coord.line}:{node.expr.coord.column}"
@@ -321,8 +326,7 @@ class Visitor(NodeVisitor):
             nodeType.dim = Constant('int', length)
             self.visit_Constant(nodeType.dim)
         else:
-            if nodeType.dim.value != length:
-                print(f"Size mismatch on {var}")
+            print(f"Size mismatch on {var}")
         print("setDim END")
 
     def checkInit(self, nodeType, init, var, line):
@@ -395,8 +399,8 @@ class Visitor(NodeVisitor):
         print(node)
         declType = node.type
         self.visit(declType)
-        node.name.bind = declType
         declVar = node.name.name
+        node.name.bind = declType
         if isinstance(declType, PtrDecl):
             while isinstance(declType, PtrDecl):
                 declType = declType.type
@@ -456,8 +460,14 @@ class Visitor(NodeVisitor):
         if funcLabel.kind != "func":
             print(f"{funcLabel} is not a function {coord}")
         node.type = funcLabel.type
+        node.name.type = funcLabel.type
+        node.name.bind = funcLabel.bind
+        node.name.kind = funcLabel.kind
+        node.name.scope = funcLabel.scope
         if node.args is not None:
             sig = funcLabel.bind
+            while isinstance(sig, PtrDecl):
+                sig = sig.type
             if isinstance(node.args, ExprList):
                 if len(sig.args.params) != len(node.args.exprs):
                     print(f"Number of arguments mismatch {coord}")
@@ -549,6 +559,9 @@ class Visitor(NodeVisitor):
         print(node)
         for expr in node.exprs:
             self.visit(expr)
+            if not isinstance(expr, InitList):
+                coord = f"{expr.coord}"
+                assert isinstance(expr, Constant), f"Expression must be a Constant {coord}"
         print("visit_InitList END")
 
     def visit_ParamList(self, node):
