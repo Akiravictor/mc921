@@ -357,7 +357,7 @@ class Visitor(NodeVisitor):
                 length = size
                 if _type.dim is None:
                     _type.dim = Constant('int', size)
-                    self.visit_Constant(type.dim)
+                    self.visit_Constant(_type.dim)
                 else:
                     if int(_type.dim.value) != length:
                         print(f"Size mismatch {var} initialization {line}")

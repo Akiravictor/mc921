@@ -15,4 +15,43 @@ class UCType(object):
         self.assign_ops = assign_ops or set()
 
 
+IntType = UCType("int",
+                 unary_ops={"-", "+", "--", "++", "p--", "p++", "*", "&"},
+                 binary_ops={"+", "-", "*", "/", "%"},
+                 rel_ops={"==", "!=", "<", ">", "<=", ">="},
+                 assign_ops={"=", "+=", "-=", "*=", "/=", "%="}
+                 )
+
+FloatType = UCType("float",
+                   unary_ops={"-", "*", "&"},
+                   binary_ops={"+", "-", "*", "/", "%"},
+                   rel_ops={"==", "!=", "<", ">", "<=", ">="},
+                   assign_ops={"=", "+=", "-=", "*=", "/=", "%="}
+                   )
+CharType = UCType("char",
+                  unary_ops={"*", "&"},
+                  binary_ops={"+"},
+                  rel_ops={"==", "!=", "<", ">", "<=", ">="},
+                  assign_ops={"="}
+                  )
+ArrayType = UCType("array",
+                   unary_ops={"*", "&"},
+                   rel_ops={"==", "!="},
+                   assign_ops={"="}
+                   )
+
+StringType = UCType("string",
+                    binary_ops={"+"},
+                    rel_ops={"==", "!="},
+                    assign_ops={"="}
+                    )
+
+BoolType = UCType("bool",
+                  unary_ops={"!"},
+                  binary_ops={"||", "&&"},
+                  rel_ops={"==", "!="},
+                  assign_ops={"="}
+                  )
+
+VoidType = UCType("void")
 

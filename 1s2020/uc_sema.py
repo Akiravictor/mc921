@@ -1,18 +1,29 @@
-from uc_type import UCType
+from uc_type import *
 from uc_ast import *
 
-class UCSemantic:
-    def analyse(ast):
-        print("Hello!")
-        # print("Received AST:\n{0}".format(ast))
 
-        nodeVisitor = NodeVisitor()
-        visitor = Visitor()
-        # nodeVisitor.generic_visit(ast)
-        visitor.visit_Program(ast)
-        # visitor.visit_Assignment(ast)
+class UndoStack:
+    def __init__(self):
+        self.items = []
 
-        # Visitor.visit_Program(ast)
+    def isEmpty(self):
+        return self.items == []
+
+    def push(self, item):
+        self.items.append(item)
+
+    def pop(self):
+        return self.items.pop()
+
+    def peek(self):
+        return self.items[len(self.items) - 1]
+
+    def size(self):
+        return len(self.items)
+
+    def __str__(self):
+        for i in self.items:
+            print(i)
 
 
 class Environment(object):
@@ -23,6 +34,13 @@ class Environment(object):
     def __init__(self):
         self.cur_loop = None
         self.symtab = {}
+        self.undo = UndoStack()
+        self.scope = 0
+        self.root = {}
+        self.stack = []
+        self.cur_loop = []
+        self.funcdef = []
+        self.cur_rtype = None
 
     def lookup(self, a):
         return self.symtab.get(a)
@@ -41,7 +59,16 @@ class Environment(object):
         self.symtab[obj] = val
 
     def add_root(self, obj, value):
-        self.root.add(obj, value)
+        self.root[obj] = value
+
+    def peek_root(self):
+        pass
+
+    def push(self, node):
+        self.stack.append(node)
+
+    def pop(self):
+        return self.stack.pop()
 
 
 class NodeVisitor(object):
@@ -119,54 +146,6 @@ class Visitor(NodeVisitor):
 
         # Create specific instances of types. You will need to add
         # appropriate arguments depending on your definition of uCType
-        IntType = UCType("int",
-                         unary_ops={"-", "+", "--", "++", "p--", "p++", "*", "&"},
-                         binary_ops={"+", "-", "*", "/", "%"},
-                         rel_ops={"==", "!=", "<", ">", "<=", ">="},
-                         assign_ops={"=", "+=", "-=", "*=", "/=", "%="}
-                         )
-
-        FloatType = UCType("float",
-                           unary_ops={"-", "*", "&"},
-                           binary_ops={"+", "-", "*", "/", "%"},
-                           rel_ops={"==", "!=", "<", ">", "<=", ">="},
-                           assign_ops={"=", "+=", "-=", "*=", "/=", "%="}
-                           )
-        CharType = UCType("char",
-                          unary_ops={"*", "&"},
-                          binary_ops={"+"},
-                          rel_ops={"==", "!=", "<", ">", "<=", ">="},
-                          assign_ops={"="}
-                          )
-        ArrayType = UCType("array",
-                           unary_ops={"*", "&"},
-                           binary_ops={},
-                           rel_ops={"==", "!="},
-                           assign_ops={"="}
-                           )
-
-        StringType = UCType("string",
-                            unary_ops={},
-                            binary_ops={"+"},
-                            rel_ops={"==", "!="},
-                            assign_ops={"="}
-                            )
-
-        BoolType = UCType("bool",
-                          unary_ops={"!"},
-                          binary_ops={"||", "&&"},
-                          rel_ops={"==", "!="},
-                          assign_ops={"="}
-                          )
-
-        PtrType = UCType("ptr",
-                         unary_ops={},
-                         binary_ops={},
-                         rel_ops={},
-                         assign_ops={}
-                         )
-
-        VoidType = UCType("void")
 
         self.typemap = {
             'int': IntType,
@@ -175,7 +154,6 @@ class Visitor(NodeVisitor):
             'array': ArrayType,
             'string': StringType,
             'bool': BoolType,
-            'ptr': PtrType,
             'void': VoidType
         }
         self.debug = debug
@@ -187,7 +165,6 @@ class Visitor(NodeVisitor):
         self.environment.add("array", ArrayType)
         self.environment.add("string", StringType)
         self.environment.add("bool", BoolType)
-        self.environment.add("ptr", PtrType)
         self.environment.add("void", VoidType)
 
     def visit_Program(self, node):
@@ -312,7 +289,7 @@ class Visitor(NodeVisitor):
         print("@visit_Constant")
         print(node)
         if not isinstance(node.type, UCType):
-            consType = self.typemap(node.rawtype)
+            consType = self.typemap[node.rawtype]
             node.type = Type([consType], node.coord)
             if consType.typename == 'int':
                 node.value = int(node.value)
@@ -375,9 +352,9 @@ class Visitor(NodeVisitor):
                     if _type.dim.value != length:
                         print(f"Size mismatch {var} initialization {line}")
         elif isinstance(init, ArrayRef):
-            id = self.environment.lookup(init.name.name)
+            initId = self.environment.lookup(init.name.name)
             if isinstance(init.subscript, Constant):
-                rtype = id.type.names[1]
+                rtype = initId.type.names[1]
                 if nodeType.type.names[0] != rtype:
                     print(f"Initialization type mismatch {var} {line}")
         elif isinstance(init, ID):
@@ -442,7 +419,7 @@ class Visitor(NodeVisitor):
         print(node)
         if isinstance(node.init, DeclList):
             self.environment.push(node)
-        self.envitonment.cur_loop.append(node)
+        self.environment.cur_loop.append(node)
         self.visit(node.init)
         self.visit(node.cond)
         self.visit(node.next)
@@ -659,7 +636,7 @@ class Visitor(NodeVisitor):
         if isinstance(var, ID):
             coord = f"@ {var.coord}"
             if self.environment.find(var.name):
-                print(f"{var.name} already defined in this scope")
+                print(f"{var.name} already defined in this scope {coord}")
             self.environment.add_local(var, 'var')
             var.type = node.type
         print("visit_VarDecl END")
