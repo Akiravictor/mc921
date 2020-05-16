@@ -135,7 +135,7 @@ class Compiler:
     def _gencode(self, susy, ir_file):
         self.gen = GenerateCode()
         self.gen.visit(self.ast)
-        self.gencode = self.gen.code
+        self.gencode = self.gen.text + self.gen.code
         _str = ''
         if not susy and ir_file is not None:
             for _code in self.gencode:
