@@ -557,12 +557,18 @@ class GenerateCode(NodeVisitor):
         _typename = node.type.names[-1].typename
         if isinstance(node, ArrayRef):
             _typename += '_*'
+        elif isinstance(node.bind, ArrayDecl):
+            _typename += '_' + str(node.bind.dim.value)
         inst = ('load_' + _typename, node.gen_location, _varname)
         self.code.append(inst)
         node.gen_location = _varname
 
     def _storeLocation(self, typename, init, target):
         self.visit(init)
+        if isinstance(init, ID) or isinstance(init, ArrayRef):
+            self._loadLocation(init)
+        elif isinstance(init, UnaryOp) and init.op == '*':
+            self._loadReference(init)
         inst = ('store_' + typename, init.gen_location, target)
         self.code.append(inst)
 
