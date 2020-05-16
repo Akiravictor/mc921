@@ -134,12 +134,16 @@ class ArrayDecl(Node):
 
 
 class ArrayRef(Node):
-    __slots__ = ('name', 'subscript', 'coord')
+    __slots__ = ('name', 'subscript', 'coord', 'bind', 'type', 'kind', 'gen_location')
 
     def __init__(self, name, subscript, coord=None):
         self.name = name
         self.subscript = subscript
         self.coord = coord
+        self.bind = None
+        self.type = None
+        self.kind = None
+        self.gen_location = None
 
     def children(self):
         nodelist = []
@@ -200,7 +204,7 @@ class Assignment(Node):
 
 
 class BinaryOp(Node):
-    __slots__ = ('op', 'left', 'right', 'coord', 'type')
+    __slots__ = ('op', 'left', 'right', 'coord', 'type', 'gen_location')
 
     def __init__(self, op, left, right, coord=None):
         self.op = op
@@ -208,6 +212,7 @@ class BinaryOp(Node):
         self.right = right
         self.coord = coord
         self.type = None
+        self.gen_location = None
 
     def children(self):
         nodelist = []
@@ -283,13 +288,14 @@ class Compound(Node):
 
 
 class Constant(Node):
-    __slots__ = ('type', 'value', 'coord', 'rawtype')
+    __slots__ = ('type', 'value', 'coord', 'rawtype', 'gen_location')
 
     def __init__(self, type, value, coord=None):
         self.type = type
         self.value = value
         self.coord = coord
         self.rawtype = type
+        self.gen_location = None
 
     def children(self):
         nodelist = []
@@ -412,13 +418,14 @@ class For(Node):
 
 
 class FuncCall(Node):
-    __slots__ = ('name', 'args', 'coord', 'type')
+    __slots__ = ('name', 'args', 'coord', 'type', 'gen_location')
 
     def __init__(self, name, args, coord=None):
         self.name = name
         self.args = args
         self.coord = coord
         self.type = None
+        self.gen_location = None
 
     def children(self):
         nodelist = []
@@ -562,11 +569,12 @@ class If(Node):
 
 
 class InitList(Node):
-    __slots__ = ('exprs', 'coord')
+    __slots__ = ('exprs', 'coord', 'value')
 
     def __init__(self, exprs, coord=None):
         self.exprs = exprs
         self.coord = coord
+        self.value = None
 
     def children(self):
         nodelist = []
@@ -738,12 +746,13 @@ class VarDecl(Node):
 
 
 class UnaryOp(Node):
-    __slots__ = ('op', 'expr', 'coord')
+    __slots__ = ('op', 'expr', 'coord', 'gen_location')
 
     def __init__(self, op, expr, coord=None):
         self.op = op
         self.expr = expr
         self.coord = coord
+        self.gen_location = None
 
     def children(self):
         nodelist = []

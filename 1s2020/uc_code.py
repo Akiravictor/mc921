@@ -387,7 +387,7 @@ class GenerateCode(NodeVisitor):
             self.code.append(('return_void',))
         else:
             _rvalue = self.new_temp()
-            inst = ('load_' + node.spec.names[-1].typename.self.ret_location, _rvalue)
+            inst = ('load_' + node.spec.names[-1].typename, self.ret_location, _rvalue)
             self.code.append(inst)
             self.code.append(('return_' + node.spec.names[-1].typename, _rvalue))
 
