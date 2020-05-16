@@ -176,7 +176,8 @@ class Visitor(NodeVisitor):
             'array': ArrayType,
             'string': StringType,
             'bool': BoolType,
-            'void': VoidType
+            'void': VoidType,
+            'ptr' : PtrType
         }
         self.debug = debug
 
@@ -193,13 +194,15 @@ class Visitor(NodeVisitor):
             print("visit_Program END")
 
     def visit_BinaryOp(self, node):
-        coord = f"@{node.coord}"
+        coord = f"{node.coord}"
         if self.debug:
             print(f"@visit_BinaryOp {coord}")
             print(node)
         self.visit(node.left)
+        assert node.left.type is not None, f"{node.left.name} is not defined {coord}"
         ltype = node.left.type.names[-1]
         self.visit(node.right)
+        assert node.right.type is not None, f"{node.right.name} is not defined {coord}"
         rtype = node.right.type.names[-1]
         assert ltype == rtype, f"Cannot assign {rtype} to {ltype} {coord}"
         if node.op in ltype.binary_ops:
@@ -458,6 +461,7 @@ class Visitor(NodeVisitor):
             print(node)
         coord = f"@{node.coord}"
         funcLabel = self.environment.lookup(node.name.name)
+        assert funcLabel is not None, f"{node.name.name} is not defined {coord}"
         assert funcLabel.kind == "func", f"{funcLabel} is not a function {coord}"
         node.type = funcLabel.type
         node.name.type = funcLabel.type
@@ -676,7 +680,7 @@ class Visitor(NodeVisitor):
         var = node.declname
         self.visit(var)
         if isinstance(var, ID):
-            coord = f"@ {var.coord}"
+            coord = f"{var.coord}"
             assert not self.environment.find(var.name), f"{var.name} already defined in this scope {coord}"
             self.environment.add_local(var, 'var')
             var.type = node.type

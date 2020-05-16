@@ -123,16 +123,21 @@ class Compiler:
         """
         self.parser = UCParser()
         self.ast = self.parser.parse(self.code, '', debug)
-        if susy:
-            self.ast.show(showcoord=True)
-        elif ast_file is not None:
-            self.ast.show(buf=ast_file, showcoord=True)
+        # if susy:
+        #     self.ast.show(showcoord=True)
+        # elif ast_file is not None:
+        #     self.ast.show(buf=ast_file, showcoord=True)
 
-    def _semantic(self, susy, debug):
-        self.semantic = Visitor(debug)
-        self.semantic.visit(self.ast)
+    def _semantic(self, susy, debug, ast_file):
+        try:
+            self.semantic = Visitor(debug)
+            self.semantic.visit(self.ast)
+            if not susy and ast_file is not None:
+                self.ast.show(buf=ast_file, showcoord=True)
+        except AssertionError as e:
+            error(None, e)
 
-    def _gencode(self, susy, ir_file):
+    def _gencode(self, susy, ir_file, debug):
         self.gen = GenerateCode()
         self.gen.visit(self.ast)
         self.gencode = self.gen.text + self.gen.code
@@ -145,8 +150,10 @@ class Compiler:
     def _do_compile(self, susy, ast_file, ir_file, debug):
         """ Compiles the code to the given file object. """
         self._parse(susy, ast_file, debug)
-        self._semantic(susy, debug)
-        self._gencode(susy, ir_file)
+        if not errors_reported():
+            self._semantic(susy, debug, ast_file)
+        if not errors_reported():
+            self._gencode(susy, ir_file, debug)
 
     def compile(self, code, susy, ast_file, ir_file, run_ir, debug):
         """ Compiles the given code string """
@@ -157,7 +164,7 @@ class Compiler:
                 sys.stderr.write("{} error(s) encountered.".format(errors_reported()))
             elif run_ir:
                 self.vm = Interpreter()
-                # self.vm.run(self.gencode)
+                self.vm.run(self.gencode)
         return 0
 
 

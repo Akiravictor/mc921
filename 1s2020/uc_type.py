@@ -14,6 +14,8 @@ class UCType(object):
         self.rel_ops = rel_ops or set()
         self.assign_ops = assign_ops or set()
 
+    def __str__(self):
+        return str(self.typename)
 
 IntType = UCType("int",
                  unary_ops={"-", "+", "--", "++", "p--", "p++", "*", "&"},
