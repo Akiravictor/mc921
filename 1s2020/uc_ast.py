@@ -245,12 +245,14 @@ class Break(Node):
 
 
 class Cast(Node):
-    __slots__ = ('to_type', 'expr', 'coord')
+    __slots__ = ('to_type', 'expr', 'coord', 'type', 'gen_location')
 
     def __init__(self, to_type, expr, coord=None):
         self.to_type = to_type
         self.expr = expr
         self.coord = coord
+        self.type = None
+        self.gen_location = None
 
     def children(self):
         nodelist = []
