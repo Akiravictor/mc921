@@ -55,3 +55,5 @@ BoolType = UCType("bool",
 
 VoidType = UCType("void")
 
+PtrType = UCType("ptr")
+
