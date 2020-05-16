@@ -200,13 +200,14 @@ class Assignment(Node):
 
 
 class BinaryOp(Node):
-    __slots__ = ('op', 'left', 'right', 'coord')
+    __slots__ = ('op', 'left', 'right', 'coord', 'type')
 
     def __init__(self, op, left, right, coord=None):
         self.op = op
         self.left = left
         self.right = right
         self.coord = coord
+        self.type = None
 
     def children(self):
         nodelist = []
@@ -411,12 +412,13 @@ class For(Node):
 
 
 class FuncCall(Node):
-    __slots__ = ('name', 'args', 'coord')
+    __slots__ = ('name', 'args', 'coord', 'type')
 
     def __init__(self, name, args, coord=None):
         self.name = name
         self.args = args
         self.coord = coord
+        self.type = None
 
     def children(self):
         nodelist = []

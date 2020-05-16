@@ -35,7 +35,7 @@ class SymbolTable(dict):
         return self.get(key, None)
 
     def add(self, k, v):
-        self.symtab[k] = v
+        self[k] = v
 
 class Environment(object):
     '''
@@ -64,8 +64,7 @@ class Environment(object):
             this = scope.lookup(obj)
             if this is not None:
                 return this
-            else:
-                return False
+        return None
 
     def find(self, obj):
         cur_symtable = self.stack[-1]
@@ -95,7 +94,7 @@ class Environment(object):
         self.stack.append(SymbolTable(node))
         self.rtypes.append(self.cur_rtype)
         if isinstance(node, FuncDecl):
-            self.cur_rtype = node.type.names
+            self.cur_rtype = node.type.type.names
         else:
             self.cur_rtype = [VoidType]
 
@@ -201,7 +200,7 @@ class Visitor(NodeVisitor):
         print("visit_Program END")
 
     def visit_BinaryOp(self, node):
-        coord = f"@{node.coord.line}:{node.coord.column}"
+        coord = f"@{node.coord}"
         # 1. Make sure left and right operands have the same type
         # 2. Make sure the operation is supported
         # 3. Assign the result type
@@ -222,7 +221,7 @@ class Visitor(NodeVisitor):
         print(f"visit_BinaryOp END")
 
     def visit_Assignment(self, node):
-        coord = f"@{node.coord.line}:{node.coord.column}"
+        coord = f"@{node.coord}"
         print(f"@visit_Assignment {coord}")
         print(node)
         self.visit(node.rvalue)
@@ -235,7 +234,7 @@ class Visitor(NodeVisitor):
         if isinstance(val, ID):
             if val.scope is None:
                 print(f"{val} is not defined {coord}")
-        ltype = node.lvalue.types.names
+        ltype = node.lvalue.type.names
         if ltype != rtype:
             print(f"Cannot assign {rtype} to {ltype} {coord}")
         if node.op not in ltype[-1].assign_ops:
@@ -282,7 +281,7 @@ class Visitor(NodeVisitor):
         print("visit_ArrayDecl END")
 
     def visit_Break(self, node):
-        coord = f"@{node.coord.line}:{node.coord.column}"
+        coord = f"@{node.coord}"
         print(f"@visit_Break {coord}")
         print(node)
         if self.environment.cur_loop == []:
@@ -429,7 +428,7 @@ class Visitor(NodeVisitor):
         for expr in node.exprs:
             self.visit(expr)
             if isinstance(expr, ID):
-                coord = f"@{expr.coord.line}:{expr.coord.column}"
+                coord = f"@{expr.coord}"
                 if expr.scope is None:
                     print(f"{expr.name} is not defined {coord}")
         print("visit_ExprList END")
@@ -452,10 +451,11 @@ class Visitor(NodeVisitor):
     def visit_FuncCall(self, node):
         print("@visit_FuncCall")
         print(node)
-        coord = f"@{node.coord.line}:{node.coord.column}"
+        coord = f"@{node.coord}"
         funcLabel = self.environment.lookup(node.name.name)
         if funcLabel.kind != "func":
             print(f"{funcLabel} is not a function {coord}")
+        print(f"{funcLabel.type}")
         node.type = funcLabel.type
         node.name.type = funcLabel.type
         node.name.bind = funcLabel.bind
@@ -470,7 +470,7 @@ class Visitor(NodeVisitor):
                     print(f"Number of arguments mismatch {coord}")
                 for(arg, fpar) in zip(node.args.exprs, sig.args.params):
                     self.visit(arg)
-                    coord = f"@{arg.coord.line}:{arg.coord.column}"
+                    coord = f"@{arg.coord}"
                     if isinstance(arg, ID):
                         if not self.environment.find(arg.name):
                             print(f"{arg.name} is not defined {coord}")
@@ -514,7 +514,7 @@ class Visitor(NodeVisitor):
             for body in node.body:
                 self.visit(body)
         self.environment.pop()
-        func = self.environment.lookup(node.decls.name.name)
+        func = self.environment.lookup(node.decl.name.name)
         node.spec = func.type
         print("visit_FuncDef END")
 
@@ -537,7 +537,7 @@ class Visitor(NodeVisitor):
         print("visit_ID END")
 
     def visit_If(self, node):
-        coord = f"@ {node.cond.coord.line}:{node.cond.coord.column}"
+        coord = f"@ {node.cond.coord}"
         print("@visit_If")
         print(node)
         self.visit(node.cond)
@@ -572,7 +572,7 @@ class Visitor(NodeVisitor):
         print("@visit_Print")
         print(node)
         if node.expr is not None:
-            for expr in node.exprs:
+            for expr in node.expr:
                 self.visit(expr)
         print("visit_Print END")
 
@@ -633,7 +633,7 @@ class Visitor(NodeVisitor):
         else:
             returnType = [self.typemap['void']]
         rtype = self.environment.cur_rtype
-        coord = f"@ {node.coord.line}:{node.coord.column}"
+        coord = f"@ {node.coord}"
         if returnType != rtype:
             print(f"Return type {returnType} is not compatible with {rtype} {coord}")
         print("visit_Return END")
