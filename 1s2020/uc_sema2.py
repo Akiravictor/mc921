@@ -143,7 +143,6 @@ class NodeVisitor(object):
     def visit(self, node):
         """ Visit a node.
         """
-        print("@visit")
         if self._method_cache is None:
             self._method_cache = {}
 
@@ -156,7 +155,6 @@ class NodeVisitor(object):
         return visitor(node)
 
     def generic_visit(self, node):
-        print("@generic_visit")
         for c in node:
             print("Generic_visit: {0}".format(c))
             self.visit(c)
@@ -224,7 +222,7 @@ class Visitor(NodeVisitor):
             if isinstance(node.rvalue.name.bind, PtrDecl):
                 rtype = node.rvalue.type.names[1:]
         val = node.lvalue
-        self.visit(node.lvalue)
+        self.visit(val)
         if isinstance(val, ID):
             assert val.scope is not None, f"{val} is not defined {coord}"
         ltype = node.lvalue.type.names
@@ -238,26 +236,29 @@ class Visitor(NodeVisitor):
         if self.debug:
             print(f"@visit_Assert {coord}")
             print(node)
-        self.visit(node.expr)
-        if hasattr(node.expr, "type"):
-            assert node.expr.type.names[0] == self.typemap["bool"], f"Expression must be boolean {coord}"
+        expr = node.expr
+        self.visit(expr)
+        if hasattr(expr, "type"):
+            assert expr.type.names[0] == self.typemap["bool"], f"Expression must be boolean {coord}"
         else:
             assert False, f"Expression must be boolean {coord}"
         if self.debug:
             print(f"visit_Assert END")
 
     def visit_ArrayRef(self, node):
-        coord = f"@{node.subscript.coord.line}:{node.subscript.coord.column}"
         if self.debug:
-            print(f"@visit_ArrayRef {coord}")
+            print(f"@visit_ArrayRef")
             print(node)
-        self.visit(node.subscript)
-        if isinstance(node.subscript, ID):
-            assert node.subscript.scope is not None, f"{node.subscript.name} is not defined {coord}"
-        assert node.subscript.type.names[-1] == IntType, f"{node.subscript.type.names[-1]} must be of type Int {coord}"
+        subsc = node.subscript
+        self.visit(subsc)
+        if isinstance(subsc, ID):
+            coord = f"@{subsc.coord}"
+            assert subsc.scope is not None, f"{subsc.name} is not defined {coord}"
+        stype = subsc.type.names[-1]
+        coord = f"@{node.coord}"
+        assert stype == IntType, f"{stype} must be a Int type {coord}"
         self.visit(node.name)
-        arrayType = node.name.type.names[1:]
-        node.type = Type(arrayType, node.coord)
+        node.type = Type(node.name.type.names[1:], node.coord)
         if self.debug:
             print(f"visit_ArrayRef END")
 
@@ -265,6 +266,7 @@ class Visitor(NodeVisitor):
         if self.debug:
             print("@visit_ArrayDecl")
             print(node)
+        self.visit(node.type)
         arrayType = node.type
         while not isinstance(arrayType, VarDecl):
             arrayType = arrayType.type
@@ -335,7 +337,7 @@ class Visitor(NodeVisitor):
         self.visit(init)
         if isinstance(init, Constant):
             if init.rawtype == 'string':
-                assert nodeType.type.type.names == self.typemap["array"], f"Initialization type mismatch {line}"
+                assert nodeType.type.type.names == [self.typemap["array"], self.typemap["char"]], f"Initialization type mismatch {line}"
                 self.setDim(nodeType, len(init.value), line, var)
             else:
                 assert nodeType.type.names[0] == init.type.names[0], f"Initialization type mismatch {line}"
@@ -344,7 +346,7 @@ class Visitor(NodeVisitor):
             exprs = init.exprs
             if isinstance(nodeType, VarDecl):
                 assert length == 1, f"Initialization must be a single element {line}"
-                assert nodeType.type == exprs[0].type, f"Initialization type missing {line}"
+                assert nodeType.type == exprs[0].type, f"Initialization type mismatch {line}"
             elif isinstance(nodeType, ArrayDecl):
                 size = length
                 head = exprs
@@ -355,19 +357,19 @@ class Visitor(NodeVisitor):
                     for i in range(len(exprs)):
                         assert len(exprs[i].exprs) == length, f"List have a different length {line}"
                     exprs = exprs[0].exprs
-                    if isinstance(type, ArrayDecl):
-                        self.setDim(type, length, line, var)
+                    if isinstance(nodeType, ArrayDecl):
+                        self.setDim(nodeType, length, line, var)
                         size += length
                     else:
                         assert exprs[0].type == nodeType.type.type.names[-1], f"{var} Initialization type mismatch {line}"
-                _type = decl
+                nodeType = decl
                 exprs = head
                 length = size
-                if _type.dim is None:
-                    _type.dim = Constant('int', size)
-                    self.visit_Constant(type.dim)
+                if nodeType.dim is None:
+                    nodeType.dim = Constant('int', size)
+                    self.visit_Constant(nodeType.dim)
                 else:
-                    assert _type.dim.value == length, f"Size mismatch {var} initialization {line}"
+                    assert nodeType.dim.value == length, f"Size mismatch {var} initialization {line}"
         elif isinstance(init, ArrayRef):
             initId = self.environment.lookup(init.name.name)
             if isinstance(init.subscript, Constant):
@@ -375,10 +377,10 @@ class Visitor(NodeVisitor):
                 assert nodeType.type.names[0] == rtype, f"Initialization type mismatch {var} {line}"
         elif isinstance(init, ID):
             if isinstance(nodeType, ArrayDecl):
-                anotherType = nodeType.type
-                while not isinstance(anotherType, VarDecl):
-                    anotherType = anotherType.type
-                assert anotherType.type.names == init.type.names, f"Initialization type mismatch {line}"
+                idType = nodeType.type
+                while not isinstance(idType, VarDecl):
+                    idType = idType.type
+                assert idType.type.names == init.type.names, f"Initialization type mismatch {line}"
                 self.setDim(nodeType, init.bind.dim.value, line, var)
             else:
                 assert nodeType.type.names[-1] == init.type.names[-1], f"Initialization type mismatch {line}"
@@ -605,7 +607,8 @@ class Visitor(NodeVisitor):
         if self.debug:
             print("@checkLocation")
         coord = f"@ {var.coord.line}:{var.coord.column}"
-        test = (isinstance(var, ArrayRef) and len(var.type.names) == 1) or isinstance(var, ID)
+        test = (isinstance(var, ArrayRef) and len(var.type.names) == 1)
+        test = test or isinstance(var, ID)
         name = var.name
         if isinstance(name, ArrayRef):
             name = name.name.name + f"[{name.subscript.name}][{var.subscript.name}]"
@@ -686,9 +689,9 @@ class Visitor(NodeVisitor):
             print(node)
         self.visit(node.expr)
         unaryType = node.expr.type.names[-1]
-        coord = f"@ {node.coord.line}:{node.coord.column}"
+        coord = f"@ {node.coord}"
         assert node.op in unaryType.unary_ops, f"Unary operator {node.op} not supported {coord}"
-        node.type = Type(list(node.expr.type.names), node.coord)
+        node.type = Type(names=list(node.expr.type.names), coord=node.coord)
         if node.op == "*":
             node.type.names.pop(0)
         elif node.op == "&":
@@ -703,7 +706,7 @@ class Visitor(NodeVisitor):
         self.environment.cur_loop.append(node)
         self.visit(node.cond)
         ctype = node.cond.type.names[0]
-        coord = f"@ {node.coord.line}:{node.coord.column}"
+        coord = f"@ {node.coord}"
         assert ctype == BoolType, f"Conditional expression must be a Boolean type {coord}"
         if node.stmt is not None:
             self.visit(node.stmt)
