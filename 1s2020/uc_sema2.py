@@ -194,7 +194,7 @@ class Visitor(NodeVisitor):
             print("visit_Program END")
 
     def visit_BinaryOp(self, node):
-        coord = f"{node.coord}"
+        coord = f"@{node.coord}"
         if self.debug:
             print(f"@visit_BinaryOp {coord}")
             print(node)
@@ -680,7 +680,7 @@ class Visitor(NodeVisitor):
         var = node.declname
         self.visit(var)
         if isinstance(var, ID):
-            coord = f"{var.coord}"
+            coord = f"@{var.coord}"
             assert not self.environment.find(var.name), f"{var.name} already defined in this scope {coord}"
             self.environment.add_local(var, 'var')
             var.type = node.type

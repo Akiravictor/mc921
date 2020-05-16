@@ -748,13 +748,14 @@ class VarDecl(Node):
 
 
 class UnaryOp(Node):
-    __slots__ = ('op', 'expr', 'coord', 'gen_location')
+    __slots__ = ('op', 'expr', 'coord', 'gen_location', 'type')
 
     def __init__(self, op, expr, coord=None):
         self.op = op
         self.expr = expr
         self.coord = coord
         self.gen_location = None
+        self.type = None
 
     def children(self):
         nodelist = []
