@@ -389,7 +389,7 @@ class ExprList(Node):
 
 
 class For(Node):
-    __slots__ = ('init', 'cond', 'next', 'stmt', 'coord')
+    __slots__ = ('init', 'cond', 'next', 'stmt', 'coord', 'exit_label')
 
     def __init__(self, init, cond, next, stmt, coord=None):
         self.init = init
@@ -397,6 +397,7 @@ class For(Node):
         self.next = next
         self.stmt = stmt
         self.coord = coord
+        self.exit_label = None
 
     def children(self):
         nodelist = []
@@ -571,12 +572,13 @@ class If(Node):
 
 
 class InitList(Node):
-    __slots__ = ('exprs', 'coord', 'value')
+    __slots__ = ('exprs', 'coord', 'value', 'gen_location')
 
     def __init__(self, exprs, coord=None):
         self.exprs = exprs
         self.coord = coord
         self.value = None
+        self.gen_location = None
 
     def children(self):
         nodelist = []

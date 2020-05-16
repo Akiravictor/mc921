@@ -43,7 +43,7 @@ class Environment(object):
     for adding and looking up nodes associated with identifiers.
     '''
     def __init__(self):
-        self.cur_loop = None
+        self.cur_loop = []
         self.rtypes = []
         self.cur_rtype = []
         self.stack = []
@@ -610,7 +610,7 @@ class Visitor(NodeVisitor):
     def checkLocation(self, var):
         if self.debug:
             print("@checkLocation")
-        coord = f"@ {var.coord.line}:{var.coord.column}"
+        coord = f"@ {var.coord}"
         test = (isinstance(var, ArrayRef) and len(var.type.names) == 1)
         test = test or isinstance(var, ID)
         name = var.name

@@ -69,7 +69,7 @@ class GenerateCode(NodeVisitor):
     def visit_Constant(self, node):
         if node.rawtype == 'string':
             _target = self.new_text()
-            inst = ('global_string'._target, node.value)
+            inst = ('global_string', _target, node.value)
             self.text.append(inst)
         else:
             _target = self.new_temp()
@@ -461,7 +461,7 @@ class GenerateCode(NodeVisitor):
         self.code.append(inst)
 
         self.code.append((body_label[1:],))
-        self.visit(node.stat)
+        self.visit(node.stmt)
         self.visit(node.next)
         self.code.append(('jump', entry_label))
         self.code.append((exit_label[1:],))
@@ -517,7 +517,7 @@ class GenerateCode(NodeVisitor):
         while not isinstance(_type, VarDecl):
             _type = _type.type
             if isinstance(_type, ArrayDecl):
-                dim += "_" + _type.dim.vale
+                dim += "_" + str(_type.dim.value)
             elif isinstance(_type, PtrDecl):
                 dim += "_*"
         self.visit_VarDecl(_type, decl, dim)
