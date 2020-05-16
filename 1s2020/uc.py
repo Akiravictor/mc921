@@ -146,7 +146,7 @@ class Compiler:
         """ Compiles the code to the given file object. """
         self._parse(susy, ast_file, debug)
         self._semantic(susy, debug)
-        # self._gencode(susy, ir_file)
+        self._gencode(susy, ir_file)
 
     def compile(self, code, susy, ast_file, ir_file, run_ir, debug):
         """ Compiles the given code string """
