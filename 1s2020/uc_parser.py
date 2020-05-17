@@ -1400,7 +1400,6 @@ class UCParser:
 
         self.tokens = self.lexer.tokens
         self.precedence = (
-             # ('nonassoc', 'LT', 'GT', 'LE', 'GE', 'EQ', 'NQ', 'NOT', 'AND', 'OR'),  # Nonassociative operators
              ('left', 'EQ', 'NQ', 'LT', 'GT', 'LE', 'GE'),
              ('left', 'OR'),
              ('left', 'AND'),
@@ -1410,8 +1409,6 @@ class UCParser:
          )
 
         parser = yacc.yacc(module=self, write_tables=False)
-        # print(code)
         result = parser.parse(code, tracking=False)
-        # result.show(showcoord=True)a
 
         return result

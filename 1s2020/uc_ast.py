@@ -80,8 +80,8 @@ class Node(object):
         buf.write('\n')
 
         for (child_name, child) in self.children():
-            print("Dentro da AST, printando child:")
-            print(child)
+            # print("Dentro da AST, printando child:")
+            # print(child)
             child.show(
                 buf,
                 offset=offset + 4,

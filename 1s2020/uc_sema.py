@@ -77,14 +77,10 @@ class SymbolTable(dict):
 
 
 class Environment(object):
-    '''
-    Class representing a symbol table.  It should provide functionality
-    for adding and looking up nodes associated with identifiers.
-    '''
     def __init__(self):
-        self.cur_loop = []
+        self.loop_block = []
         self.rtypes = []
-        self.cur_rtype = []
+        self.loop_type = []
         self.stack = []
         self.root = SymbolTable()
         self.stack.append(self.root)
@@ -116,31 +112,28 @@ class Environment(object):
     def scope_level(self):
         return len(self.stack)-1
 
-    def add_local(self, obj, kind):
-        self.peek().add(obj.name, obj)
+    def set_local(self, obj, kind):
+        self.get().add(obj.name, obj)
         obj.kind = kind
         obj.scope = self.scope_level()
 
-    def add_root(self, obj, value):
-        self.root.add(obj, value)
-
-    def peek_root(self):
+    def get_root(self):
         return self.stack[0]
 
-    def peek(self):
+    def get(self):
         return self.stack[-1]
 
     def push(self, node):
         self.stack.append(SymbolTable(node))
-        self.rtypes.append(self.cur_rtype)
+        self.rtypes.append(self.loop_type)
         if isinstance(node, FuncDecl):
-            self.cur_rtype = node.type.type.names
+            self.loop_type = node.type.type.names
         else:
-            self.cur_rtype = [VoidType]
+            self.loop_type = [VoidType]
 
     def pop(self):
         self.stack.pop()
-        self.cur_rtype = self.rtypes.pop()
+        self.loop_type = self.rtypes.pop()
 
 
 class NodeVisitor(object):
@@ -208,7 +201,7 @@ class Visitor(NodeVisitor):
     def __init__(self, debug):
         # Initialize the symbol table
         self.environment = Environment()
-        self.typemap = {
+        self.type_mapping = {
             'int': IntType,
             'float': FloatType,
             'char': CharType,
@@ -216,7 +209,7 @@ class Visitor(NodeVisitor):
             'string': StringType,
             'bool': BoolType,
             'void': VoidType,
-            'ptr' : PtrType
+            'ptr': PtrType
         }
         self.debug = debug
 
@@ -225,7 +218,7 @@ class Visitor(NodeVisitor):
             print("@visit_Program")
             print(node)
         self.environment.push(node)
-        node.symtab = self.environment.peek_root()
+        node.symtab = self.environment.get_root()
         for _decl in node.gdecls:
             self.visit(_decl)
         self.environment.pop()
@@ -233,28 +226,28 @@ class Visitor(NodeVisitor):
             print("visit_Program END")
 
     def visit_BinaryOp(self, node):
-        coord = f"@{node.coord}"
+        coord = f"{node.coord}"
         if self.debug:
             print(f"@visit_BinaryOp {coord}")
             print(node)
         self.visit(node.left)
-        assert node.left.type is not None, f"{node.left.name} is not defined {coord}"
+        assert node.left.type is not None, f"\"{node.left.name}\" is not defined {coord}"
         ltype = node.left.type.names[-1]
         self.visit(node.right)
-        assert node.right.type is not None, f"{node.right.name} is not defined {coord}"
+        assert node.right.type is not None, f"\"{node.right.name}\" is not defined {coord}"
         rtype = node.right.type.names[-1]
-        assert ltype == rtype, f"Cannot assign {rtype} to {ltype} {coord}"
+        assert ltype == rtype, f"Cannot assign \"{rtype}\" to \"{ltype}\" {coord}"
         if node.op in ltype.binary_ops:
             node.type = Type([ltype], node.coord)
         elif node.op in ltype.rel_ops:
-            node.type = Type([self.typemap["bool"]], node.coord)
+            node.type = Type([self.type_mapping["bool"]], node.coord)
         else:
-            assert False, f"Assign operator {node.op} is not supported by {ltype} {coord}"
+            assert False, f"Assign operator \"{node.op}\" is not supported by \"{ltype}\" {coord}"
         if self.debug:
             print(f"visit_BinaryOp END")
 
     def visit_Assignment(self, node):
-        coord = f"@{node.coord}"
+        coord = f"{node.coord}"
         if self.debug:
             print(f"@visit_Assignment {coord}")
             print(node)
@@ -266,22 +259,22 @@ class Visitor(NodeVisitor):
         val = node.lvalue
         self.visit(val)
         if isinstance(val, ID):
-            assert val.scope is not None, f"{val} is not defined {coord}"
+            assert val.scope is not None, f"\"{val}\" is not defined {coord}"
         ltype = node.lvalue.type.names
-        assert ltype == rtype, f"Cannot assign {rtype} to {ltype} {coord}"
-        assert node.op in ltype[-1].assign_ops, f"Assign operator {node.op} not supported by {ltype[-1]}"
+        assert ltype == rtype, f"Cannot assign \"{rtype}\" to \"{ltype}\" {coord}"
+        assert node.op in ltype[-1].assign_ops, f"Assign operator \"{node.op}\" not supported by \"{ltype[-1]}\""
         if self.debug:
             print(f"visit_Assignment END")
 
     def visit_Assert(self, node):
-        coord = f"@{node.expr.coord}"
+        coord = f"{node.expr.coord}"
         if self.debug:
             print(f"@visit_Assert {coord}")
             print(node)
         expr = node.expr
         self.visit(expr)
         if hasattr(expr, "type"):
-            assert expr.type.names[0] == self.typemap["bool"], f"Expression must be boolean {coord}"
+            assert expr.type.names[0] == self.type_mapping["bool"], f"Expression must be boolean {coord}"
         else:
             assert False, f"Expression must be boolean {coord}"
         if self.debug:
@@ -294,11 +287,11 @@ class Visitor(NodeVisitor):
         subsc = node.subscript
         self.visit(subsc)
         if isinstance(subsc, ID):
-            coord = f"@{subsc.coord}"
-            assert subsc.scope is not None, f"{subsc.name} is not defined {coord}"
+            coord = f"{subsc.coord}"
+            assert subsc.scope is not None, f"\"{subsc.name}\" is not defined {coord}"
         stype = subsc.type.names[-1]
-        coord = f"@{node.coord}"
-        assert stype == IntType, f"{stype} must be a Int type {coord}"
+        coord = f"{node.coord}"
+        assert stype == IntType, f"\"{stype}\" must be a Int type {coord}"
         self.visit(node.name)
         node.type = Type(node.name.type.names[1:], node.coord)
         if self.debug:
@@ -313,19 +306,19 @@ class Visitor(NodeVisitor):
         while not isinstance(arrayType, VarDecl):
             arrayType = arrayType.type
         arrayId = arrayType.declname
-        arrayId.type.names.insert(0, self.typemap["array"])
+        arrayId.type.names.insert(0, self.type_mapping["array"])
         if node.dim is not None:
             self.visit(node.dim)
         if self.debug:
             print("visit_ArrayDecl END")
 
     def visit_Break(self, node):
-        coord = f"@{node.coord}"
+        coord = f"{node.coord}"
         if self.debug:
             print(f"@visit_Break {coord}")
             print(node)
-        assert self.environment.cur_loop != [], f"Break statement must be inside a loop block {coord}"
-        node.bind = self.environment.cur_loop[-1]
+        assert self.environment.loop_block != [], f"Break statement must be inside a loop block {coord}"
+        node.bind = self.environment.loop_block[-1]
         if self.debug:
             print(f"visit_Break END")
 
@@ -353,7 +346,7 @@ class Visitor(NodeVisitor):
             print("@visit_Constant")
             print(node)
         if not isinstance(node.type, UCType):
-            consType = self.typemap[node.rawtype]
+            consType = self.type_mapping[node.rawtype]
             node.type = Type([consType], node.coord)
             if consType.typename == 'int':
                 node.value = int(node.value)
@@ -369,7 +362,7 @@ class Visitor(NodeVisitor):
             nodeType.dim = Constant('int', length)
             self.visit_Constant(nodeType.dim)
         else:
-            assert False, f"Size mismatch on {var}"
+            assert False, f"Size mismatch on \"{var}\" {line}"
         if self.debug:
             print("setDim END")
 
@@ -378,56 +371,68 @@ class Visitor(NodeVisitor):
             print("@checkInit")
         self.visit(init)
         if isinstance(init, Constant):
-            if init.rawtype == 'string':
-                assert nodeType.type.type.names == [self.typemap["array"], self.typemap["char"]], f"Initialization type mismatch {line}"
-                self.setDim(nodeType, len(init.value), line, var)
-            else:
-                assert nodeType.type.names[0] == init.type.names[0], f"Initialization type mismatch {line}"
+            self.checkConstant(nodeType, init, var, line)
         elif isinstance(init, InitList):
-            length = len(init.exprs)
-            exprs = init.exprs
-            if isinstance(nodeType, VarDecl):
-                assert length == 1, f"Initialization must be a single element {line}"
-                assert nodeType.type == exprs[0].type, f"Initialization type mismatch {line}"
-            elif isinstance(nodeType, ArrayDecl):
-                size = length
-                head = exprs
-                decl = nodeType
-                while isinstance(nodeType.type, ArrayDecl):
-                    nodeType = nodeType.type
-                    length = len(exprs[0].exprs)
-                    for i in range(len(exprs)):
-                        assert len(exprs[i].exprs) == length, f"List have a different length {line}"
-                    exprs = exprs[0].exprs
-                    if isinstance(nodeType, ArrayDecl):
-                        self.setDim(nodeType, length, line, var)
-                        size += length
-                    else:
-                        assert exprs[0].type == nodeType.type.type.names[-1], f"{var} Initialization type mismatch {line}"
-                nodeType = decl
-                exprs = head
-                length = size
-                if nodeType.dim is None:
-                    nodeType.dim = Constant('int', size)
-                    self.visit_Constant(nodeType.dim)
-                else:
-                    assert nodeType.dim.value == length, f"Size mismatch {var} initialization {line}"
+            self.checkInitList(nodeType, init, var, line)
         elif isinstance(init, ArrayRef):
-            initId = self.environment.lookup(init.name.name)
-            if isinstance(init.subscript, Constant):
-                rtype = initId.type.names[1]
-                assert nodeType.type.names[0] == rtype, f"Initialization type mismatch {var} {line}"
+            self.checkArrayRef(nodeType, init, var, line)
         elif isinstance(init, ID):
-            if isinstance(nodeType, ArrayDecl):
-                idType = nodeType.type
-                while not isinstance(idType, VarDecl):
-                    idType = idType.type
-                assert idType.type.names == init.type.names, f"Initialization type mismatch {line}"
-                self.setDim(nodeType, init.bind.dim.value, line, var)
-            else:
-                assert nodeType.type.names[-1] == init.type.names[-1], f"Initialization type mismatch {line}"
+            self.checkId(nodeType, init, var, line)
         if self.debug:
             print("checkInit END")
+
+    def checkInitList(self, nodeType, init, var, line):
+        length = len(init.exprs)
+        exprs = init.exprs
+        if isinstance(nodeType, VarDecl):
+            assert length == 1, f"Initialization must be a single element {line}"
+            assert nodeType.type == exprs[0].type, f"Initialization type mismatch {line}"
+        elif isinstance(nodeType, ArrayDecl):
+            size = length
+            decl = nodeType
+            while isinstance(nodeType.type, ArrayDecl):
+                nodeType = nodeType.type
+                length = len(exprs[0].exprs)
+                for i in range(len(exprs)):
+                    assert len(exprs[i].exprs) == length, f"List have a different length {line}"
+                exprs = exprs[0].exprs
+                if isinstance(nodeType, ArrayDecl):
+                    self.setDim(nodeType, length, line, var)
+                    size += length
+                else:
+                    assert exprs[0].type == nodeType.type.type.names[
+                        -1], f"\"{var}\" Initialization type mismatch {line}"
+            nodeType = decl
+            length = size
+            if nodeType.dim is None:
+                nodeType.dim = Constant('int', size)
+                self.visit_Constant(nodeType.dim)
+            else:
+                assert nodeType.dim.value == length, f"Size mismatch \"{var}\" initialization {line}"
+
+    def checkConstant(self, nodeType, init, var, line):
+        if init.rawtype == 'string':
+            assert nodeType.type.type.names == [self.type_mapping["array"],
+                                                self.type_mapping["char"]], f"Initialization type mismatch {line}"
+            self.setDim(nodeType, len(init.value), line, var)
+        else:
+            assert nodeType.type.names[0] == init.type.names[0], f"Initialization type mismatch {line}"
+
+    def checkArrayRef(self, nodeType, init, var, line):
+        initId = self.environment.lookup(init.name.name)
+        if isinstance(init.subscript, Constant):
+            rtype = initId.type.names[1]
+            assert nodeType.type.names[0] == rtype, f"Initialization type mismatch \"{var}\" {line}"
+
+    def checkId(self, nodeType, init, var, line):
+        if isinstance(nodeType, ArrayDecl):
+            idType = nodeType.type
+            while not isinstance(idType, VarDecl):
+                idType = idType.type
+            assert idType.type.names == init.type.names, f"Initialization type mismatch {line}"
+            self.setDim(nodeType, init.bind.dim.value, line, var)
+        else:
+            assert nodeType.type.names[-1] == init.type.names[-1], f"Initialization type mismatch {line}"
 
     def visit_Decl(self, node):
         coord = f"{node.name.coord}"
@@ -442,9 +447,9 @@ class Visitor(NodeVisitor):
             while isinstance(declType, PtrDecl):
                 declType = declType.type
         if isinstance(declType, FuncDecl):
-            assert self.environment.lookup(declVar) is not None, f"{declVar} is not defined {coord}"
+            assert self.environment.lookup(declVar) is not None, f"\"{declVar}\" is not defined {coord}"
         else:
-            assert self.environment.find(declVar) is not None, f"{declVar} is not defined"
+            assert self.environment.find(declVar) is not None, f"\"{declVar}\" is not defined"
             if node.init is not None:
                 self.checkInit(declType, node.init, declVar, coord)
         if self.debug:
@@ -463,6 +468,7 @@ class Visitor(NodeVisitor):
     def visit_EmptyStatement(self, node):
         if self.debug:
             print("@visit_EmptyStatement")
+            print(node)
         pass
 
     def visit_ExprList(self, node):
@@ -472,8 +478,8 @@ class Visitor(NodeVisitor):
         for expr in node.exprs:
             self.visit(expr)
             if isinstance(expr, ID):
-                coord = f"@{expr.coord}"
-                assert expr.scope is not None, f"{expr.name} is not defined {coord}"
+                coord = f"{expr.coord}"
+                assert expr.scope is not None, f"\"{expr.name}\" is not defined {coord}"
         if self.debug:
             print("visit_ExprList END")
 
@@ -483,12 +489,12 @@ class Visitor(NodeVisitor):
             print(node)
         if isinstance(node.init, DeclList):
             self.environment.push(node)
-        self.environment.cur_loop.append(node)
+        self.environment.loop_block.append(node)
         self.visit(node.init)
         self.visit(node.cond)
         self.visit(node.next)
         self.visit(node.stmt)
-        self.environment.cur_loop.pop()
+        self.environment.loop_block.pop()
         if isinstance(node.init, DeclList):
             self.environment.pop()
         if self.debug:
@@ -498,10 +504,10 @@ class Visitor(NodeVisitor):
         if self.debug:
             print("@visit_FuncCall")
             print(node)
-        coord = f"@{node.coord}"
+        coord = f"{node.coord}"
         funcLabel = self.environment.lookup(node.name.name)
-        assert funcLabel is not None, f"{node.name.name} is not defined {coord}"
-        assert funcLabel.kind == "func", f"{funcLabel} is not a function {coord}"
+        assert funcLabel is not None, f"\"{node.name.name}\" is not defined {coord}"
+        assert funcLabel.kind == "func", f"\"{funcLabel}\" is not a function {coord}"
         node.type = funcLabel.type
         node.name.type = funcLabel.type
         node.name.bind = funcLabel.bind
@@ -515,17 +521,17 @@ class Visitor(NodeVisitor):
                 assert len(sig.args.params) == len(node.args.exprs), f"Number of arguments mismatch {coord}"
                 for(arg, fpar) in zip(node.args.exprs, sig.args.params):
                     self.visit(arg)
-                    coord = f"@{arg.coord}"
+                    coord = f"{arg.coord}"
                     if isinstance(arg, ID):
-                        assert self.environment.find(arg.name), f"{arg.name} is not defined {coord}"
-                    assert arg.type.names == fpar.type.type.names, f"Type mismatch for {fpar.type.declname.name} {coord}"
+                        assert self.environment.find(arg.name), f"\"{arg.name}\" is not defined {coord}"
+                    assert arg.type.names == fpar.type.type.names, f"Type mismatch for \"{fpar.type.declname.name}\" {coord}"
             else:
                 self.visit(node.args)
                 assert len(sig.args.params) == 1, f"Number of arguments mismatch {coord}"
                 argType = sig.args.params[0].type
                 while not isinstance(argType, VarDecl):
                     argType = argType.type
-                assert node.args.type.names == argType.type.names, f"Type mismatch for {sig.args.params[0].name.name} {coord}"
+                assert node.args.type.names == argType.type.names, f"Type mismatch for \"{sig.args.params[0].name.name}\" {coord}"
         if self.debug:
             print("visit_FuncCall END")
 
@@ -587,13 +593,13 @@ class Visitor(NodeVisitor):
             print("visit_ID END")
 
     def visit_If(self, node):
-        coord = f"@ {node.cond.coord}"
+        coord = f"{node.cond.coord}"
         if self.debug:
             print("@visit_If")
             print(node)
         self.visit(node.cond)
         if hasattr(node.cond, 'type'):
-            assert node.cond.type.names[0] == self.typemap["bool"], f"The condition must be a boolean type {coord}"
+            assert node.cond.type.names[0] == self.type_mapping["bool"], f"The condition must be a boolean type {coord}"
         else:
             assert False, f"The condition must be a boolean type {coord}"
         self.visit(node.iftrue)
@@ -642,14 +648,14 @@ class Visitor(NodeVisitor):
         while not isinstance(ptrType, VarDecl):
             ptrType = ptrType.type
         ptrType.declname.bind = node
-        ptrType.type.names.insert(0, self.typemap["ptr"])
+        ptrType.type.names.insert(0, self.type_mapping["ptr"])
         if self.debug:
             print("visit_PtrDecl END")
 
     def checkLocation(self, var):
         if self.debug:
             print("@checkLocation")
-        coord = f"@ {var.coord}"
+        coord = f"{var.coord}"
         test = (isinstance(var, ArrayRef) and len(var.type.names) == 1)
         test = test or isinstance(var, ID)
         name = var.name
@@ -657,10 +663,10 @@ class Visitor(NodeVisitor):
             name = name.name.name + f"[{name.subscript.name}][{var.subscript.name}]"
         elif hasattr(var, 'subscript'):
             name = name.name + f"[{var.subscript.name}]"
-        assert test, f"{name} is not a simple variable {coord}"
+        assert test, f"\"{name}\" is not a simple variable {coord}"
         if isinstance(var, ID):
-            assert var.scope is not None, f"{name} is not defined {coord}"
-        assert len(var.type.names) == 1, f"Type of {name} is not a primitive type"
+            assert var.scope is not None, f"\"{name}\" is not defined {coord}"
+        assert len(var.type.names) == 1, f"Type of \"{name}\" is not a primitive type"
         if self.debug:
             print("checkLocation END")
 
@@ -677,11 +683,11 @@ class Visitor(NodeVisitor):
                     if isinstance(var, ID) or isinstance(var, ArrayRef):
                         self.checkLocation(var)
                     else:
-                        coord = f"@ {var.coord.line}:{var.coord.column}"
-                        assert False, f"{var} is not a variable {coord}"
+                        coord = f"{var.coord}"
+                        assert False, f"\"{var}\" is not a variable {coord}"
             else:
-                coord = f"@ {loc.coord.line}:{loc.coord.column}"
-                assert False, f"{loc} is not a variable {coord}"
+                coord = f"{loc.coord}"
+                assert False, f"\"{loc}\" is not a variable {coord}"
         if self.debug:
             print("visit_Read END")
 
@@ -693,10 +699,10 @@ class Visitor(NodeVisitor):
             self.visit(node.expr)
             returnType = node.expr.type.names
         else:
-            returnType = [self.typemap['void']]
-        rtype = self.environment.cur_rtype
-        coord = f"@ {node.coord}"
-        assert returnType == rtype, f"Return type {returnType[-1].__str__()} is not compatible with {rtype[-1].__str__()} {coord}"
+            returnType = [self.type_mapping['void']]
+        rtype = self.environment.loop_type
+        coord = f"{node.coord}"
+        assert returnType == rtype, f"Return type \"{returnType[-1].__str__()}\" is not compatible with \"{rtype[-1].__str__()}\" {coord}"
         if self.debug:
             print("visit_Return END")
 
@@ -706,7 +712,7 @@ class Visitor(NodeVisitor):
             print(node)
         for i, name in enumerate(node.names or []):
             if not isinstance(name, UCType):
-                nodeType = self.typemap[name]
+                nodeType = self.type_mapping[name]
                 node.names[i] = nodeType
         if self.debug:
             print("visit_Type END")
@@ -719,9 +725,9 @@ class Visitor(NodeVisitor):
         var = node.declname
         self.visit(var)
         if isinstance(var, ID):
-            coord = f"@{var.coord}"
-            assert not self.environment.find(var.name), f"{var.name} already defined in this scope {coord}"
-            self.environment.add_local(var, 'var')
+            coord = f"{var.coord}"
+            assert not self.environment.find(var.name), f"\"{var.name}\" already defined in this scope {coord}"
+            self.environment.set_local(var, 'var')
             var.type = node.type
         if self.debug:
             print("visit_VarDecl END")
@@ -732,13 +738,13 @@ class Visitor(NodeVisitor):
             print(node)
         self.visit(node.expr)
         unaryType = node.expr.type.names[-1]
-        coord = f"@ {node.coord}"
-        assert node.op in unaryType.unary_ops, f"Unary operator {node.op} not supported {coord}"
+        coord = f"{node.coord}"
+        assert node.op in unaryType.unary_ops, f"Unary operator \"{node.op}\" not supported {coord}"
         node.type = Type(names=list(node.expr.type.names), coord=node.coord)
         if node.op == "*":
             node.type.names.pop(0)
         elif node.op == "&":
-            node.type.names.insert(0, self.typemap["ptr"])
+            node.type.names.insert(0, self.type_mapping["ptr"])
         if self.debug:
             print("visit_UnaryOp END")
 
@@ -746,14 +752,14 @@ class Visitor(NodeVisitor):
         if self.debug:
             print("@visit_While")
             print(node)
-        self.environment.cur_loop.append(node)
+        self.environment.loop_block.append(node)
         self.visit(node.cond)
         ctype = node.cond.type.names[0]
-        coord = f"@ {node.coord}"
+        coord = f"{node.coord}"
         assert ctype == BoolType, f"Conditional expression must be a Boolean type {coord}"
         if node.stmt is not None:
             self.visit(node.stmt)
-        self.environment.cur_loop.pop()
+        self.environment.loop_block.pop()
         if self.debug:
             print("visit_While END")
 
