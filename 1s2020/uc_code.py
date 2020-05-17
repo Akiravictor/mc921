@@ -242,8 +242,8 @@ class GenerateCode(NodeVisitor):
         self.code.append(inst)
 
     def _readLocation(self, source):
-        _typename = self.new_temp()
-        _target = source.type.names[-1].typename
+        _target = self.new_temp()
+        _typename = source.type.names[-1].typename
         self.code.append(('read_' + _typename, _target))
         if isinstance(source, ArrayRef):
             _typename += "_*"
@@ -407,7 +407,7 @@ class GenerateCode(NodeVisitor):
             self.visit(_loc)
 
             if isinstance(_loc, ID) or isinstance(_loc, ArrayRef):
-                self._readLocation(_loc.type.names[-1].typename)
+                self._readLocation(_loc.bind)
 
             elif isinstance(_loc, ExprList):
                 for _var in _loc.exprs:

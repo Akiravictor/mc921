@@ -730,12 +730,13 @@ class Type(Node):
 
 
 class VarDecl(Node):
-    __slots__ = ('declname', 'type', 'coord')
+    __slots__ = ('declname', 'type', 'coord', 'gen_location')
 
     def __init__(self, declname, type, coord=None):
         self.declname = declname
         self.type = type
         self.coord = coord
+        self.gen_location = None
 
     def children(self):
         nodelist = []
