@@ -167,7 +167,7 @@ class GenerateCode(NodeVisitor):
         else:
             node.gen_location = self.new_temp()
             self.visit(node.name)
-            inst = ('call', node.name.name, node.gen_location)
+            inst = ('call', '@' + node.name.name, node.gen_location)
             self.code.append(inst)
 
     def visit_UnaryOp(self, node):
@@ -489,7 +489,7 @@ class GenerateCode(NodeVisitor):
     def visit_FuncDecl(self, node):
         self.fname = node.type.declname.name
 
-        inst = ('define', self.fname)
+        inst = ('define', "@"+ self.fname)
         self.code.append(inst)
         node.type.declname.gen_location = self.fname
 
