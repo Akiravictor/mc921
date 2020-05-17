@@ -774,12 +774,13 @@ class UnaryOp(Node):
 
 
 class While(Node):
-    __slots__ = ('cond', 'stmt', 'coord')
+    __slots__ = ('cond', 'stmt', 'coord', 'exit_label')
 
     def __init__(self, cond, stmt, coord=None):
         self.cond = cond
         self.stmt = stmt
         self.coord = coord
+        self.exit_label = None
 
     def children(self):
         nodelist = []
