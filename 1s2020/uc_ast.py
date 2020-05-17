@@ -80,8 +80,8 @@ class Node(object):
         buf.write('\n')
 
         for (child_name, child) in self.children():
-            # print("Dentro da AST, printando child:")
-            # print(child)
+            print("Dentro da AST, printando child:")
+            print(child)
             child.show(
                 buf,
                 offset=offset + 4,
@@ -624,7 +624,7 @@ class Print(Node):
     def children(self):
         nodelist = []
         for i, child in enumerate(self.expr or []):
-            nodelist.append(("expr[%d]" % i, child))
+            if child is not None: nodelist.append(("expr[%d]" % i, child))
         return tuple(nodelist)
 
     def __iter__(self):
