@@ -1401,13 +1401,12 @@ class UCParser:
         self.tokens = self.lexer.tokens
         self.precedence = (
              # ('nonassoc', 'LT', 'GT', 'LE', 'GE', 'EQ', 'NQ', 'NOT', 'AND', 'OR'),  # Nonassociative operators
-             ('left', 'PLUS', 'MINUS'),
-             ('left', 'TIMES', 'DIVIDE', 'MOD'),
-             ('right', 'UMINUS'),
              ('left', 'EQ', 'NQ', 'LT', 'GT', 'LE', 'GE'),
              ('left', 'OR'),
-             ('left', 'AND')
-
+             ('left', 'AND'),
+             ('left', 'PLUS', 'MINUS'),
+             ('left', 'TIMES', 'DIVIDE', 'MOD'),
+             ('right', 'UMINUS')
          )
 
         parser = yacc.yacc(module=self, write_tables=False)

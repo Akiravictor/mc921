@@ -75,6 +75,7 @@ class SymbolTable(dict):
     def add(self, k, v):
         self[k] = v
 
+
 class Environment(object):
     '''
     Class representing a symbol table.  It should provide functionality
