@@ -95,8 +95,19 @@ class GenerateCode(NodeVisitor):
                     self.visit(_expr)
                     if isinstance(_expr, ID) or isinstance(_expr, ArrayRef):
                         self._loadLocation(_expr)
+                    elif isinstance(_expr, UnaryOp) and _expr.op == "*":
+                        self._loadReference(_expr)
                     inst = ('print_' + _expr.type.names[-1].typename, _expr.gen_location)
                     self.code.append(inst)
+            else:
+                _expr = node.expr[0]
+                self.visit(_expr)
+                if isinstance(_expr, ID) or isinstance(_expr, ArrayRef):
+                    self._loadLocation(_expr)
+                elif isinstance(_expr, UnaryOp) and _expr.op == "*":
+                    self._loadReference(_expr)
+                inst = ('print_' + _expr.type.names[-1].typename, _expr.gen_location)
+                self.code.append(inst)
         else:
             inst = ('print_void',)
             self.code.append(inst)
@@ -488,9 +499,9 @@ class GenerateCode(NodeVisitor):
         pass
 
     def visit_FuncDecl(self, node):
-        self.fname = node.type.declname.name
+        self.fname = "@" + node.type.declname.name
 
-        inst = ('define', "@"+ self.fname)
+        inst = ('define', self.fname)
         self.code.append(inst)
         node.type.declname.gen_location = self.fname
 
