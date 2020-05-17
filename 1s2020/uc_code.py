@@ -99,15 +99,7 @@ class GenerateCode(NodeVisitor):
                         self._loadReference(_expr)
                     inst = ('print_' + _expr.type.names[-1].typename, _expr.gen_location)
                     self.code.append(inst)
-            else:
-                _expr = node.expr[0]
-                self.visit(_expr)
-                if isinstance(_expr, ID) or isinstance(_expr, ArrayRef):
-                    self._loadLocation(_expr)
-                elif isinstance(_expr, UnaryOp) and _expr.op == "*":
-                    self._loadReference(_expr)
-                inst = ('print_' + _expr.type.names[-1].typename, _expr.gen_location)
-                self.code.append(inst)
+
         else:
             inst = ('print_void',)
             self.code.append(inst)
