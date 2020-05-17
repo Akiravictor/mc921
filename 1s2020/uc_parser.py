@@ -1395,23 +1395,24 @@ class UCParser:
             print("Code: {0}".format(code))
             print("Filename: {0}".format(filename))
 
-        #self.debug = False
-
         self.lexer = UCLexer(self.print_error)
         self.lexer.build()
-        # self.lexer.input(code)z
 
         self.tokens = self.lexer.tokens
         self.precedence = (
-             ('nonassoc', 'LT', 'GT', 'LE', 'GE', 'EQ', 'NQ', 'NOT', 'AND', 'OR'),  # Nonassociative operators
+             # ('nonassoc', 'LT', 'GT', 'LE', 'GE', 'EQ', 'NQ', 'NOT', 'AND', 'OR'),  # Nonassociative operators
              ('left', 'PLUS', 'MINUS'),
              ('left', 'TIMES', 'DIVIDE', 'MOD'),
-             ('right', 'UMINUS')
+             ('right', 'UMINUS'),
+             ('left', 'EQ', 'NQ', 'LT', 'GT', 'LE', 'GE'),
+             ('left', 'OR'),
+             ('left', 'AND')
+
          )
 
         parser = yacc.yacc(module=self, write_tables=False)
         # print(code)
         result = parser.parse(code, tracking=False)
-        # result.show(showcoord=True)
+        # result.show(showcoord=True)a
 
         return result

@@ -24,20 +24,20 @@ class UCType(object):
 IntType = UCType("int",
                  unary_ops={"-", "+", "--", "++", "p--", "p++", "*", "&"},
                  binary_ops={"+", "-", "*", "/", "%"},
-                 rel_ops={"==", "!=", "<", ">", "<=", ">="},
+                 rel_ops={"==", "!=", "<", ">", "<=", ">=", "||", "&&"},
                  assign_ops={"=", "+=", "-=", "*=", "/=", "%="}
                  )
 
 FloatType = UCType("float",
                    unary_ops={"-", "*", "&"},
                    binary_ops={"+", "-", "*", "/", "%"},
-                   rel_ops={"==", "!=", "<", ">", "<=", ">="},
+                   rel_ops={"==", "!=", "<", ">", "<=", ">=", "||", "&&"},
                    assign_ops={"=", "+=", "-=", "*=", "/=", "%="}
                    )
 CharType = UCType("char",
                   unary_ops={"*", "&"},
                   binary_ops={"+"},
-                  rel_ops={"==", "!=", "<", ">", "<=", ">="},
+                  rel_ops={"==", "!=", "<", ">", "<=", ">=", "||", "&&"},
                   assign_ops={"="}
                   )
 ArrayType = UCType("array",
