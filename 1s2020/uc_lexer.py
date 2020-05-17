@@ -120,7 +120,7 @@ class UCLexer:
         return t
 
     def t_STRING(self, t):
-        r'\".*\"'
+        r'\"[^"]*\"'
         t.type = self.keyword_map.get(t.value, "STRING")
         return t
 
