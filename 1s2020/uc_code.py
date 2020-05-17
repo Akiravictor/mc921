@@ -402,17 +402,16 @@ class GenerateCode(NodeVisitor):
             self.visit(_par)
 
     def visit_Read(self, node):
-        _target = self.new_temp()
         for _loc in node.names:
             self.visit(_loc)
 
             if isinstance(_loc, ID) or isinstance(_loc, ArrayRef):
-                self._readLocation(_loc.bind)
+                self._readLocation(_loc)
 
             elif isinstance(_loc, ExprList):
                 for _var in _loc.exprs:
-                    if isinstance(_var, ID) or isinstance(_var, ArrayRef):
-                        self._readLocation(_var.type.names[-1].typename)
+                    self.visit(_var)
+                    self._readLocation(_var)
 
     def visit_Return(self, node):
         if node.expr is not None:
