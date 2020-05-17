@@ -181,6 +181,14 @@ class Visitor(NodeVisitor):
         }
         self.debug = debug
 
+    def print_error(self):
+        if len(self.error_vector) > 0:
+            for i in self.error_vector:
+                print(i)
+
+    def error(self, message):
+        self.error_vector.append("Error: " + message)
+
     def visit_Program(self, node):
         if self.debug:
             print("@visit_Program")
