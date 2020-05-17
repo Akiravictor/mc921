@@ -129,11 +129,8 @@ class Compiler:
             self.ast.show(buf=ast_file, showcoord=True)
 
     def _semantic(self, susy, debug):
-        try:
             self.semantic = Visitor(debug)
             self.semantic.visit(self.ast)
-        except AssertionError as e:
-            error(None, e)
 
     def _gencode(self, susy, ir_file):
         self.gen = GenerateCode()
@@ -147,9 +144,12 @@ class Compiler:
 
     def _do_compile(self, susy, ast_file, ir_file, debug):
         """ Compiles the code to the given file object. """
-        self._parse(susy, ast_file, debug)
-        self._semantic(susy, debug)
-        self._gencode(susy, ir_file)
+        try:
+            self._parse(susy, ast_file, debug)
+            self._semantic(susy, debug)
+            self._gencode(susy, ir_file)
+        except AssertionError as e:
+            error(None, e)
 
     def compile(self, code, susy, ast_file, ir_file, run_ir, debug):
         """ Compiles the given code string """
@@ -160,7 +160,7 @@ class Compiler:
                 sys.stderr.write("{} error(s) encountered.".format(errors_reported()))
             elif run_ir:
                 self.vm = Interpreter()
-                # self.vm.run(self.gencode)
+                self.vm.run(self.gencode)
         return 0
 
 

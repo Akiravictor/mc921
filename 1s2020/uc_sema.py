@@ -695,7 +695,7 @@ class Visitor(NodeVisitor):
             returnType = [self.typemap['void']]
         rtype = self.environment.cur_rtype
         coord = f"@ {node.coord}"
-        assert returnType == rtype, f"Return type {returnType} is not compatible with {rtype} {coord}"
+        assert returnType == rtype, f"Return type {returnType[-1].__str__()} is not compatible with {rtype[-1].__str__()} {coord}"
         if self.debug:
             print("visit_Return END")
 
