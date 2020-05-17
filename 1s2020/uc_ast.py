@@ -446,12 +446,13 @@ class FuncCall(Node):
 
 
 class FuncDecl(Node):
-    __slots__ = ('args', 'type', 'coord')
+    __slots__ = ('args', 'type', 'coord', 'gen_location')
 
     def __init__(self, args, type, coord=None):
         self.args = args
         self.type = type
         self.coord = coord
+        self.gen_location = None
 
     def children(self):
         nodelist = []
