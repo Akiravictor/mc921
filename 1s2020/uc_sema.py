@@ -382,6 +382,8 @@ class Visitor(NodeVisitor):
             print("checkInit END")
 
     def checkInitList(self, nodeType, init, var, line):
+        if self.debug:
+            print("@checkInitList")
         length = len(init.exprs)
         exprs = init.exprs
         if isinstance(nodeType, VarDecl):
@@ -390,41 +392,57 @@ class Visitor(NodeVisitor):
         elif isinstance(nodeType, ArrayDecl):
             size = length
             decl = nodeType
-            while isinstance(nodeType.type, ArrayDecl):
-                nodeType = nodeType.type
-                length = len(exprs[0].exprs)
-                for i in range(len(exprs)):
-                    assert len(exprs[i].exprs) == length, f"List have a different length {line}"
-                exprs = exprs[0].exprs
-                if isinstance(nodeType, ArrayDecl):
-                    self.setDim(nodeType, length, line, var)
-                    size += length
-                else:
-                    assert exprs[0].type == nodeType.type.type.names[
-                        -1], f"\"{var}\" Initialization type mismatch {line}"
-            nodeType = decl
-            length = size
-            if nodeType.dim is None:
-                nodeType.dim = Constant('int', size)
-                self.visit_Constant(nodeType.dim)
-            else:
-                assert nodeType.dim.value == length, f"Size mismatch \"{var}\" initialization {line}"
+            if isinstance(nodeType.type.declname.bind, ArrayDecl):
+                if nodeType.type.declname.bind.dim is None:
+                    size = len(exprs)
+                    nodeType.type.declname.bind.dim = Constant('int', size)
+                    self.visit_Constant(nodeType.type.declname.bind.dim)
+
+            # while isinstance(nodeType.type, ArrayDecl):
+            #     nodeType = nodeType.type
+            #     length = len(exprs[0].exprs)
+            #     for i in range(len(exprs)):
+            #         assert len(exprs[i].exprs) == length, f"List have a different length {line}"
+            #     exprs = exprs[0].exprs
+            #     if isinstance(nodeType, ArrayDecl):
+            #         self.setDim(nodeType, length, line, var)
+            #         size += length
+            #     else:
+            #         assert exprs[0].type == nodeType.type.type.names[-1], f"\"{var}\" Initialization type mismatch {line}"
+            # nodeType = decl
+            # length = size
+            # if nodeType.dim is None:
+            #     nodeType.dim = Constant('int', size)
+            #     self.visit_Constant(nodeType.dim)
+            # else:
+            #     assert nodeType.dim.value == length, f"Size mismatch \"{var}\" initialization {line}"
+        if self.debug:
+            print("checkInitList END")
 
     def checkConstant(self, nodeType, init, var, line):
+        if self.debug:
+            print("@checkConstant")
         if init.rawtype == 'string':
-            assert nodeType.type.type.names == [self.type_mapping["array"],
-                                                self.type_mapping["char"]], f"Initialization type mismatch {line}"
+            assert nodeType.type.type.names == [self.type_mapping["array"],self.type_mapping["char"]], f"Initialization type mismatch {line}"
             self.setDim(nodeType, len(init.value), line, var)
         else:
             assert nodeType.type.names[0] == init.type.names[0], f"Initialization type mismatch {line}"
+        if self.debug:
+            print("checkConstant END")
 
     def checkArrayRef(self, nodeType, init, var, line):
+        if self.debug:
+            print("@checkArrayRef")
         initId = self.environment.lookup(init.name.name)
         if isinstance(init.subscript, Constant):
             rtype = initId.type.names[1]
             assert nodeType.type.names[0] == rtype, f"Initialization type mismatch \"{var}\" {line}"
+        if self.debug:
+            print("checkArrayRef END")
 
     def checkId(self, nodeType, init, var, line):
+        if self.debug:
+            print("@checkId")
         if isinstance(nodeType, ArrayDecl):
             idType = nodeType.type
             while not isinstance(idType, VarDecl):
@@ -433,6 +451,8 @@ class Visitor(NodeVisitor):
             self.setDim(nodeType, init.bind.dim.value, line, var)
         else:
             assert nodeType.type.names[-1] == init.type.names[-1], f"Initialization type mismatch {line}"
+        if self.debug:
+            print("checkId END")
 
     def visit_Decl(self, node):
         coord = f"{node.name.coord}"

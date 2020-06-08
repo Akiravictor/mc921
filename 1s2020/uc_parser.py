@@ -1400,9 +1400,11 @@ class UCParser:
 
         self.tokens = self.lexer.tokens
         self.precedence = (
-             ('left', 'EQ', 'NQ', 'LT', 'GT', 'LE', 'GE'),
              ('left', 'OR'),
              ('left', 'AND'),
+             # ('left', 'ADDRESS'),
+             ('left', 'EQ', 'NQ'),
+             ('left', 'LT', 'GT', 'LE', 'GE'),
              ('left', 'PLUS', 'MINUS'),
              ('left', 'TIMES', 'DIVIDE', 'MOD'),
              ('right', 'UMINUS')
