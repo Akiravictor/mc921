@@ -8,6 +8,7 @@ class Block(object):
         self.next_block = None
         self.label = label
         self.visited = False
+        self.branch = None
 
     def append(self, instruction):
         self.instructions.append(instruction)
@@ -97,7 +98,8 @@ class CFG(object):
             # get the formatted instructions as node label
             _label = "{" + _name + ":\l\t"
             for _inst in block.instructions[1:]:
-                _label += format_instruction(_inst) + "\l\t"
+                # _label += format_instruction(_inst) + "\l\t"
+                _label += _inst[0] + "\l\t"
             _label += "}"
             self.g.node(_name, label=_label)
             if block.branch:

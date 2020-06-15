@@ -470,15 +470,16 @@ class FuncDecl(Node):
 
 
 class FuncDef(Node):
-    __slots__ = ('spec', 'decl', 'param_decls', 'body', 'coord', 'decls')
+    __slots__ = ('spec', 'decl', 'param_decls', 'body', 'coord', 'decls', 'cfg')
 
-    def __init__(self, spec, decl, param_decls, body, coord=None):
+    def __init__(self, spec, decl, param_decls, body, coord=None, cfg=None):
         self.spec = spec
         self.decl = decl
         self.param_decls = param_decls
         self.body = body
         self.coord = coord
         self.decls = None
+        self.cfg = None
 
     def children(self):
         nodelist = []
@@ -635,12 +636,13 @@ class Print(Node):
 
 
 class Program(Node):
-    __slots__ = ('gdecls', 'symtab', 'coord')
+    __slots__ = ('gdecls', 'symtab', 'coord','text')
 
-    def __init__(self, gdecls, symtab=None, coord=None):
+    def __init__(self, gdecls, symtab=None, coord=None, text=None):
         self.gdecls = gdecls
         self.symtab = None
         self.coord = coord
+        self.text = None
 
     def children(self):
         nodelist = []

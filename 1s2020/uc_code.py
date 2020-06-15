@@ -450,7 +450,7 @@ class GenerateCode(NodeVisitor):
             node.value.append(_expr.value)
 
     def visit_FuncDef(self, node):
-        self.ret_block = BasicBlock('exit {}'.format(node.name))
+        self.ret_block = BasicBlock('exit func')
         self.currentBlock = BasicBlock(None)
         node.cfg = self.currentBlock
 
