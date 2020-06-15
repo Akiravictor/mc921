@@ -132,8 +132,8 @@ class Compiler:
             self.semantic = Visitor(debug)
             self.semantic.visit(self.ast)
 
-    def _gencode(self, susy, ir_file):
-        self.gen = GenerateCode()
+    def _gencode(self, susy, ir_file, cfg):
+        self.gen = GenerateCode(cfg)
         self.gen.visit(self.ast)
         self.gencode = self.gen.text + self.gen.code
         _str = ''
@@ -142,20 +142,20 @@ class Compiler:
                 _str += f"{_code}\n"
             ir_file.write(_str)
 
-    def _do_compile(self, susy, ast_file, ir_file, debug):
+    def _do_compile(self, susy, ast_file, ir_file, debug, cfg):
         """ Compiles the code to the given file object. """
         try:
             self._parse(susy, ast_file, debug)
             self._semantic(susy, debug)
-            self._gencode(susy, ir_file)
+            self._gencode(susy, ir_file, cfg)
         except AssertionError as e:
             error(None, e)
 
-    def compile(self, code, susy, ast_file, ir_file, run_ir, debug):
+    def compile(self, code, susy, ast_file, ir_file, run_ir, debug, cfg):
         """ Compiles the given code string """
         self.code = code
         with subscribe_errors(lambda msg: sys.stderr.write(msg+"\n")):
-            self._do_compile(susy, ast_file, ir_file, debug)
+            self._do_compile(susy, ast_file, ir_file, debug, cfg)
             if errors_reported():
                 sys.stderr.write("{} error(s) encountered.".format(errors_reported()))
             elif run_ir:
@@ -176,6 +176,7 @@ def run_compiler():
     susy = False
     debug = False
     run_ir = True
+    cfg = False
 
     params = sys.argv[1:]
     files = sys.argv[1:]
@@ -192,6 +193,8 @@ def run_compiler():
                 susy = True
             elif param == '-debug':
                 debug = True
+            elif param == '-cfg':
+                cfg = True
             else:
                 print("Unknown option: %s" % param)
                 sys.exit(1)
@@ -222,7 +225,7 @@ def run_compiler():
         code = source.read()
         source.close()
 
-        retval = Compiler().compile(code, susy, ast_file, ir_file, run_ir, debug)
+        retval = Compiler().compile(code, susy, ast_file, ir_file, run_ir, debug, cfg)
         for f in open_files:
             f.close()
         if retval != 0:
