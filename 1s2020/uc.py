@@ -16,6 +16,8 @@ from uc_interpreter import Interpreter
 from uc_parser import UCParser
 from uc_sema import *
 
+
+
 """
 One of the most important (and difficult) parts of writing a compiler
 is reliable reporting of error messages back to the user.  This file
@@ -150,25 +152,31 @@ class Compiler:
         # if not susy and opt_file is not None:
         #     self.opt.show(buf=opt_file)
 
-    def _do_compile(self, susy, ast_file, ir_file, debug, cfg):
+    def _do_compile(self, susy, ast_file, ir_file, opt_file, cfg, opt, debug):
         """ Compiles the code to the given file object. """
         try:
             self._parse(susy, ast_file, debug)
             self._semantic(susy, debug)
             self._gencode(susy, ir_file, cfg)
+            self._opt(susy, opt_file, cfg, debug)
         except AssertionError as e:
             error(None, e)
 
-    def compile(self, code, susy, ast_file, ir_file, run_ir, debug, cfg):
+    def compile(self, code, susy, ast_file, ir_file,  opt_file, opt, run_ir, cfg, debug):
         """ Compiles the given code string """
         self.code = code
         with subscribe_errors(lambda msg: sys.stderr.write(msg+"\n")):
-            self._do_compile(susy, ast_file, ir_file, debug, cfg)
+            self._do_compile(susy, ast_file, ir_file, debug, cfg, opt, debug)
             if errors_reported():
                 sys.stderr.write("{} error(s) encountered.".format(errors_reported()))
-            elif run_ir:
-                self.vm = Interpreter()
-                self.vm.run(self.gencode)
+                if opt:
+                    pass
+                    if run_ir and not cfg:
+                        self.vm = Interpreter()
+                    if opt:
+                        pass
+                    else:
+                        self.vm.run(self.gencode)
         return 0
 
 
@@ -185,6 +193,7 @@ def run_compiler():
     debug = False
     run_ir = True
     cfg = False
+    opt = False
 
     params = sys.argv[1:]
     files = sys.argv[1:]
@@ -229,11 +238,18 @@ def run_compiler():
             ir_file = open(ir_filename, 'w')
             open_files.append(ir_file)
 
+        opt_file = None
+        if opt and not susy:
+            opt_filename = source_filename[:-3] + '.opt'
+            print("Outputting the optimized uCIR to %s." % opt_filename)
+            opt_file = open(opt_filename, 'w')
+            open_files.append(opt_file)
+
         source = open(source_filename, 'r')
         code = source.read()
         source.close()
 
-        retval = Compiler().compile(code, susy, ast_file, ir_file, run_ir, debug, cfg)
+        retval = Compiler().compile(code, susy, ast_file, ir_file, opt_file, opt, run_ir, debug, cfg)
         for f in open_files:
             f.close()
         if retval != 0:
