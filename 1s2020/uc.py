@@ -201,8 +201,8 @@ def run_compiler():
                 susy = True
             elif param == '-debug':
                 debug = True
-            # elif param == '-cfg':
-            #     cfg = True
+            elif param == '-cfg':
+                cfg = True
             else:
                 print("Unknown option: %s" % param)
                 sys.exit(1)
