@@ -10,7 +10,6 @@
 
 import sys
 from contextlib import contextmanager
-
 from uc_code import GenerateCode
 from uc_interpreter import Interpreter
 from uc_parser import UCParser
@@ -145,7 +144,7 @@ class Compiler:
             ir_file.write(_str)
 
     def _opt(self, susy, opt_file, cfg, debug):
-        pass
+        self.optcode = "a"
         # self.opt = DataFlow(cfg, debug)
         # self.opt.visit(self.ast)
         # self.optcode = self.opt.code
@@ -169,10 +168,12 @@ class Compiler:
             self._do_compile(susy, ast_file, ir_file, debug, cfg, opt, debug)
             if errors_reported():
                 sys.stderr.write("{} error(s) encountered.".format(errors_reported()))
+            else:
                 if opt:
-                    pass
-                    if run_ir and not cfg:
-                        self.vm = Interpreter()
+                    self.speedup = len(self.gencode) / len(self.optcode)
+                    sys.stderr.write("original = %d, otimizado = %d, speedup = %.2f\n" % (len(self.gencode), len(self.optcode), self.speedup))
+                if run_ir and not cfg:
+                    self.vm = Interpreter()
                     if opt:
                         pass
                     else:
@@ -212,6 +213,8 @@ def run_compiler():
                 debug = True
             elif param == '-cfg':
                 cfg = True
+            elif param == '-opt':
+                opt = True
             else:
                 print("Unknown option: %s" % param)
                 sys.exit(1)
@@ -249,7 +252,7 @@ def run_compiler():
         code = source.read()
         source.close()
 
-        retval = Compiler().compile(code, susy, ast_file, ir_file, opt_file, opt, run_ir, debug, cfg)
+        retval = Compiler().compile(code, susy, ast_file, ir_file,  opt_file, opt, run_ir, cfg, debug)
         for f in open_files:
             f.close()
         if retval != 0:
