@@ -12,10 +12,10 @@ class GenerateCode(NodeVisitor):
         super(GenerateCode, self).__init__()
 
         self.cfg = cfg
-        self.currentBlock = None
 
         # version dictionary for temporaries
         self.fname = '_glob_'  # We use the function name as a key
+        self.currentBlock = BasicBlock('global {}'.format(self.fname))
         self.versions = {self.fname: 0}
         # The generated code (list of tuples)
         self.text = []
@@ -344,7 +344,7 @@ class GenerateCode(NodeVisitor):
         inst = ('global_string', _target, "assertion_fail on " + f"{_tempCoord[0]}:{_tempCoord[1]}")
         self.text.append(inst)
         self.currentBlock.append(('print_str', _target))
-        self.currentBlock.append(('jump', self.ret_block.labe))
+        self.currentBlock.append(('jump', self.ret_block.label))
         self.currentBlock.branch = self.ret_block
         self.ret_block.predecessors.append(self.currentBlock)
 

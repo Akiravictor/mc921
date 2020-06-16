@@ -142,6 +142,14 @@ class Compiler:
                 _str += f"{_code}\n"
             ir_file.write(_str)
 
+    def _opt(self, susy, opt_file, cfg, debug):
+        pass
+        # self.opt = DataFlow(cfg, debug)
+        # self.opt.visit(self.ast)
+        # self.optcode = self.opt.code
+        # if not susy and opt_file is not None:
+        #     self.opt.show(buf=opt_file)
+
     def _do_compile(self, susy, ast_file, ir_file, debug, cfg):
         """ Compiles the code to the given file object. """
         try:
@@ -193,8 +201,8 @@ def run_compiler():
                 susy = True
             elif param == '-debug':
                 debug = True
-            elif param == '-cfg':
-                cfg = True
+            # elif param == '-cfg':
+            #     cfg = True
             else:
                 print("Unknown option: %s" % param)
                 sys.exit(1)

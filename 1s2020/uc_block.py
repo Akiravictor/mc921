@@ -115,7 +115,7 @@ class CFG(object):
         # get the formatted instructions as node label
         _label = "{" + _name + ":\l\t"
         for _inst in block.instructions[1:]:
-            _label += format_instruction(_inst) + "\l\t"
+            _label += _inst[0] + "\l\t"
         _label += "|{<f0>T|<f1>F}}"
         self.g.node(_name, label=_label)
         self.g.edge(_name + ":f0", block.taken.label)
