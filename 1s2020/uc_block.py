@@ -1,6 +1,7 @@
 from uc_sema import NodeVisitor
 from graphviz import Digraph
 
+
 class Block(object):
     def __init__(self, label=""):
         self.instructions = []
