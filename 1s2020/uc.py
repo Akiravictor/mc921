@@ -124,19 +124,19 @@ class Compiler:
             prints out the abstract syntax tree.
         """
         self.parser = UCParser()
-        self.ast = self.parser.parse(self.code, '', debug)
+        self.ast = self.parser.parse(code=self.code, filename='', debug=debug)
         if susy:
             self.ast.show(showcoord=True)
         elif ast_file is not None:
             self.ast.show(buf=ast_file, showcoord=True)
 
     def _semantic(self, susy, debug):
-            self.semantic = Visitor(debug)
-            self.semantic.visit(self.ast)
+            self.semantic = Visitor(debug=debug)
+            self.semantic.visit(node=self.ast)
 
     def _gencode(self, susy, ir_file, cfg):
-        self.gen = GenerateCode(cfg)
-        self.gen.visit(self.ast)
+        self.gen = GenerateCode(cfg=cfg)
+        self.gen.visit(node=self.ast)
         self.gencode = self.gen.text + self.gen.code
         _str = ''
         if not susy and ir_file is not None:
@@ -155,10 +155,10 @@ class Compiler:
     def _do_compile(self, susy, ast_file, ir_file, opt_file, cfg, opt, debug):
         """ Compiles the code to the given file object. """
         try:
-            self._parse(susy, ast_file, debug)
-            self._semantic(susy, debug)
-            self._gencode(susy, ir_file, cfg)
-            self._opt(susy, opt_file, cfg, debug)
+            self._parse(susy=susy, ast_file=ast_file, debug=debug)
+            self._semantic(susy=susy, debug=debug)
+            self._gencode(susy=susy, ir_file=ir_file, cfg=cfg)
+            self._opt(susy=susy, opt_file=opt_file, cfg=cfg, debug=debug)
         except AssertionError as e:
             error(None, e)
 
@@ -166,7 +166,7 @@ class Compiler:
         """ Compiles the given code string """
         self.code = code
         with subscribe_errors(lambda msg: sys.stderr.write(msg+"\n")):
-            self._do_compile(susy, ast_file, ir_file, debug, cfg, opt, debug)
+            self._do_compile(susy=susy, ast_file=ast_file, ir_file=ir_file, debug=debug, cfg=cfg, opt=opt, opt_file=opt_file)
             if errors_reported():
                 sys.stderr.write("{} error(s) encountered.".format(errors_reported()))
                 if opt:
@@ -249,7 +249,7 @@ def run_compiler():
         code = source.read()
         source.close()
 
-        retval = Compiler().compile(code, susy, ast_file, ir_file, opt_file, opt, run_ir, debug, cfg)
+        retval = Compiler().compile(code=code, susy=susy, ast_file=ast_file, ir_file=ir_file, opt_file=opt_file, opt=opt, run_ir=run_ir, debug=debug, cfg=cfg)
         for f in open_files:
             f.close()
         if retval != 0:
