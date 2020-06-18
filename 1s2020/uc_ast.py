@@ -230,10 +230,11 @@ class BinaryOp(Node):
 
 
 class Break(Node):
-    __slots__ = ('coord')
+    __slots__ = ('coord', 'bind')
 
     def __init__(self, coord=None):
         self.coord = coord
+        self.bind = None
 
     def children(self):
         return ()

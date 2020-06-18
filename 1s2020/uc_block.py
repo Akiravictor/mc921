@@ -126,6 +126,7 @@ class CFG(object):
     def visit_ConditionBlock(self, block):
         # Get the label as node name
         _name = block.label
+        print(block.instructions)
         # get the formatted instructions as node label
         _label = "{" + _name + ":\l\t"
         for _inst in block.instructions[1:]:
