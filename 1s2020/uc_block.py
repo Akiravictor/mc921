@@ -12,8 +12,12 @@ class Block(object):
         rd_out = []
         la_in = []
         la_out = []
-        gen = []
-        kill = []
+        ea_gen = []
+        ea_kill = []
+        rd_gen = []
+        rd_kill = []
+        la_use = []
+        la_def = []
         self.next_block = None
         self.label = label
         self.visited = False
@@ -103,6 +107,7 @@ class CFG(object):
     def visit_BasicBlock(self, block):
         # Get the label as node name
         _name = block.label
+        print(block.instructions)
         if _name:
             # get the formatted instructions as node label
             _label = "{" + _name + ":\l\t"
