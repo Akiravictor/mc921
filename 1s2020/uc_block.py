@@ -6,6 +6,14 @@ class Block(object):
     def __init__(self, label=""):
         self.instructions = []
         self.predecessors = []
+        ea_in = []
+        ea_out = []
+        rd_in = []
+        rd_out = []
+        la_in = []
+        la_out = []
+        gen = []
+        kill = []
         self.next_block = None
         self.label = label
         self.visited = False
