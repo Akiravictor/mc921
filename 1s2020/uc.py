@@ -11,6 +11,7 @@
 import sys
 from contextlib import contextmanager
 from uc_code import GenerateCode
+# from uc_code2 import GenerateCode
 from uc_interpreter import Interpreter
 from uc_parser import UCParser
 from uc_sema import *
