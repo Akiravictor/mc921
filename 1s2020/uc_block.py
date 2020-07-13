@@ -5,7 +5,7 @@ from graphviz import Digraph
 class Block(object):
     def __init__(self, label=""):
         self.instructions = []
-        self.predecessors = []
+        self.predecessors = set()
         self.next_block = None
         self.label = label
         self.visited = False

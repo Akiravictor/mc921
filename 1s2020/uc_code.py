@@ -364,7 +364,7 @@ class GenerateCode(NodeVisitor):
         self.currentBlock.instructions.append(('print_str', _target))
         self.currentBlock.instructions.append(('jump', self.ret_block.label))
         self.currentBlock.branch = self.ret_block
-        self.ret_block.predecessors.append(self.currentBlock)
+        self.ret_block.predecessors.add(self.currentBlock)
 
         inst = ('print_string', _target)
         self.code.append(inst)
@@ -595,7 +595,7 @@ class GenerateCode(NodeVisitor):
             if self.currentBlock.generateJump():
                 self.currentBlock.append(('jump', exitBlock.label))
                 self.currentBlock.branch = exitBlock
-                exitBlock.predecessors.append(self.currentBlock)
+                exitBlock.predecessors.add(self.currentBlock)
                 _dump_exitBlock = True
             # self.code.append((exit_label[1:],))
         if _dump_exitBlock:
@@ -619,7 +619,7 @@ class GenerateCode(NodeVisitor):
         bodyBlock = BasicBlock(body_label)
         exitBlock = BasicBlock(exit_label)
 
-        node.exit = exitBlock
+        node.exit_label = exitBlock
         self.currentBlock.append(('jump', cond_label))
         # self.code.append((entry_label[1:],))
 
@@ -641,7 +641,7 @@ class GenerateCode(NodeVisitor):
 
         # self.code.append((body_label[1:],))
         self.visit(node.stmt)
-        if self.currentBlock.instructions[-1][0] != 'jump':
+        if len(self.currentBlock.instructions) > 0 and self.currentBlock.instructions[-1][0] != 'jump':
             self.currentBlock.instructions.append(('jump', increaseBlock.label))
             self.currentBlock.branch = increaseBlock
             increaseBlock.predecessors.add(self.currentBlock)
@@ -649,7 +649,7 @@ class GenerateCode(NodeVisitor):
         self.currentBlock.next_block = increaseBlock
         self.currentBlock = increaseBlock
         self.visit(node.next)
-        if self.currentBlock.instructions[-1][0] != 'jump':
+        if len(self.currentBlock.instructions) > 0 and  self.currentBlock.instructions[-1][0] != 'jump':
             self.currentBlock.instructions.append(('jump', conditionBlock.label))
             self.currentBlock.branch = conditionBlock
             conditionBlock.predecessors.add(self.currentBlock)
