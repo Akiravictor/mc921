@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ============================================================
-# uc.py -- uC (a.k.a. micro C) language compiler
+# uc -- uC (a.k.a. micro C) language compiler
 #
 # This is the main program for the uc compiler, which just
 # parses command-line options, figures out which source files
@@ -9,14 +9,13 @@
 # ============================================================
 
 import sys
+import argparse
 from contextlib import contextmanager
-from uc_code import GenerateCode
-# from uc_code2 import GenerateCode
-from uc_interpreter import Interpreter
 from uc_parser import UCParser
-from uc_sema import *
-
-
+from uc_sema import Visitor
+from uc_code import GenerateCode
+from uc_interpreter import Interpreter
+from uc_llvm import LLVMCodeGenerator
 
 """
 One of the most important (and difficult) parts of writing a compiler
@@ -27,7 +26,7 @@ based approach.
 
 To report errors in uc compiler, we use the error() function. For example:
 
-       error(lineno,"Some kind of compiler error message")
+       error(lineno, "Some kind of compiler error message")
 
 where lineno is the line number on which the error occurred.
 
@@ -42,7 +41,7 @@ To send messages to standard error, you can do this:
 
        import sys
        from functools import partial
-       with subscribe_errors(partial(print,file=sys.stderr)):
+       with subscribe_errors(partial(print, file=sys.stderr)):
             run_compiler()
 
 To route messages to a logger, you can do this:
@@ -74,9 +73,15 @@ def error(lineno, message, filename=None):
     """ Report a compiler error to all subscribers """
     global _num_errors
     if not filename:
-        errmsg = "{}: {}".format(lineno, message)
+        if not lineno:
+            errmsg = "{}".format(message)
+        else:
+            errmsg = "{}: {}".format(lineno, message)
     else:
-        errmsg = "{}:{}: {}".format(filename,lineno,message)
+        if not lineno:
+            errmsg = "{}: {}".format(filename, message)
+        else:
+            errmsg = "{}:{}: {}".format(filename, lineno, message)
     for subscriber in _subscribers:
         subscriber(errmsg)
     _num_errors += 1
@@ -111,157 +116,149 @@ def subscribe_errors(handler):
 
 class Compiler:
     """ This object encapsulates the compiler and serves as a
-        facade interface for the compiler itself.
+        facade interface to the 'meat' of the compiler underneath.
     """
 
-    def __init__(self):
+    def __init__(self, cl_args):
+        self.code = None
         self.total_errors = 0
         self.total_warnings = 0
+        self.args = cl_args
 
-    def _parse(self, susy, ast_file, debug):
+    def _parse(self):
         """ Parses the source code. If ast_file != None,
-            or running at susy machine,
             prints out the abstract syntax tree.
         """
         self.parser = UCParser()
-        self.ast = self.parser.parse(code=self.code, filename='', debug=debug)
-        if susy:
-            self.ast.show(showcoord=True)
-        elif ast_file is not None:
-            self.ast.show(buf=ast_file, showcoord=True)
+        self.ast = self.parser.parse(self.code, '', False)
 
-    def _semantic(self, susy, debug):
-            self.semantic = Visitor(debug=debug)
-            self.semantic.visit(node=self.ast)
-
-    def _gencode(self, susy, ir_file, cfg):
-        self.gen = GenerateCode(cfg=cfg)
-        self.gen.visit(node=self.ast)
-        self.gencode = self.gen.text + self.gen.code
-        _str = ''
-        if not susy and ir_file is not None:
-            for _code in self.gencode:
-                _str += f"{_code}\n"
-            ir_file.write(_str)
-
-    def _opt(self, susy, opt_file, cfg, debug):
-        self.optcode = "a"
-        # self.opt = DataFlow(cfg, debug)
-        # self.opt.visit(self.ast)
-        # self.optcode = self.opt.code
-        # if not susy and opt_file is not None:
-        #     self.opt.show(buf=opt_file)
-
-    def _do_compile(self, susy, ast_file, ir_file, opt_file, cfg, opt, debug):
-        """ Compiles the code to the given file object. """
+    def _sema(self):
+        """ Decorate AST with semantic actions. If ast_file != None,
+            prints out the abstract syntax tree. """
         try:
-            self._parse(susy=susy, ast_file=ast_file, debug=debug)
-            self._semantic(susy=susy, debug=debug)
-            self._gencode(susy=susy, ir_file=ir_file, cfg=cfg)
-            self._opt(susy=susy, opt_file=opt_file, cfg=cfg, debug=debug)
+            self.sema = Visitor(self.args.debug)
+            self.sema.visit(self.ast)
+            if not self.args.susy and self.ast_file is not None:
+                self.ast.show(buf=self.ast_file, showcoord=True)
         except AssertionError as e:
             error(None, e)
 
-    def compile(self, code, susy, ast_file, ir_file,  opt_file, opt, run_ir, cfg, debug):
-        """ Compiles the given code string """
-        self.code = code
-        with subscribe_errors(lambda msg: sys.stderr.write(msg+"\n")):
-            self._do_compile(susy=susy, ast_file=ast_file, ir_file=ir_file, debug=debug, cfg=cfg, opt=opt, opt_file=opt_file)
-            if errors_reported():
-                sys.stderr.write("{} error(s) encountered.".format(errors_reported()))
-            else:
-                if opt:
-                    self.speedup = len(self.gencode) / len(self.optcode)
-                    sys.stderr.write("original = %d, otimizado = %d, speedup = %.2f\n" % (len(self.gencode), len(self.optcode), self.speedup))
-                if run_ir and not cfg:
-                    self.vm = Interpreter()
-                    if opt:
-                        pass
-                    else:
-                        self.vm.run(self.gencode)
-        return 0
+    def _codegen(self):
+        self.gen = GenerateCode(self.args.cfg)
+        self.gen.visit(self.ast)
+        self.gencode = self.gen.code
+        if not self.args.susy and self.ir_file is not None:
+            self.gen.show(buf=self.ir_file)
 
+    def _opt(self):
+        self.optcode = "Test"
 
-def run_compiler():
-    """ Runs the command-line compiler. """
+    def _llvm(self):
+        self.llvm = LLVMCodeGenerator(self.args.cfg)
+        self.llvm.visit(self.ast)
+        if not self.args.susy and self.llvm_file is not None:
+            self.llvm.save_ir(self.llvm_file)
+        if self.run:
+            self.llvm.execute_ir(self.args.llvm_opt, self.llvm_opt_file)
 
-    if len(sys.argv) < 2:
-        print("Usage: ./uc.py <source-file> [-at-susy] [-no-ast] [-debug]")
-        sys.exit(1)
+    def _do_compile(self):
+        """ Compiles the code to the given source file. """
+        self._parse()
+        if not errors_reported():
+            self._sema()
+        if not errors_reported():
+            self._codegen()
+            if self.args.opt:
+                self._opt()
+            if self.args.llvm:
+                self._llvm()
 
-    emit_ast = True
-    emit_ir = True
-    susy = False
-    debug = False
-    run_ir = True
-    cfg = False
-    opt = False
+    def compile(self):
+        """ Compiles the given  filename """
 
-    params = sys.argv[1:]
-    files = sys.argv[1:]
-
-    for param in params:
-        if param[0] == '-':
-            if param == '-no-ast':
-                emit_ast = False
-            elif param == '-no-ir':
-                emit_ir = False
-            elif param == '-no-run':
-                run_ir = False
-            elif param == '-at-susy':
-                susy = True
-            elif param == '-debug':
-                debug = True
-            elif param == '-cfg':
-                cfg = True
-            elif param == '-opt':
-                opt = True
-            else:
-                print("Unknown option: %s" % param)
-                sys.exit(1)
-            files.remove(param)
-
-    for file in files:
-        if file[-3:] == '.uc':
-            source_filename = file
+        if self.args.filename[-3:] == '.uc':
+            filename = self.args.filename
         else:
-            source_filename = file + '.uc'
+            filename = self.args.filename + '.uc'
 
         open_files = []
-        ast_file = None
-        if emit_ast and not susy:
-            ast_filename = source_filename[:-3] + '.ast'
-            print("Outputting the AST to %s." % ast_filename)
-            ast_file = open(ast_filename, 'w')
-            open_files.append(ast_file)
 
-        ir_file = None
-        if emit_ir and not susy:
-            ir_filename = source_filename[:-3] + '.ir'
-            print("Outputting the uCIR to %s." % ir_filename)
-            ir_file = open(ir_filename, 'w')
-            open_files.append(ir_file)
+        self.ast_file = None
+        if self.args.ast and not self.args.susy:
+            ast_filename = filename[:-3] + '.ast'
+            sys.stderr.write("Outputting the AST to %s.\n" % ast_filename)
+            self.ast_file = open(ast_filename, 'w')
+            open_files.append(self.ast_file)
 
-        opt_file = None
-        if opt and not susy:
-            opt_filename = source_filename[:-3] + '.opt'
-            print("Outputting the optimized uCIR to %s." % opt_filename)
-            opt_file = open(opt_filename, 'w')
-            open_files.append(opt_file)
+        self.ir_file = None
+        if self.args.ir and not self.args.susy:
+            ir_filename = filename[:-3] + '.ir'
+            sys.stderr.write("Outputting the uCIR to %s.\n" % ir_filename)
+            self.ir_file = open(ir_filename, 'w')
+            open_files.append(self.ir_file)
 
-        source = open(source_filename, 'r')
-        code = source.read()
+        self.opt_file = None
+        if self.args.opt and not self.args.susy:
+            opt_filename = filename[:-3] + '.opt'
+            sys.stderr.write("Outputting the optimized uCIR to %s.\n" % opt_filename)
+            self.opt_file = open(opt_filename, 'w')
+            open_files.append(self.opt_file)
+
+        self.llvm_file = None
+        if self.args.llvm and not self.args.susy:
+            llvm_filename = filename[:-3] + '.ll'
+            sys.stderr.write("Outputting the LLVM IR to %s.\n" % llvm_filename)
+            self.llvm_file = open(llvm_filename, 'w')
+            open_files.append(self.llvm_file)
+
+        self.llvm_opt_file = None
+        if self.args.llvm_opt and not self.args.susy:
+            llvm_opt_filename = filename[:-3] + '.opt.ll'
+            sys.stderr.write("Outputting the optimized LLVM IR to %s.\n" % llvm_opt_filename)
+            self.llvm_opt_file = open(llvm_opt_filename, 'w')
+            open_files.append(self.llvm_opt_file)
+
+        source = open(filename, 'r')
+        self.code = source.read()
         source.close()
 
-        retval = Compiler().compile(code, susy, ast_file, ir_file,  opt_file, opt, run_ir, cfg, debug)
+        self.run = not self.args.no_run
+        with subscribe_errors(lambda msg: sys.stderr.write(msg+"\n")):
+            self._do_compile()
+            if errors_reported():
+                sys.stderr.write("{} error(s) encountered.".format(errors_reported()))
+            elif not self.args.llvm:
+                if self.args.opt:
+                    speedup = len(self.gencode) / len(self.optcode)
+                    sys.stderr.write("original = %d, otimizado = %d, speedup = %.2f\n" %
+                                     (len(self.gencode), len(self.optcode), speedup))
+                if self.run and not self.args.cfg:
+                    vm = Interpreter()
+                    if self.args.opt:
+                        vm.run(self.optcode)
+                    else:
+                        vm.run(self.gencode)
 
         for f in open_files:
             f.close()
-        if retval != 0:
-            sys.exit(retval)
-
-    sys.exit(retval)
+        return 0
 
 
 if __name__ == '__main__':
-    run_compiler()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("filename")
+    parser.add_argument("-s", "--susy", help="run in the susy machine", action='store_true')
+    parser.add_argument("-a", "--ast", help="dump the AST in the 'filename'.ast", action='store_true')
+    parser.add_argument("-i", "--ir", help="dump the uCIR in the 'filename'.ir", action='store_true')
+    parser.add_argument("-n", "--no-run", help="do not execute the program", action='store_true')
+    parser.add_argument("-c", "--cfg", help="show the CFG for each function in pdf format", action='store_true')
+    parser.add_argument("-o", "--opt", help="optimize the uCIR with const prop and dce", action='store_true')
+    parser.add_argument("-d", "--debug", help="print in the stderr some debug informations", action='store_true')
+    parser.add_argument("-l", "--llvm", help="generate LLVM IR code in the 'filename'.ll", action='store_true')
+    parser.add_argument("-p", "--llvm-opt", choices=['ctm', 'dce', 'cfg', 'all'],
+                        help="specify which llvm pass optimizations is enabled")
+    args = parser.parse_args()
+
+    retval = Compiler(args).compile()
+    sys.exit(retval)
