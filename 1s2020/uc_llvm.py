@@ -68,7 +68,7 @@ class LLVMFunctionVisitor(BlockVisitor):
         _opcode = _aux[0]
         if _opcode not in {'fptosi', 'sitofp', 'jump', 'cbranch', 'define'}:
             _ctype = _aux[1]
-            for i, _val in enumerate(_aux[2]):
+            for i, _val in enumerate(_aux[2:]):
                 if _val.isdigit():
                     _modifier['dim' + str(i)] = _val
                 elif _val == '*':
@@ -381,6 +381,7 @@ class LLVMFunctionVisitor(BlockVisitor):
                 bb = self.loc[block.label]
                 self.builder = ir.IRBuilder(bb)
                 for inst in block.instructions[1:]:
+                    print("INST " + str(inst))
                     self.build(inst)
 
     def visit_ConditionBlock(self, block):

@@ -144,7 +144,7 @@ class GenerateCode(NodeVisitor):
             self.visit(_decl)
 
         self.code = self.text.copy()
-        # node.text = self.text.copy()
+        node.text = self.text.copy()
 
         for _decl in node.gdecls:
             if isinstance(_decl, FuncDef):
@@ -671,7 +671,7 @@ class GenerateCode(NodeVisitor):
 
         # self.currentBlock.next_block = whileBlock
 
-        node.exit = exitBlock
+        node.exit_label = exitBlock
         self.currentBlock.append(('jump', whileBlock.label))
         self.currentBlock.next_block = whileBlock
         self.currentBlock.branch = whileBlock
