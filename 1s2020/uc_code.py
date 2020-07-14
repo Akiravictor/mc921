@@ -145,14 +145,16 @@ class GenerateCode(NodeVisitor):
 
         self.code = self.text.copy()
         node.text = self.text.copy()
+        funcs = Pilha()
 
         for _decl in node.gdecls:
             if isinstance(_decl, FuncDef):
-                block = EmitBlocks()
+                block = BasicBlock()
                 block.visit(_decl.cfg)
-                for _code in block.code:
-                    self.code.append(_code)
-                    # self.currentBlock.instructions.append(_code)
+                _decl.reset()
+                _decl.get_blocks_bfs(_decl.cfg)
+                _decl.reset()
+                funcs.empilha(_decl.blocks)
 
         if self.cfg:
             for _decl in node.gdecls:
@@ -364,7 +366,7 @@ class GenerateCode(NodeVisitor):
         self.currentBlock.instructions.append(('print_str', _target))
         self.currentBlock.instructions.append(('jump', self.ret_block.label))
         self.currentBlock.branch = self.ret_block
-        self.ret_block.predecessors.add(self.currentBlock)
+        self.ret_block.predecessors.append(self.currentBlock)
 
         inst = ('print_string', _target)
         self.code.append(inst)
@@ -542,7 +544,7 @@ class GenerateCode(NodeVisitor):
         if self.currentBlock.generateJump():
             self.currentBlock.append(('jump', self.ret_block.label))
             self.currentBlock.branch = self.ret_block
-            self.ret_block.predecessors.add(self.currentBlock)
+            self.ret_block.predecessors.append(self.currentBlock)
 
     def visit_Break(self, node):
         self.code.append(('jump', node.bind.exit_label))
@@ -625,7 +627,7 @@ class GenerateCode(NodeVisitor):
 
         self.currentBlock.next_block = conditionBlock
         self.currentBlock.branch = conditionBlock
-        conditionBlock.predecessors.add(self.currentBlock)
+        conditionBlock.predecessors.append(self.currentBlock)
         self.currentBlock = conditionBlock
         self.visit(node.cond)
         inst = ('cbranch', node.cond.gen_location, bodyBlock.label, exitBlock.label)
@@ -635,8 +637,8 @@ class GenerateCode(NodeVisitor):
         self.currentBlock.next_block = bodyBlock
         self.currentBlock.taken = bodyBlock
         self.currentBlock.fall = exitBlock
-        bodyBlock.predecessors.add(self.currentBlock)
-        exitBlock.predecessors.add(self.currentBlock)
+        bodyBlock.predecessors.append(self.currentBlock)
+        exitBlock.predecessors.append(self.currentBlock)
         self.currentBlock = bodyBlock
 
         # self.code.append((body_label[1:],))
@@ -644,7 +646,7 @@ class GenerateCode(NodeVisitor):
         if len(self.currentBlock.instructions) > 0 and self.currentBlock.instructions[-1][0] != 'jump':
             self.currentBlock.instructions.append(('jump', increaseBlock.label))
             self.currentBlock.branch = increaseBlock
-            increaseBlock.predecessors.add(self.currentBlock)
+            increaseBlock.predecessors.append(self.currentBlock)
 
         self.currentBlock.next_block = increaseBlock
         self.currentBlock = increaseBlock
@@ -652,10 +654,10 @@ class GenerateCode(NodeVisitor):
         if len(self.currentBlock.instructions) > 0 and  self.currentBlock.instructions[-1][0] != 'jump':
             self.currentBlock.instructions.append(('jump', conditionBlock.label))
             self.currentBlock.branch = conditionBlock
-            conditionBlock.predecessors.add(self.currentBlock)
+            conditionBlock.predecessors.append(self.currentBlock)
 
         self.currentBlock.next_block = exitBlock
-        exitBlock.predecessors.add(self.currentBlock)
+        exitBlock.predecessors.append(self.currentBlock)
         self.currentBlock = exitBlock
         # self.code.append(('jump', entry_label))
         # self.code.append((exit_label[1:],))
@@ -725,7 +727,7 @@ class GenerateCode(NodeVisitor):
         funcBlock = BasicBlock('%entry')
         self.currentBlock.next_block = funcBlock
         self.currentBlock.branch = funcBlock
-        funcBlock.predecessors.add(self.currentBlock)
+        funcBlock.predecessors.append(self.currentBlock)
         self.currentBlock = funcBlock
 
         if _typename != 'void':
@@ -822,3 +824,32 @@ class GenerateCode(NodeVisitor):
             elif self.alloc_phase == 'var_init':
                 if decl.init is not None:
                     self._storeLocation(_typename, decl.init, node.declname.gen_location)
+
+
+class Pilha(object):
+    def __init__(self):
+        self.dados = []
+
+    def empilha(self, elemento):
+        self.dados.append(elemento)
+
+    def desempilha(self):
+        if not self.vazia():
+            return self.dados.pop(-1)
+
+    def vazia(self):
+        return len(self.dados) == 0
+
+
+class Fila(object):
+    def __init__(self):
+        self.dados = []
+
+    def insere(self, elemento):
+        self.dados.append(elemento)
+
+    def retira(self):
+        return self.dados.pop(0)
+
+    def vazia(self):
+        return len(self.dados) == 0

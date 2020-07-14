@@ -1,4 +1,6 @@
 import sys
+from uc_block import *
+from uc_code import Fila
 
 
 def _repr(obj):
@@ -481,6 +483,9 @@ class FuncDef(Node):
         self.coord = coord
         self.decls = None
         self.cfg = None
+        self.blocks = []
+        self.begin = -1
+        self.end = -1
 
     def children(self):
         nodelist = []
@@ -500,6 +505,37 @@ class FuncDef(Node):
             yield self.body
         for child in (self.param_decls or []):
             yield child
+
+    def get_blocks_dfs(self, block):
+        if not isinstance(block, BasicBlock) or block.visit:
+            return
+        block.visit = True
+        self.blocks.append(block)  # Essa linha pega os blocks
+        self.get_blocks_dfs(block.next_block)
+        if isinstance(block, ConditionalBlock):
+            self.get_blocks_dfs(block.fall)
+
+    def get_blocks_bfs(self, block):
+        fila = Fila()
+        fila.insere(block)
+        while not fila.vazia():
+            block = fila.retira()
+            if isinstance(block, BasicBlock) and not block.visit:
+                block.visit = True
+                self.blocks.append(block)
+                fila.insere(block.next_block)
+                if isinstance(block, ConditionalBlock):
+                    fila.insere(block.fall)
+
+    def reset(self):
+        for block in self.blocks:
+            block.visit = False
+
+    def get_begin(self):
+        return self.begin
+
+    def get_end(self):
+        return self.end
 
     attr_names = ()
 
