@@ -194,7 +194,7 @@ class GenerateCode(NodeVisitor):
     def visit_Compound(self, node):
         # A função abaixo trata todas as possíveis declarações de uma função e faz as devidas alocações
 
-        self.alloc_declarations_list(node.decl)
+        self.alloc_declarations_list(node.block_items[-1])
         self.alloc_declarations_sts(node.st)
         # Store os parametros
         if (self.param_bool):

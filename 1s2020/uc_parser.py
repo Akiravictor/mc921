@@ -1,4 +1,4 @@
-from uc_ast import *
+from uc_ast2 import *
 from uc_lexer import UCLexer
 import ply.yacc as yacc
 

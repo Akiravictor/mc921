@@ -13,7 +13,7 @@ import argparse
 from contextlib import contextmanager
 from uc_parser import UCParser
 from uc_sema import Visitor
-from uc_code import GenerateCode
+from uc_code2 import GenerateCode
 from uc_interpreter import Interpreter
 from uc_llvm import LLVMCodeGenerator
 
@@ -234,10 +234,10 @@ class Compiler:
                                      (len(self.gencode), len(self.optcode), speedup))
                 if self.run and not self.args.cfg:
                     vm = Interpreter()
-                    if self.args.opt:
-                        vm.run(self.optcode)
-                    else:
-                        vm.run(self.gencode)
+                    # if self.args.opt:
+                        # vm.run(self.optcode)
+                    # else:
+                        # vm.run(self.gencode)
 
         for f in open_files:
             f.close()

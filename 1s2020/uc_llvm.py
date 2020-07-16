@@ -2,8 +2,8 @@ from ast import NodeVisitor
 
 from llvmlite import ir, binding
 from ctypes import CFUNCTYPE, c_int
-from uc_ast import *
-from uc_block import *
+from uc_ast2 import *
+from uc_block2 import *
 
 int_ty = ir.IntType(32)
 i64_ty = ir.IntType(64)

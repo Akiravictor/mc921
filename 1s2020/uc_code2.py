@@ -1,6 +1,6 @@
 from uc_sema import *
-from uc_ast import *
-from uc_block import *
+from uc_ast2 import *
+from uc_block2 import *
 
 
 class GenerateCode(NodeVisitor):
@@ -29,9 +29,6 @@ class GenerateCode(NodeVisitor):
         self.assign_opcodes = {"+=": "add", "-=": "sub", "*=": "mul", "/=": "div", "%=": "mod"}
 
         self.alloc_phase = None
-
-        self.scope = dict()
-        self.currentScope = None
 
         self.items = []
 
@@ -143,23 +140,19 @@ class GenerateCode(NodeVisitor):
             self.currentBlock.append(inst)
 
     def visit_Program(self, node):
-        self.scope['global'] = Scope()
         for _decl in node.gdecls:
-            self.currentScope = self.scope.get('global')
             self.visit(_decl)
 
         self.code = self.text.copy()
         node.text = self.text.copy()
-        funcs = Fila()
 
         for _decl in node.gdecls:
             if isinstance(_decl, FuncDef):
-                block = BasicBlock()
+                block = EmitBlocks()
                 block.visit(_decl.cfg)
-                _decl.reset()
-                _decl.get_blocks_bfs(_decl.cfg)
-                _decl.reset()
-                funcs.empilha(_decl.blocks)
+                for _code in block.code:
+                    self.code.append(_code)
+                    # self.currentBlock.instructions.append(_code)
 
         if self.cfg:
             for _decl in node.gdecls:
@@ -371,7 +364,7 @@ class GenerateCode(NodeVisitor):
         self.currentBlock.instructions.append(('print_str', _target))
         self.currentBlock.instructions.append(('jump', self.ret_block.label))
         self.currentBlock.branch = self.ret_block
-        self.ret_block.predecessors.append(self.currentBlock)
+        self.ret_block.predecessors.add(self.currentBlock)
 
         inst = ('print_string', _target)
         self.code.append(inst)
@@ -546,10 +539,10 @@ class GenerateCode(NodeVisitor):
             self.currentBlock.instructions.append(inst)
             # self.code.append(inst)
 
-        if self.currentBlock.generateJump():
+        # if self.currentBlock.generateJump():
             self.currentBlock.append(('jump', self.ret_block.label))
             self.currentBlock.branch = self.ret_block
-            self.ret_block.predecessors.append(self.currentBlock)
+            self.ret_block.predecessors.add(self.currentBlock)
 
     def visit_Break(self, node):
         self.code.append(('jump', node.bind.exit_label))
@@ -632,7 +625,7 @@ class GenerateCode(NodeVisitor):
 
         self.currentBlock.next_block = conditionBlock
         self.currentBlock.branch = conditionBlock
-        conditionBlock.predecessors.append(self.currentBlock)
+        conditionBlock.predecessors.add(self.currentBlock)
         self.currentBlock = conditionBlock
         self.visit(node.cond)
         inst = ('cbranch', node.cond.gen_location, bodyBlock.label, exitBlock.label)
@@ -642,8 +635,8 @@ class GenerateCode(NodeVisitor):
         self.currentBlock.next_block = bodyBlock
         self.currentBlock.taken = bodyBlock
         self.currentBlock.fall = exitBlock
-        bodyBlock.predecessors.append(self.currentBlock)
-        exitBlock.predecessors.append(self.currentBlock)
+        bodyBlock.predecessors.add(self.currentBlock)
+        exitBlock.predecessors.add(self.currentBlock)
         self.currentBlock = bodyBlock
 
         # self.code.append((body_label[1:],))
@@ -651,7 +644,7 @@ class GenerateCode(NodeVisitor):
         if len(self.currentBlock.instructions) > 0 and self.currentBlock.instructions[-1][0] != 'jump':
             self.currentBlock.instructions.append(('jump', increaseBlock.label))
             self.currentBlock.branch = increaseBlock
-            increaseBlock.predecessors.append(self.currentBlock)
+            increaseBlock.predecessors.add(self.currentBlock)
 
         self.currentBlock.next_block = increaseBlock
         self.currentBlock = increaseBlock
@@ -659,10 +652,10 @@ class GenerateCode(NodeVisitor):
         if len(self.currentBlock.instructions) > 0 and  self.currentBlock.instructions[-1][0] != 'jump':
             self.currentBlock.instructions.append(('jump', conditionBlock.label))
             self.currentBlock.branch = conditionBlock
-            conditionBlock.predecessors.append(self.currentBlock)
+            conditionBlock.predecessors.add(self.currentBlock)
 
         self.currentBlock.next_block = exitBlock
-        exitBlock.predecessors.append(self.currentBlock)
+        exitBlock.predecessors.add(self.currentBlock)
         self.currentBlock = exitBlock
         # self.code.append(('jump', entry_label))
         # self.code.append((exit_label[1:],))
@@ -829,38 +822,3 @@ class GenerateCode(NodeVisitor):
             elif self.alloc_phase == 'var_init':
                 if decl.init is not None:
                     self._storeLocation(_typename, decl.init, node.declname.gen_location)
-
-
-class Pilha(object):
-    def __init__(self):
-        self.dados = []
-
-    def empilha(self, elemento):
-        self.dados.append(elemento)
-
-    def desempilha(self):
-        if not self.vazia():
-            return self.dados.pop(-1)
-
-    def vazia(self):
-        return len(self.dados) == 0
-
-
-class Fila(object):
-    def __init__(self):
-        self.dados = []
-
-    def insere(self, elemento):
-        self.dados.append(elemento)
-
-    def retira(self):
-        return self.dados.pop(0)
-
-    def vazia(self):
-        return len(self.dados) == 0
-
-
-class Scope(object):
-
-    def __init__(self, scope):
-        self.scope = scope

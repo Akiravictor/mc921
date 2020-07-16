@@ -1,4 +1,4 @@
-from uc_ast import *
+from uc_ast2 import *
 
 
 class UCType(object):
@@ -62,6 +62,18 @@ BoolType = UCType("bool",
 VoidType = UCType("void")
 
 PtrType = UCType("ptr")
+
+
+class SymbolTable(dict):
+    def __init__(self, decl=None):
+        super().__init__()
+        self.decl = decl
+
+    def lookup(self, key):
+        return self.get(key, None)
+
+    def add(self, k, v):
+        self[k] = v
 
 
 class Environment(object):
