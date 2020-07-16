@@ -1,57 +1,64 @@
-from uc_sema import NodeVisitor
 from graphviz import Digraph
 
 
-class BasicBlock(object):
-    def __init__(self, label=""):
-        self.instructions = []
-        self.predecessors = []
-        self.next_block = None
-        self.label = label
-        self.visited = False
-        self.branch = None
+class Block(object):
+    def __init__(self, label):
+        self.label = label  # Label that identifies the block
+        self.instructions = []  # Instructions in the block
+        self.predecessors = []  # List of predecessors
+        self.next_block = None  # Not necessary the same as next_block in the linked list
+        self.visit = False
 
-    def append(self, instruction):
-        self.instructions.append(instruction)
+    def append(self, inst):
+        self.instructions.append(inst)
 
     def __iter__(self):
         return iter(self.instructions)
 
-    def generateJump(self):
-        return self.instructions[-1][0] != 'jump'
-
     def changeClass(self, obj, obj_change):
+        # trocar a classe em tempo de execução
         obj.__class__ = obj_change
 
 
-class ConditionalBlock(BasicBlock):
-    def __init__(self, label=""):
-        super(ConditionalBlock, self).__init__(label)
-        self.taken = None
-        self.fall = None
+class ConditionBlock(Block):
+    """
+    Class for a block representing an conditional statement.
+    There are two branches to handle each possibility.
+    """
+
+    def __init__(self, label):
+        super(ConditionBlock, self).__init__(label)
+        self.fall_through = None
 
 
 class BlockVisitor(object):
+    '''
+    Class for visiting basic blocks.  Define a subclass and define
+    methods such as visit_BasicBlock or visit_IfBlock to implement
+    custom processing (similar to ASTs).
+    '''
+
     def visit(self, block):
-        while isinstance(block, BasicBlock):
-            name = "visit_{}".format(type(block).__name__)
-            if hasattr(self, name):
-                getattr(self, name)(block)
-            self.visit(block.next_block)
-            if isinstance(block, ConditionalBlock):
-                self.visit(block.fall)
+        if (not isinstance(block, Block) or block.visit):         return
+        block.visit = True
+        name = "visit_%s" % type(block).__name__
+        if hasattr(self, name):
+            getattr(self, name)(block)
+        self.visit(block.next_block)
+        if (isinstance(block, ConditionBlock)):
+            self.visit(block.fall_through)
 
     def get_blocks(self, block, blocks):
-        if not isinstance(block, BasicBlock) or block.visit:
-            return
+        if (not isinstance(block, Block) or block.visit):         return
         block.visit = True
-        blocks.append(block)
+        blocks.append(block)  # Essa linha pega os blocks
         self.get_blocks(block.next_block, blocks)
-        if isinstance(block, ConditionalBlock):
-            self.get_blocks(block.fall, blocks)
+        if (isinstance(block, ConditionBlock)):
+            self.get_blocks(block.fall_through, blocks)
 
 
 def format_instruction(t):
+    # Auxiliary method to pretty print the instructions
     op = t[0]
     if (op == None): return None
     if len(t) > 1:
@@ -78,34 +85,53 @@ def format_instruction(t):
 
 
 class CFG(object):
+
     def __init__(self, fname):
         self.fname = fname
         self.g = Digraph('g', filename=fname + '.gv', node_attr={'shape': 'record'})
 
-    def visit_BasicBlock(self, block):
+    # .next_block
+    def visit_Block(self, block):
         # Get the label as node name
         _name = block.label
         if _name:
             # get the formatted instructions as node label
             _label = "{" + _name + ":\l\t"
             for _inst in block.instructions[1:]:
-                if (_inst[0]):    _label += format_instruction(_inst) + "\l\t"
-            _label += "|{<f0>T|<f1>F}}"
+
+                if (_inst[0]): _label += format_instruction(_inst) + "\l\t"
+            _label += "}"
             self.g.node(_name, label=_label)
-            self.g.edge(_name + ":f0", block.next_block.label)
-            self.g.edge(_name + ":f1", block.fall_through.label)
+            if block.next_block:
+                self.g.edge(_name, block.next_block.label)
+        else:
+            # Function definition. An empty block that connect to the Entry Block
+            self.g.node(self.fname, label=None, _attributes={'shape': 'ellipse'})
+            self.g.edge(self.fname, block.next_block.label)
+
+    def visit_ConditionBlock(self, block):
+        # Get the label as node name
+        _name = block.label
+        # get the formatted instructions as node label
+        _label = "{" + _name + ":\l\t"
+        for _inst in block.instructions[1:]:
+            if (_inst[0]):    _label += format_instruction(_inst) + "\l\t"
+        _label += "|{<f0>T|<f1>F}}"
+        self.g.node(_name, label=_label)
+        self.g.edge(_name + ":f0", block.next_block.label)
+        self.g.edge(_name + ":f1", block.fall_through.label)
 
     def view(self, block):
         self.deep_view(block)
         self.g.view()
 
     def deep_view(self, block):
-        if not isinstance(block, BasicBlock) or block.visit:
-            return
+        if (not isinstance(block, Block) or block.visit):         return
         block.visit = True
         name = "visit_%s" % type(block).__name__
         if hasattr(self, name):
             getattr(self, name)(block)
         self.deep_view(block.next_block)
-        if isinstance(block, ConditionalBlock):
-            self.deep_view(block.fall)
+        if (isinstance(block, ConditionBlock)):
+            self.deep_view(block.fall_through)
+
