@@ -147,8 +147,8 @@ class Compiler:
         self.gen = GenerateCode(self.args.cfg)
         self.gen.visit(self.ast)
         self.gencode = self.gen.code
-        if not self.args.susy and self.ir_file is not None:
-            self.gen.show(buf=self.ir_file)
+        # if not self.args.susy and self.ir_file is not None:
+        #     self.gen.show(buf=self.ir_file)
 
     def _opt(self):
         self.optcode = "Test"

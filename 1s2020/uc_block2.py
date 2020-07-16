@@ -86,6 +86,31 @@ class EmitBlocks(BlockVisitor):
         for instruction in block.instructions:
             self.code.append(instruction)
 
+def format_instruction(t):
+    # Auxiliary method to pretty print the instructions
+    op = t[0]
+    if (op == None): return None
+    if len(t) > 1:
+        if op == "define":
+            return f"\n{op} {t[1]}"
+        else:
+            _str = "" if op.startswith('global') else "  "
+            if op == 'jump':
+                _str += f"{op} label {t[1]}"
+            elif op == 'cbranch':
+                _str += f"{op} {t[1]} label {t[2]} label {t[3]}"
+            elif op == 'global_string':
+                _str += f"{op} {t[1]} \'{t[2]}\'"
+            elif op.startswith('return'):
+                _str += f"{op} {t[1]}"
+            else:
+                for _el in t:
+                    _str += f"{_el} "
+            return _str
+    elif op == 'print_void' or op == 'return_void':
+        return f"  {op}"
+    else:
+        return f"{op}"
 
 class CFG(object):
     def __init__(self, fname):
@@ -95,13 +120,11 @@ class CFG(object):
     def visit_BasicBlock(self, block):
         # Get the label as node name
         _name = block.label
-        print(block.instructions)
         if _name:
             # get the formatted instructions as node label
             _label = "{" + _name + ":\l\t"
             for _inst in block.instructions[1:]:
-                # _label += format_instruction(_inst) + "\l\t"
-                _label += _inst[0] + "\l\t"
+                _label += format_instruction(_inst) + "\l\t"
             _label += "}"
             self.g.node(_name, label=_label)
             if block.branch:
@@ -114,15 +137,24 @@ class CFG(object):
     def visit_ConditionBlock(self, block):
         # Get the label as node name
         _name = block.label
-        print(block.instructions)
         # get the formatted instructions as node label
         _label = "{" + _name + ":\l\t"
         for _inst in block.instructions[1:]:
-            _label += _inst[0] + "\l\t"
-        _label += "|{<f0>T|<f1>F}}"
+            _label += format_instruction(_inst) + "\l\t"
+        _label +="|{<f0>T|<f1>F}}"
         self.g.node(_name, label=_label)
         self.g.edge(_name + ":f0", block.taken.label)
         self.g.edge(_name + ":f1", block.fall_through.label)
+
+    def view(self, block):
+        while isinstance(block, Block):
+            name = "visit_%s" % type(block).__name__
+            if hasattr(self, name):
+                getattr(self, name)(block)
+            block = block.next_block
+        # You can use the next stmt to see the dot file
+        # print(self.g.source)
+        self.g.view()
 
     def view(self, block):
         while isinstance(block, Block):
