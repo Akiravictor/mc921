@@ -1,6 +1,6 @@
 import sys
 from uc_block import *
-from uc_code import Fila
+from uc_utils import *
 
 
 def _repr(obj):
@@ -28,7 +28,8 @@ class Node(object):
         for name in self.__slots__[:-1]:
             result += separator
             result += indent
-            result += name + '=' + (_repr(getattr(self, name)).replace('\n', '\n  ' + (' ' * (len(name) + len(self.__class__.__name__)))))
+            result += name + '=' + (
+                _repr(getattr(self, name)).replace('\n', '\n  ' + (' ' * (len(name) + len(self.__class__.__name__)))))
 
             separator = ','
             indent = '\n ' + (' ' * len(self.__class__.__name__))
@@ -228,7 +229,7 @@ class BinaryOp(Node):
         if self.right is not None:
             yield self.right
 
-    attr_names = ('op', )
+    attr_names = ('op',)
 
 
 class Break(Node):
@@ -277,7 +278,7 @@ class Compound(Node):
 
     def __init__(self, block_items, coord=None):
         self.block_items = block_items
-        self.coord = coord.split(":")[0]+":1"
+        self.coord = coord.split(":")[0] + ":1"
 
     def children(self):
         nodelist = []
@@ -473,7 +474,7 @@ class FuncDecl(Node):
 
 
 class FuncDef(Node):
-    __slots__ = ('spec', 'decl', 'param_decls', 'body', 'coord', 'decls', 'cfg')
+    __slots__ = ('spec', 'decl', 'param_decls', 'body', 'coord', 'decls', 'cfg', 'blocks')
 
     def __init__(self, spec, decl, param_decls, body, coord=None, cfg=None):
         self.spec = spec
@@ -484,8 +485,6 @@ class FuncDef(Node):
         self.decls = None
         self.cfg = None
         self.blocks = []
-        self.begin = -1
-        self.end = -1
 
     def children(self):
         nodelist = []
@@ -560,9 +559,10 @@ class GlobalDecl(Node):
 
 class ID(Node):
     __slots__ = ('name', 'coord', 'type', 'bind', 'scope', 'gen_location', 'kind')
+
     # __slots__ = ('name', 'coord')
 
-    def __init__(self, name,  coord=None):
+    def __init__(self, name, coord=None):
         self.name = name
         self.coord = coord
         self.type = None
@@ -671,7 +671,7 @@ class Print(Node):
 
 
 class Program(Node):
-    __slots__ = ('gdecls', 'symtab', 'coord','text')
+    __slots__ = ('gdecls', 'symtab', 'coord', 'text')
 
     def __init__(self, gdecls, symtab=None, coord=None, text=None):
         self.gdecls = gdecls
@@ -764,7 +764,7 @@ class Type(Node):
     def __iter__(self):
         return
 
-    attr_names = ('names', )
+    attr_names = ('names',)
 
 
 class VarDecl(Node):
@@ -807,7 +807,7 @@ class UnaryOp(Node):
         if self.expr is not None:
             yield self.expr
 
-    attr_names = ('op', )
+    attr_names = ('op',)
 
 
 class While(Node):
@@ -832,3 +832,17 @@ class While(Node):
             yield self.stmt
 
     attr_names = ()
+
+
+class Fila(object):
+    def __init__(self):
+        self.dados = []
+
+    def insere(self, elemento):
+        self.dados.append(elemento)
+
+    def retira(self):
+        return self.dados.pop(0)
+
+    def vazia(self):
+        return len(self.dados) == 0
