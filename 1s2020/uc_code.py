@@ -1,829 +1,1111 @@
-from uc_sema import *
 from uc_ast import *
+import copy
+from uc_sema import *
 from uc_block import *
+from uc_llvm import *
 
 
+######################## -> GenerateCode <- #######################
 class GenerateCode(NodeVisitor):
     '''
     Node visitor class that creates 3-address encoded instruction sequences.
     '''
 
     def __init__(self, cfg):
-        super(GenerateCode, self).__init__()
-
+        self.queue_sco = Fila()
+        self.stk_sco = Pilha()
+        self.scope_current = None
+        self.array_ref = Fila()
+        self.binary_bool = rel_ops
+        self.binary_ops = binary
+        self.unary_ops = unary
+        self.assign_op = assign_op
+        self.array_name = Pilha()
         self.cfg = cfg
-
-        self.ftype = None
-        self.fname = '_glob_'
-        self.currentBlock = BasicBlock('global {}'.format(self.fname))
-        self.versions = {self.fname: 0}
-        # The generated code (list of tuples)
-        self.text = []
         self.code = []
+        self.decl_glob = []
+        self.heaps = dict()
+        self.name_array = 'global'
+        self.heaps[self.name_array] = 0
+        self.param_bool = True
+        self.count = -1
+        self.scopes = dict()
+        self.code_opt = None
+        self.flag_assert = True
 
-        self.binary_opcodes = {"+": "add", "-": "sub", "*": "mul", "/": "div", "%": "mod",
-                               "==": "eq", "!=": "ne", "<": "lt", ">": "gt", "<=": "le", ">=": "ge", "&&": "and",
-                               "||": "or"}
-        self.unary_opcodes = {"-": "sub", "+": "", "--": "sub", "++": "add", "p--": "sub", "p++": "add", "!": "not",
-                              "*": "", "&": ""}
-        self.assign_opcodes = {"+=": "add", "-=": "sub", "*=": "mul", "/=": "div", "%=": "mod"}
+        self.cfgs = []
+        # \\\\\\\\Blocks/////////
+        self.block_current = None
+        self.stack_for = Pilha()
+        self.blocks = []
 
-        self.alloc_phase = None
+    def increase_count(self):
+        self.count += 1
+        return self.count
 
-        self.items = []
-
-        self.ret_location = None
-        self.ret_label = None
-        self.ret_block = None
-
-    def clean(self):
-        self.items = []
-
-    def enqueue(self, item):
-        self.items.insert(0, item)
-
-    def dequeue(self):
-        return self.items.pop()
-
-    def new_temp(self):
+    def new_heap(self):
         '''
-        Create a new temporary variable of a given scope (function name).
+        Create a new heap  of a given array .
         '''
-        if self.fname not in self.versions:
-            self.versions[self.fname] = 0
-        name = "%" + "%d" % (self.versions[self.fname])
-        self.versions[self.fname] += 1
+        if self.name_array not in self.heaps:
+            self.heaps[self.name_array] = 0
+        name = "@.str." + "%d" % (self.heaps[self.name_array])
+        self.heaps[self.name_array] += 1
         return name
-
-    def new_text(self):
-        name = "@.str." + "%d" % (self.versions['_glob_'])
-        self.versions['_glob_'] += 1
-        return name
-
-    def changeCurrentBlock(self):
-        newBlock = ConditionalBlock(None)
-        newBlock.instructions = self.currentBlock.instructions
-        newBlock.predecessors = self.currentBlock.predecessors
-        newBlock.label = self.currentBlock.label
-        for block in self.currentBlock.predecessors:
-            if block.next_block == self.currentBlock:
-                block.next_block = newBlock
-            if isinstance(block, BasicBlock):
-                if block.branch == self.currentBlock:
-                    block.branch = newBlock
-            elif isinstance(block, ConditionalBlock):
-                if block.taken == self.currentBlock:
-                    block.taken = newBlock
-                if block.fall == self.currentBlock:
-                    block.fall = newBlock
-        self.currentBlock = newBlock
-
-    def visit(self, node):
-        method = 'visit_' + node.__class__.__name__
-        return getattr(self, method, self.generic_visit)(node)
-
-    def generic_visit(self, node):
-        # ~ print('generic:', type(node))
-        if node is None:
-            return ''
-        else:
-            return ''.join(self.visit(c) for c_name, c in node.children())
-
-    def visit_Constant(self, node):
-        if node.rawtype == 'string':
-            _target = self.new_text()
-            inst = ('global_string', _target, node.value)
-            self.text.append(inst)
-        else:
-            _target = self.new_temp()
-            inst = ('literal_' + node.rawtype, node.value, _target)
-            self.code.append(inst)
-            self.currentBlock.instructions.append(inst)
-        node.gen_location = _target
-
-    def visit_ID(self, node):
-        if node.gen_location is None:
-            _type = node.bind
-            while not isinstance(_type, VarDecl):
-                _type = _type.type
-            if _type.declname.gen_location is None:
-                if node.kind == 'func' and node.scope == 1:
-                    node.gen_location = '@' + node.name
-            else:
-                node.gen_location = _type.declname.gen_location
-
-    def visit_Print(self, node):
-        if node.expr is not None:
-            if isinstance(node.expr[0], ExprList):
-                for _expr in node.expr[0].exprs:
-                    self.visit(_expr)
-                    if isinstance(_expr, ID) or isinstance(_expr, ArrayRef):
-                        self._loadLocation(_expr)
-                    elif isinstance(_expr, UnaryOp) and _expr.op == "*":
-                        self._loadReference(_expr)
-                    inst = ('print_' + _expr.type.names[-1].typename, _expr.gen_location)
-                    # self.code.append(inst)
-                    self.currentBlock.append(inst)
-            else:
-                _expr = node.expr[0]
-                self.visit(_expr)
-                if isinstance(_expr, ID) or isinstance(_expr,ArrayRef):
-                    self._loadLocation(_expr)
-                elif isinstance(_expr, UnaryOp) and _expr.op == "*":
-                    self._loadReference(_expr)
-                inst = ('print_' + _expr.type.names[-1].typename, _expr.gen_location)
-                self.currentBlock.append(inst)
-
-        else:
-            inst = ('print_void',)
-            # self.code.append(inst)
-            self.currentBlock.append(inst)
 
     def visit_Program(self, node):
-        for _decl in node.gdecls:
-            self.visit(_decl)
-
-        self.code = self.text.copy()
-        node.text = self.text.copy()
-        funcs = Pilha()
+        self.scopes['global'] = Scope()
+        for no in node.gdecls:
+            self.scope_current = self.scopes.get('global')
+            self.visit(no)
+        code = copy.deepcopy(self.code)
+        funcs = Fila()
 
         for _decl in node.gdecls:
             if isinstance(_decl, FuncDef):
-                block = BasicBlock()
-                block.visit(_decl.cfg)
+                # Mostras cfgs não otimizados
+
                 _decl.reset()
-                _decl.get_blocks_bfs(_decl.cfg)
+                _decl.get_blocks_dfs(_decl.cfg)
+                self.clear_jump(_decl.blocks)
                 _decl.reset()
-                funcs.empilha(_decl.blocks)
-
-        if self.cfg:
-            for _decl in node.gdecls:
-                if isinstance(_decl, FuncDef):
-                    _cfg = CFG(_decl.decl.name.name)
-                    _cfg.view(_decl.cfg)
-
-    def visit_ArrayRef(self, node):
-        _subs_a = node.subscript
-        self.visit(_subs_a)
-        if isinstance(node.name, ArrayRef):
-            _subs_b = node.name.subscript
-            self.visit(_subs_b)
-            _dim = node.name.name.bind.type.dim
-            self.visit(_dim)
-            if isinstance(_subs_b, ID) or isinstance(_subs_b, ArrayRef):
-                self._loadLocation(_subs_b)
-            _target = self.new_temp()
-            self.code.append(('mul_' + node.type.names[-1].typename, _dim.gen_location, _subs_b.gen_location, _target))
-            self.currentBlock.instructions.append(('mul_' + node.type.names[-1].typename, _dim.gen_location, _subs_b.gen_location, _target))
-            if isinstance(_subs_a, ID) or isinstance(_subs_a, ArrayRef):
-                self._loadLocation(_subs_a)
-            _index = self.new_temp()
-            self.code.append(('add_' + node.type.names[-1].typename, _target, _subs_a.gen_location, _index))
-            self.currentBlock.instructions.append(('add_' + node.type.names[-1].typename, _target, _subs_a.gen_location, _index))
-            _var = node.name.name.bind.type.type.declname.gen_location
-            node.gen_location = self.new_temp()
-            self.code.append(('elem_' + node.type.names[-1].typename, _var, _index, node.gen_location))
-            self.currentBlock.instructions.append(('elem_' + node.type.names[-1].typename, _var, _index, node.gen_location))
-
-        else:
-            if isinstance(_subs_a, ID) or isinstance(_subs_a, ArrayRef):
-                self._loadLocation(_subs_a)
-            _var = node.name.bind.type.declname.gen_location
-            _index = _subs_a.gen_location
-            _target = self.new_temp()
-            node.gen_location = _target
-            inst = ('elem_' + node.type.names[-1].typename, _var, _index, _target)
-            self.code.append(inst)
-            self.currentBlock.instructions.append(inst)
-
-    def visit_FuncCall(self, node):
-        if node.args is not None:
-            if isinstance(node.args, ExprList):
-                _tcode = []
-                for _arg in node.args.exprs:
-                    self.visit(_arg)
-                    if isinstance(_arg, ID) or isinstance(_arg, ArrayRef):
-                        self._loadLocation(_arg)
-                    inst = ('param_' + _arg.type.names[-1].typename, _arg.gen_location)
-                    _tcode.append(inst)
-                for _inst in _tcode:
-                    # self.code.append(_inst)
-                    self.currentBlock.append(_inst)
-
-            else:
-                self.visit(node.args)
-                if isinstance(node.args, ID) or isinstance(node.args, ArrayRef):
-                    self._loadLocation(node.args)
-                inst = ('param_' + node.args.type.names[-1].typename, node.args.gen_location)
-                # self.code.append(inst)
-                self.currentBlock.append(inst)
-
-        if isinstance(node.name.bind, PtrDecl):
-            _target = self.new_temp()
-            # self.code.append(('load_' + node.type.names[-1].typename + '_*', node.name.bind.type.gen_location, _target))
-            self.currentBlock.append(('load_' + node.type.names[-1].typename + '_*', node.name.bind.type.gen_location, _target))
-            node.gen_location = self.new_temp()
-            # self.code.append(('call', _target, node.gen_location))
-            self.currentBlock.instructions.append(('call', _target, node.gen_location))
-        else:
-            node.gen_location = self.new_temp()
-            self.visit(node.name)
-            inst = ('call', '@' + node.name.gen_location, node.gen_location)
-            # self.code.append(inst)
-            self.currentBlock.append(inst)
-
-    def visit_UnaryOp(self, node):
-        self.visit(node.expr)
-        _source = node.expr.gen_location
-
-        if node.op == '&' or node.op == '*':
-            node.gen_location = node.expr.gen_location
-        elif node.op == '!':
-            if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
-                self._loadLocation(node.expr)
-            node.gen_location = self.new_temp()
-            self.code.append(('not_bool', _source, node.gen_location))
-            self.currentBlock.instructions.append(('not_bool', _source, node.gen_location))
-        else:
-            if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
-                self._loadLocation(node.expr)
-            if node.op == '+':
-                node.gen_location = node.expr.gen_location
-
-            elif node.op == '-':
-                _typename = node.expr.type.names[-1].typename
-                opcode = self.unary_opcodes[node.op] + "_" + _typename
-                _aux = self.new_temp()
-                self.code.append(('literal_' + _typename, 0, _aux))
-                self.currentBlock.instructions.append(('literal_' + _typename, 0, _aux))
-                node.gen_location = self.new_temp()
-                inst = (opcode, _aux, node.expr.gen_location, node.gen_location)
-                self.code.append(inst)
-                self.currentBlock.instructions.append(inst)
-
-            elif node.op in ["++", "p++", "--", "p--"]:
-                if node.op == "++" or node.op == "p++":
-                    _val = 1
-                else:
-                    _val = -1
-                _value = self.new_temp()
-                self.code.append(('literal_int', _val, _value))
-                self.currentBlock.instructions.append(('literal_int', _val, _value))
-                opcode = self.unary_opcodes[node.op] + "_" + node.expr.type.names[-1].typename
-                node.gen_location = self.new_temp()
-                inst = (opcode, node.expr.gen_location, _value, node.gen_location)
-                self.code.append(inst)
-                self.currentBlock.instructions.append(inst)
-                opcode = 'store_' + node.expr.type.names[-1].typename
-                inst = (opcode, node.gen_location, _source)
-                self.code.append(inst)
-                self.currentBlock.instructions.append(inst)
-                if node.op in ["p++", "p--"]:
-                    node.gen_location = node.expr.gen_location
-
-    def visit_BinaryOp(self, node):
-        self.visit(node.left)
-        self.visit(node.right)
-
-        if isinstance(node.left, ID) or isinstance(node.left, ArrayRef):
-            self._loadLocation(node.left)
-        elif isinstance(node.left, UnaryOp) and node.left.op == '*':
-            self._loadReference(node.left)
-
-        if isinstance(node.right, ID) or isinstance(node.right, ArrayRef):
-            self._loadLocation(node.right)
-        elif isinstance(node.right, UnaryOp) and node.right.op == '*':
-            self._loadReference(node.right)
-
-        target = self.new_temp()
-
-        opcode = self.binary_opcodes[node.op] + "_" + node.left.type.names[-1].typename
-        inst = (opcode, node.left.gen_location, node.right.gen_location, target)
-        self.code.append(inst)
-        self.currentBlock.instructions.append(inst)
-
-        node.gen_location = target
-
-    def _storeLocation(self, typename, init, target, operation):
-        self.visit(init)
-        if isinstance(init, ID) or isinstance(init, ArrayRef):
-            self._loadLocation(init)
-        elif isinstance(init, UnaryOp) and init.op == "*":
-            self._loadReference(init)
-        inst = (operation + typename, init.gen_location, target)
-        self.currentBlock.append(inst)
-
-    def _loadReference(self, node):
-        node.gen_location = self.new_temp()
-        inst = ('load_' + node.expr.type.names[-1].typename + "_*",
-                node.expr.gen_location, node.gen_location)
-        # self.code.append(inst)
-        self.currentBlock.append(inst)
-
-    def _readLocation(self, source):
-        # _target = self.new_temp()
-        _typename = source.type.names[-1].typename
-        # self.code.append(('read_' + _typename, _target))
-        # self.currentBlock.instructions.append(('read_' + _typename, _target))
-        if isinstance(source, ArrayRef):
-            _typename += "_*"
-        if isinstance(source, UnaryOp) and source.op == "*":
-            self._loadReference(source)
-        # self.code.append(('store_' + _typename, _target, source.gen_location))
-        # self.currentBlock.instructions.append(('store_' + _typename, _target, source.gen_location))
-        self.currentBlock.append(('read_' + _typename, source.gen_location))
-
-    def visit_Assert(self, node):
-        _expr = node.expr
-        self.visit(_expr)
-
-        true_label = self.new_temp()
-        false_label = self.new_temp()
-        exit_label = self.new_temp()
-
-        trueBlock = BasicBlock(true_label)
-        falseBlock = BasicBlock(false_label)
-        trueBlock.predecessors = self.currentBlock
-        falseBlock.predecessors = self.currentBlock
-
-        inst = ('cbranch', _expr.gen_location, trueBlock.label, falseBlock.label)
-        self.code.append(inst)
-        self.currentBlock.instructions.append(inst)
-        self.currentBlock.taken = trueBlock
-        self.currentBlock.fall = falseBlock
-
-        self.code.append((true_label[1:],))
-        self.code.append(('jump', exit_label))
-        self.code.append((false_label[1:],))
-
-        self.currentBlock.next_block = falseBlock
-        self.currentBlock = falseBlock
-        _target = self.new_text()
-        _tempExp = _expr.coord.split('@')
-        _tempCoord = _tempExp[1].split(':')
-        inst = ('global_string', _target, "assertion_fail on " + f"{_tempCoord[0]}:{_tempCoord[1]}")
-        self.text.append(inst)
-        self.currentBlock.instructions.append(('print_str', _target))
-        self.currentBlock.instructions.append(('jump', self.ret_block.label))
-        self.currentBlock.branch = self.ret_block
-        self.ret_block.predecessors.append(self.currentBlock)
-
-        inst = ('print_string', _target)
-        self.code.append(inst)
-        self.currentBlock.instructions.append(inst)
-        self.code.append(('jump', self.ret_label))
-        self.currentBlock.instructions.append(('jump', self.ret_label))
-
-        self.code.append((exit_label[1:],))
-        self.currentBlock.instructions.append((exit_label[1:],))
-
-    def visit_Assignment(self, node):
-        _rval = node.rvalue
-        self.visit(_rval)
-        if isinstance(_rval, ID) or isinstance(_rval, ArrayRef):
-            self._loadLocation(_rval)
-        elif isinstance(_rval, UnaryOp) and _rval.op == "*":
-            self._loadReference(_rval)
-        _lvar = node.lvalue
-        self.visit(_lvar)
-        if node.op in self.assign_opcodes:
-            _lval = self.new_temp()
-            _target = self.new_temp()
-            _typename = _lvar.type.names[-1].typename
-            if isinstance(node.rvalue, ArrayRef):
-                _typename += "_*"
-            inst = ('load_' + _typename, _lvar.gen_location, _lval)
-            self.code.append(inst)
-            self.currentBlock.instructions.append(inst)
-            inst = (self.assign_opcodes[node.op] + '_' + _lvar.type.names[-1].typename,
-                    node.rvalue.gen_location, _lval, _target)
-            self.code.append(inst)
-            self.currentBlock.instructions.append(inst)
-            inst = ('store_' + _lvar.type.names[-1].typename, _target, _lvar.gen_location)
-            self.code.append(inst)
-            self.currentBlock.instructions.append(inst)
-        else:
-            if isinstance(_lvar, ID) or isinstance(_lvar, ArrayRef):
-                _typename = _lvar.type.names[-1].typename
-                if isinstance(_lvar, ArrayRef):
-                    _typename += '_*'
-                elif isinstance(_lvar.bind, ArrayDecl):
-                    _typename += '_' + str(_lvar.bind.dim.value)
-                elif _lvar.type.names[0] == PtrType:
-                    if _lvar.kind == 'func':
-                        _lvar.bind.type.gen_location = _lvar.gen_location
-                    _typename += '_*'
-                    inst = ('get_' + _typename, node.rvalue.gen_location, _lvar.gen_location)
-                    self.code.append(inst)
-                    self.currentBlock.instructions.append(inst)
-                    return
-                inst = ('store_' + _typename, node.rvalue.gen_location, _lvar.gen_location)
-                self.currentBlock.instructions.append(inst)
-                self.code.append(inst)
-            else:
-                _typename = _lvar.type.names[-1].typename
-                if isinstance(_lvar, UnaryOp):
-                    if _lvar.op == '*':
-                        _typename += '_*'
-                    inst = ('store_' + _typename, node.rvalue.gen_location, _lvar.gen_location)
-                    self.code.append(inst)
-                    self.currentBlock.instructions.append(inst)
-
-    def visit_Decl(self, node):
-        _type = node.type
-        _dim = ""
-        if isinstance(_type, VarDecl):
-            self.visit_VarDecl(_type, node, _dim)
-        elif isinstance(_type, ArrayDecl):
-            self.visit_ArrayDecl(_type, node, _dim)
-        elif isinstance(_type, PtrDecl):
-            self.visit_PtrDecl(_type, node, _dim)
-        elif isinstance(_type, FuncDecl):
-            self.visit_FuncDecl(_type)
-
-    def visit_DeclList(self, node):
-        for decl in node.decls:
-            self.visit(decl)
-
-    def visit_Cast(self, node):
-        self.visit(node.expr)
-        if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
-            self._loadLocation(node.expr)
-        _temp = self.new_temp()
-        if node.to_type.names[-1].typename == IntType.typename:
-            inst = ('fptosi', node.expr.gen_location, _temp)
-        else:
-            inst = ('sitofp', node.expr.gen_location, _temp)
-        self.code.append(inst)
-        self.currentBlock.instructions.append(inst)
-        node.gen_location = _temp
-
-    def visit_ExprList(self, node):
-        pass
-
-    def visit_InitList(self, node):
-        node.value = []
-        for _expr in node.exprs:
-            if isinstance(_expr, InitList):
-                self.visit(_expr)
-            node.value.append(_expr.value)
-
-    def visit_FuncDef(self, node):
-        self.ftype = node.spec
-
-        self.ret_block = BasicBlock('%exit_')
-        self.currentBlock = BasicBlock(None)
-        node.cfg = self.currentBlock
-
-        self.alloc_phase = None
-        self.visit(node.decl)
-
-        if node.body is not None:
-            self.alloc_phase = "var_decl"
-            for _body in node.body:
-                if isinstance(_body, Decl):
-                    self.visit(_body)
-            for _decl in node.decls:
-                self.visit(_decl)
-
-        if node.decl.type.args is not None:
-            self.alloc_phase = 'arg_init'
-            for _arg in node.decl.type.args:
-                self.visit(_arg)
-
-        if node.body is not None:
-            self.alloc_phase = 'var_init'
-            for _body in node.body:
-                self.visit(_body)
-
-        # self.code.append((self.ret_label[1:],))
-        if node.spec.names[-1].typename == 'void':
-            # self.code.append(('return_void',))
-            self.currentBlock.append(('return_void',))
-        else:
-            _rvalue = self.new_temp()
-            inst = ('load_' + node.spec.names[-1].typename, self.ret_location, _rvalue)
-            # self.code.append(inst)
-            self.currentBlock.append(inst)
-            # self.code.append(('return_' + node.spec.names[-1].typename, _rvalue))
-            self.currentBlock.append(('return_' + node.spec.names[-1].typename, _rvalue))
-
-    def visit_Compound(self, node):
-        for item in node.block_items:
-            self.visit(item)
-
-    def visit_EmptyStatement(self, node):
-        pass
-
-    def visit_ParamList(self, node):
-        for _par in node.params:
-            self.visit(_par)
-
-    def visit_Read(self, node):
-        for _loc in node.names:
-            self.visit(_loc)
-
-            if isinstance(_loc, ID) or isinstance(_loc, ArrayRef):
-                self._readLocation(_loc)
-            elif isinstance(_loc, UnaryOp) and _loc.op == "*":
-                self._readLocation(_loc)
-            elif isinstance(_loc, ExprList):
-                for _var in _loc.exprs:
-                    self.visit(_var)
-                    self._readLocation(_var)
-
-    def visit_Return(self, node):
-        if node.expr is not None:
-            self.visit(node.expr)
-            if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
-                self._loadLocation(node.expr)
-            inst = ('store_' + node.expr.type.names[-1].typename, node.expr.gen_location, self.ret_location)
-            self.currentBlock.instructions.append(inst)
-            # self.code.append(inst)
-
-        if self.currentBlock.generateJump():
-            self.currentBlock.append(('jump', self.ret_block.label))
-            self.currentBlock.branch = self.ret_block
-            self.ret_block.predecessors.append(self.currentBlock)
-
-    def visit_Break(self, node):
-        self.code.append(('jump', node.bind.exit_label))
-        self.currentBlock.instructions.append(('jump', node.bind.exit_label))
-
-    def visit_If(self, node):
-        true_label = self.new_temp()
-        else_label = self.new_temp()
-        exit_label = self.new_temp()
-
-        self.changeCurrentBlock()
-        self.visit(node.cond)
-
-        trueBlock = BasicBlock('%if.then_' + true_label)
-        exitBlock = BasicBlock('%if.end_' + exit_label)
-        _dump_exitBlock = False
-
-        if node.iffalse:
-            falseBlock = BasicBlock('%if.else_' + else_label)
-        else:
-            lbl = '%if.else_'
-            _dump_exitBlock = True
-            falseBlock = exitBlock
-
-        trueBlock.predecessors.add(self.currentBlock)
-        falseBlock.predecessors.add(self.currentBlock)
-        self.currentBlock.taken = trueBlock
-        self.currentBlock.fall = falseBlock
-
-        inst = ('cbranch', node.cond.gen_location, trueBlock.label, falseBlock.label)
-        # self.code.append(inst)
-        self.currentBlock.append(inst)
-
-        self.currentBlock.next_block = trueBlock
-        self.currentBlock = trueBlock
-        # self.code.append((true_label[1:],))
-        self.visit(node.iftrue)
-        if self.currentBlock.generateJump():
-            self.currentBlock.append(('jump', exitBlock.label))
-            self.currentBlock.branch = exitBlock
-            exitBlock.predecessors.add(self.currentBlock)
-            _dump_exitBlock = True
-
-        if node.iffalse is not None:
-            self.currentBlock.next_block = falseBlock
-            self.currentBlock = falseBlock
-            # self.code.append(('jump', exit_label))
-            # self.code.append((false_label[1:],))
-            self.visit(node.iffalse)
-            if self.currentBlock.generateJump():
-                self.currentBlock.append(('jump', exitBlock.label))
-                self.currentBlock.branch = exitBlock
-                exitBlock.predecessors.add(self.currentBlock)
-                _dump_exitBlock = True
-            # self.code.append((exit_label[1:],))
-        if _dump_exitBlock:
-            self.currentBlock.next_block = exitBlock
-            self.currentBlock = exitBlock
-        # else:
-        #     self.code.append((false_label[1:],))
-        # self.currentBlock.next_block = exitBlock
-        # self.currentBlock = exitBlock
-
-    def visit_For(self, node):
-        self.visit(node.init)
-
-        increase_label = self.new_temp()
-        body_label = self.new_temp()
-        exit_label = self.new_temp()
-        cond_label = self.new_temp()
-
-        increaseBlock = BasicBlock(increase_label)
-        conditionBlock = ConditionalBlock(cond_label)
-        bodyBlock = BasicBlock(body_label)
-        exitBlock = BasicBlock(exit_label)
-
-        node.exit_label = exitBlock
-        self.currentBlock.append(('jump', cond_label))
-        # self.code.append((entry_label[1:],))
-
-        self.currentBlock.next_block = conditionBlock
-        self.currentBlock.branch = conditionBlock
-        conditionBlock.predecessors.append(self.currentBlock)
-        self.currentBlock = conditionBlock
-        self.visit(node.cond)
-        inst = ('cbranch', node.cond.gen_location, bodyBlock.label, exitBlock.label)
-        # self.code.append(inst)
-        self.currentBlock.append(inst)
-
-        self.currentBlock.next_block = bodyBlock
-        self.currentBlock.taken = bodyBlock
-        self.currentBlock.fall = exitBlock
-        bodyBlock.predecessors.append(self.currentBlock)
-        exitBlock.predecessors.append(self.currentBlock)
-        self.currentBlock = bodyBlock
-
-        # self.code.append((body_label[1:],))
-        self.visit(node.stmt)
-        if len(self.currentBlock.instructions) > 0 and self.currentBlock.instructions[-1][0] != 'jump':
-            self.currentBlock.instructions.append(('jump', increaseBlock.label))
-            self.currentBlock.branch = increaseBlock
-            increaseBlock.predecessors.append(self.currentBlock)
-
-        self.currentBlock.next_block = increaseBlock
-        self.currentBlock = increaseBlock
-        self.visit(node.next)
-        if len(self.currentBlock.instructions) > 0 and  self.currentBlock.instructions[-1][0] != 'jump':
-            self.currentBlock.instructions.append(('jump', conditionBlock.label))
-            self.currentBlock.branch = conditionBlock
-            conditionBlock.predecessors.append(self.currentBlock)
-
-        self.currentBlock.next_block = exitBlock
-        exitBlock.predecessors.append(self.currentBlock)
-        self.currentBlock = exitBlock
-        # self.code.append(('jump', entry_label))
-        # self.code.append((exit_label[1:],))
-
-    def visit_While(self, node):
-        while_label = self.new_temp()
-        body_label = self.new_temp()
-        exit_label = self.new_temp()
-
-        whileBlock = ConditionalBlock(while_label)
-        bodyBlock = BasicBlock(body_label)
-        exitBlock = BasicBlock(exit_label)
-
-        # self.currentBlock.next_block = whileBlock
-
-        node.exit_label = exitBlock
-        self.currentBlock.append(('jump', whileBlock.label))
-        self.currentBlock.next_block = whileBlock
-        self.currentBlock.branch = whileBlock
-        whileBlock.predecessors.add(self.currentBlock)
-
-        self.currentBlock = whileBlock
-        self.visit(node.cond)
-        inst = ('cbranch', node.cond.gen_location, bodyBlock.label, exitBlock.label)
-        # self.code.append(inst)
-        self.currentBlock.append(inst)
-        self.currentBlock.taken = bodyBlock
-        self.currentBlock.fall = exitBlock
-        exitBlock.predecessors.add(self.currentBlock)
-
-        # self.code.append((true_label[1:],))
-        self.currentBlock.next_block = bodyBlock
-        bodyBlock.predecessors.add(self.currentBlock)
-        self.currentBlock = bodyBlock
-
-        if node.stmt is not None:
-            self.visit(node.stmt)
-        if self.currentBlock.generateJump():
-            self.currentBlock.instructions.append(('jump', whileBlock.label))
-            self.currentBlock.branch = whileBlock
-            whileBlock.predecessors.add(self.currentBlock)
-
-        self.currentBlock.next_block = exitBlock
-        exitBlock.predecessors.add(self.currentBlock)
-        self.currentBlock = exitBlock
-
-
-    def visit_Type(self, node):
-        pass
-
-    def visit_FuncDecl(self, node):
-        self.fname = "@" + node.type.declname.name
-        _typename = self.ftype.names[-1].typename
-        _args = []
-
-        if node.args is not None:
-            self.clean()
-            for _param in node.args.params:
-                # self.enqueue(self.new_temp())
-                _loc = self.new_temp()
-                self.enqueue(_loc)
-                _args.append((self.getTypeName(_param.type), _loc))
-
-        self.currentBlock.append(('define_' + _typename, self.fname, _args))
-        node.type.declname.gen_location = self.fname
-
-        funcBlock = BasicBlock('%entry')
-        self.currentBlock.next_block = funcBlock
-        self.currentBlock.branch = funcBlock
-        funcBlock.predecessors.append(self.currentBlock)
-        self.currentBlock = funcBlock
-
-        if _typename != 'void':
-            self.ret_location = self.new_temp()
-            self.currentBlock.append(('alloc_' + _typename, self.ret_location))
-
-        self.alloc_phase = 'arg_decl'
-        if node.args is not None:
-            for _arg in node.args:
-                self.visit(_arg)
-
-    def visit_ArrayDecl(self, node, decl, dim):
-        _type = node
-        dim += "_" + str(node.dim.value)
-        while not isinstance(_type, VarDecl):
-            _type = _type.type
-            if isinstance(_type, ArrayDecl):
-                dim += "_" + str(_type.dim.value)
-            elif isinstance(_type, PtrDecl):
-                dim += "_*"
-        self.visit_VarDecl(_type, decl, dim)
-
-    def visit_PtrDecl(self, node, decl, dim):
-        _type = node
-        dim += "_*"
-        while not isinstance(_type, VarDecl):
-            _type = _type.type
-            if isinstance(_type, PtrDecl):
-                dim += "_*"
-            elif isinstance(_type, ArrayDecl):
-                dim += "_" + str(_type.dim.value)
-        self.visit_VarDecl(_type, decl, dim)
+                funcs.insere(_decl.blocks)
+                # opt=Optimization(_decl.cfg,_decl.blocks,self.code,_decl.get_begin(),_decl.get_end())
+                # opt.optimization()
+                # _decl.reset()
+                if (self.cfg):
+                    dot = CFG(_decl.decl.id.name)
+                    dot.view(_decl.cfg)
+        self.clear_None()
+        _llvm = LLVMFunctionVisitor(funcs, self.decl_glob, self.code)
+        # _llvm.gen_llvm()
+
+        self.code_opt = self.decl_glob + self.code
+        # self.code=self.decl_glob+code
+        self.code = self.decl_glob + self.code
 
     def visit_GlobalDecl(self, node):
-        for _decl in node.decls:
-            if not isinstance(_decl.type, FuncDecl):
-                self.visit(_decl)
+        self.assert_declarations_gloabals_before(node.gdecls or [])
 
-    def _globalLocation(self, node, decl, dim):
-        _type = node.type.names[-1].typename
-        if dim is not None:
-            _type += dim
-        _varname = "@" + node.declname.name
-        if decl.init is None:
-            self.text.append(('global_' + _type, _varname))
-            self.currentBlock.instructions.append(('global_' + _type, _varname))
-        elif isinstance(decl.init, Constant):
-            self.text.append(('global_' + _type, _varname, decl.init.value))
-            self.currentBlock.instructions.append(('global_' + _type, _varname, decl.init.value))
-        elif isinstance(decl.init, InitList):
-            self.visit(decl.init)
-            self.text.append(('global_' + _type, _varname, decl.init.value))
-            self.currentBlock.instructions.append(('global_' + _type, _varname, decl.init.value))
-        node.declname.gen_location = _varname
+    def visit_FuncDef(self, node):
 
-    def _loadLocation(self, node):
-        _varname = self.new_temp()
-        _typename = node.type.names[-1].typename
-        if isinstance(node, ArrayRef):
-            _typename += '_*'
-        elif isinstance(node.bind, ArrayDecl):
-            _typename += '_' + str(node.bind.dim.value)
-        inst = ('load_' + _typename, node.gen_location, _varname)
-        self.code.append(inst)
-        self.currentBlock.instructions.append(inst)
-        node.gen_location = _varname
+        name = node.decl.id.name
+        self.scope_current.table_type.add(f'@{name}', node.type)
 
-    def _storeLocation(self, typename, init, target):
-        self.visit(init)
-        if isinstance(init, ID) or isinstance(init, ArrayRef):
-            self._loadLocation(init)
-        elif isinstance(init, UnaryOp) and init.op == '*':
-            self._loadReference(init)
-        inst = ('store_' + typename, init.gen_location, target)
-        self.code.append(inst)
-        self.currentBlock.instructions.append(inst)
+        escopo = copy.deepcopy(self.scope_current)
+        escopo.set_name(name)
+        self.scope_current = escopo
+        self.scopes[name] = escopo
+        self.param_bool = True
+        # escopo.new_temp()#Começamos no 1
 
-    def visit_VarDecl(self, node, decl, dim):
-        if node.declname.scope == 1:
-            self._globalLocation(node, decl, dim)
+        inst_def = [f'define_{node.type.names}', '@' + name, []]
+
+        head_block = Block('define ' + '@' + name)
+        self.block_current = head_block
+
+        self.block_current.append(inst_def)
+        self.code.append(inst_def)
+        self.block_current = head_block
+        node.begin = self.count
+
+        inst2 = ['%entry', ]
+        self.block_current.append(inst2)
+        self.code.append(inst2)
+
+        # \\\\\\\ Criamos um novo bloco para cada função////////#
+        # self.code.append(inst2)
+        node.cfg = self.block_current
+
+        label = "%exit"  # label
+        escopo.table_type.add(label, node.type)
+        type_return = node.type.names
+        type = node.type.names
+        if (node.type.names != "void"):
+            target = escopo.new_temp()
+            escopo.table.add(label, target)
+            inst = [f'alloc_{type}', target]
+            self.code.append(inst)
+            self.block_current.append(inst)
+            var_return = target
+        params = []
+        if (node.decl.funcdecl.paramlist):
+            params = node.decl.funcdecl.paramlist.params
+        # Percorremos paramlist para associar cada entrada a uma variável
+        for decl in params:
+            t = escopo.new_temp()
+            escopo.table.add(decl.id.name + '_in', t)
+            escopo.table_type.add(decl.id.name + '_in', decl.vardecl.type)
+            escopo.param_list.append([t, None, decl.vardecl.type.names])
+            inst_def[2].append([decl.vardecl.type.names, t])
+
+        # Variável que será o retorno da função
+        # if(node.type.names!="void")
+        label = "%exit"  # label
+        escopo.table_type.add(label, node.type)
+        type_return = node.type.names
+        # Término da função
+        block_end = Block(label)
+        self.stack_for.empilha(block_end)
+
+        escopo.table.add('%saida', block_end)
+
+        # Alocamos variáveis locais
+
+        for i, decl in enumerate(params):
+            target = escopo.new_temp()
+            escopo.table.add(decl.id.name, target)
+            escopo.table_type.add(decl.id.name, decl.vardecl.type)
+            type = decl.vardecl.type.names
+            inst = [f'alloc_{type}', target]
+            escopo.param_list[i][1] = target
+            self.code.append(inst)
+            self.block_current.append(inst)
+
+        if (node.comp):
+            self.visit(node.comp)
+
+        target = self.scope_current.new_temp()
+        if (type_return == 'void'):
+            inst1 = ['exit', ]
+            inst2 = [f'return_{type_return}']
+            block_end.append(inst1)
+            block_end.append(inst2)
+            self.code.append(inst1)
+            self.code.append(inst2)
         else:
-            _typename = node.type.names[-1].typename + dim
-            if self.alloc_phase == 'arg_decl' or self.alloc_phase == 'var_decl':
-                _varname = self.new_temp()
-                inst = ('alloc_' + _typename, _varname)
+
+            inst1 = ['exit']
+            inst2 = [f'load_{type_return}', var_return, target]
+            inst3 = [f'return_{type_return}', target]
+
+            block_end.append(inst1)
+            block_end.append(inst2)
+            block_end.append(inst3)
+            self.code.append(inst1)
+            self.code.append(inst2)
+            self.code.append(inst3)
+
+        node.end = self.count
+        self.block_current.next_block = block_end
+        block_end.predecessors.append(self.block_current)
+        self.block_current = block_end
+        self.param_bool = False
+
+    def visit_Compound(self, node):
+        # A função abaixo trata todas as possíveis declarações de uma função e faz as devidas alocações
+
+        self.alloc_declarations_list(node.decl)
+        self.alloc_declarations_sts(node.st)
+        # Store os parametros
+        if (self.param_bool):
+            self.param_bool = False
+            for param in self.scope_current.param_list:
+                inst = [f'store_{param[2]}', param[0], param[1]]
                 self.code.append(inst)
-                self.currentBlock.instructions.append(inst)
-                node.declname.gen_location = _varname
-                decl.name.gen_location = _varname
-            elif self.alloc_phase == 'arg_init':
-                inst = ('store_' + _typename, self.dequeue(), node.declname.gen_location)
+                self.block_current.append(inst)
+
+        self.store_declarations_list(node.decl)
+        self.store_declarations_sts(node.st)
+
+        if (node.st[0]):
+            for no in node.st:
+                self.visit(no)
+
+    def visit_For(self, node):
+
+        self.stk_sco.empilha(self.scope_current)
+        escopo = copy.deepcopy(self.scope_current)  # Cria um novo escopo cópia, assim ele pode enxergar fora e dentro
+        self.scope_current = escopo
+
+        # Visitamos o campo init do for
+        if (isinstance(node.init, DeclList)):
+            pass
+        else:
+            self.visit(node.init)
+
+        label0 = escopo.new_temp()
+        label1 = escopo.new_temp()
+        label2 = escopo.new_temp()
+        label3 = escopo.new_temp()
+
+        # \\\\\\\Criamos os 4 blocos do FOR: cond, True e False e incr
+        block1 = ConditionBlock(label1)
+        blockT = Block(label2)
+        blockF = Block(label3)
+        block_incr = Block(label0)
+
+        # Se caso houver um break dentro do for atual,o bloco que está com break será encaminhado para a saída dor FOR (blockF)
+        self.stack_for.empilha(blockF)
+
+        # Linkamos o bloco atual ao block1
+        self.link_blocks(block1)
+        self.block_current.next_block = block1
+        block1.predecessors.append(self.block_current)
+
+        # Montamos as arestas do grafo
+        block1.next_block = blockT
+        block1.fall_through = blockF
+        block_incr.next_block = block1
+        blockT.predecessors.append(block1)
+        blockF.predecessors.append(block1)
+        block1.predecessors.append(block_incr)
+
+        # Construímos bloco head do FOR
+        self.block_current = block1
+        inst1 = [label1[1:], ]
+        self.code.append(inst1)
+        self.block_current.append(inst1)
+        self.visit(node.cond)  # Visit
+        inst = ['cbranch', node.cond.gen_location, label2, label3]
+        self.code.append(inst)
+        self.block_current.append(inst)
+        # Fim
+
+        # Construimos o block body do for
+        self.block_current = blockT
+        inst2 = [label2[1:], ]
+        self.code.append(inst2)
+        self.block_current.append(inst2)
+        if (node.stmt):     self.visit(node.stmt)  # visit
+        # Fim
+
+        # Linkamos o bloco atual ao bloco incremento
+        self.link_blocks(block_incr)
+        self.block_current.next_block = block_incr
+
+        # Bloco de Incremento
+        self.block_current = block_incr
+        inst_inc = [block_incr.label[1:], ]
+        self.block_current.append(inst_inc)
+        self.code.append(inst_inc)
+        self.visit(node.next)  # Visit
+        self.link_blocks(block1)
+        # Fim
+
+        # Construimos o block de saída do  for
+        self.block_current = blockF
+        inst4 = [label3[1:], ]
+        self.code.append(inst4)
+        self.block_current.append(inst4)
+        # Fim
+
+        # Saímos dor for
+        self.stack_for.desempilha()
+
+        escopo = self.scope_current
+        self.scope_current = self.stk_sco.desempilha()
+        self.scope_current.vars[escopo.name] = escopo.vars[escopo.name]
+
+    def visit_While(self, node):
+        self.stk_sco.empilha(self.scope_current)
+        escopo = copy.deepcopy(self.scope_current)  # Cria um novo escopo cópia, assim ele pode enxergar fora e dentro
+        self.scope_current = escopo
+
+        # Se for uma bloco com apenas uma label, fazemos ele ser a label atual
+
+        # Criamos 3 blocos: cond, blockT e blockF
+        label1 = escopo.new_temp()
+        label2 = escopo.new_temp()
+        label3 = escopo.new_temp()
+
+        # \\\\\\\Criamos os 3 blocos do FOR: cond, True e False
+        block1 = ConditionBlock(label1)
+        blockT = Block(label2)
+        blockF = Block(label3)
+
+        # Se caso houver um break dentro do for atual,o bloco que está com break será encaminhado para a saída do While(blockF)
+        self.stack_for.empilha(blockF)
+
+        # Linkamos o bloco atual ao block1
+        self.link_blocks(block1)
+        self.block_current.next_block = block1
+        block1.predecessors.append(self.block_current)
+
+        # Montamos as arestas do grafo
+        block1.next_block = blockT
+        block1.fall_through = blockF
+        blockT.next_block = block1
+        blockT.predecessors.append(block1)
+        blockF.predecessors.append(block1)
+        block1.predecessors.append(blockT)
+
+        # Construímos bloco 1
+        self.block_current = block1
+        self.visit(node.cond)
+        inst = ['cbranch', node.cond.gen_location, label2, label3]
+        self.code.append(inst)
+        self.block_current.append(inst)
+        # Fim
+
+        # Construimos o block body do for
+        self.block_current = blockT
+        inst2 = [label2[1:], ]
+        self.code.append(inst2)
+        self.block_current.append(inst2)
+        if (node.stmt):     self.visit(node.stmt)
+
+        # Linkamos o bloco corrente ao block1
+        self.link_blocks(block1)
+        self.block_current.next_block = block1
+
+        # Bloco de saída do while
+        self.block_current = blockF
+        inst4 = [label3[1:], ]
+        self.code.append(inst4)
+        self.block_current.append(inst4)
+        # Fim
+
+        self.stack_for.desempilha()
+
+        escopo = self.scope_current
+        self.scope_current = self.stk_sco.desempilha()
+        self.scope_current.vars[escopo.name] = escopo.vars[escopo.name]
+
+    def visit_If(self, node):
+
+        # Transformamos o bloco atual em um condicional bloco
+        self.block_current.changeClass(self.block_current, ConditionBlock)
+
+        label1 = self.scope_current.new_temp()
+        label2 = self.scope_current.new_temp()
+
+        block_then = Block(label1)
+        block_else = Block(label2)
+
+        # Monstamos o grafo
+        self.block_current.next_block = block_then
+        self.block_current.fall_through = block_else
+        block_then.predecessors.append(self.block_current)
+        block_else.predecessors.append(self.block_current)
+
+        if (node.iftrue and node.iffalse):
+
+            label3 = self.scope_current.new_temp()  # Servirá como label de saída do if-else
+
+            block_out = Block(label3)
+            block_then.next_block = block_out
+            block_else.next_block = block_out
+
+            # Condição
+            self.visit(node.cond)
+            inst1 = ['cbranch', node.cond.gen_location, label1, label2]
+            self.code.append(inst1)
+            self.block_current.append(inst1)
+
+            # BlocoThen
+            self.block_current = block_then
+            inst2 = [label1[1:], ]
+            self.code.append(inst2)
+            self.block_current.append(inst2)
+            self.visit(node.iftrue)
+
+            # Aceitamos que o bloco que o  break chama ganhe jump duplo
+            self.link_blocks(block_out)
+
+            # BlocoElse
+            self.block_current = block_else
+            inst4 = [label2[1:], ]
+            self.code.append(inst4)
+            self.block_current.append(inst4)
+            self.visit(node.iffalse)
+            # Fim
+
+            # Aceitamos que o bloco que o  break chama ganhe jump duplo
+            self.link_blocks(block_out)
+            # Fim
+
+            # Bloco de saída
+            self.block_current = block_out
+            inst5 = [label3[1:], ]
+            self.code.append(inst5)
+            self.block_current.append(inst5)
+
+            self.block_current = block_out
+
+        else:
+
+            block_then.next_block = block_else  # Se não tivermos o else, o bloco de saída será o bloco_else
+            block_else.predecessors.append(block_then)
+
+            # Condição
+            self.visit(node.cond)
+            inst1 = ['cbranch', node.cond.gen_location, label1, label2]
+            self.code.append(inst1)
+            self.block_current.append(inst1)
+
+            # BlocoThen
+            self.block_current = block_then
+            inst2 = [label1[1:], ]
+            self.code.append(inst2)
+            self.block_current.append(inst2)
+            self.visit(node.iftrue)
+            # Fim
+
+            self.link_blocks(block_else)
+
+            # Bloco out =Block else nesse caso
+            self.block_current = block_else
+            inst3 = [label2[1:], ]
+            self.code.append(inst3)
+            self.block_current.append(inst3)
+
+    def visit_Break(self, node):
+        block = self.stack_for.top()
+        self.link_blocks(block)
+        self.block_current.next_block = block
+
+    def visit_Assert(self, node):
+        self.visit(node.expr)
+        self.block_current.changeClass(self.block_current, ConditionBlock)
+        # self.code
+        label1 = self.scope_current.new_temp()
+        label2 = self.scope_current.new_temp()
+
+        block_True = Block(label1)
+        block_False = Block(label2)
+        block_exit = self.scope_current.table.lookup("%saida")
+
+        # Precedências e Sucessores
+        self.block_current.next_block = block_True
+        self.block_current.fall_through = block_False
+        block_True.predecessors.append(self.block_current)
+        block_False.predecessors.append(self.block_current)
+        block_False.next_block = block_exit
+        block_exit.predecessors.append(block_False)
+
+        inst0 = ['cbranch', node.expr.gen_location, label1, label2]
+        self.block_current.append(inst0)
+        self.code.append(inst0)
+
+        # Bloco False
+        inst3 = [label2[1:], ]
+        target = self.new_heap()
+        inst_3_4 = ['global_string', target, f'assertion_fail on  {node.coord.line}:{node.coord.column}']
+        inst4 = ['print_string', target]
+        inst5 = ['jump', "%exit"]  # pra um lugar certo
+        block_False.append(inst3)
+        block_False.append(inst4)
+        block_False.append(inst5)
+        self.code.append(inst3)
+        self.code.append(inst4)
+        self.code.append(inst5)
+        self.decl_glob.append(inst_3_4)
+
+        # Bloco True
+        inst1 = [label1[1:], ]
+        block_True.append(inst1)
+        self.code.append(inst1)
+
+        # label3, Continuação do True
+        self.block_current = block_True
+
+    def visit_FuncCall(self, node):
+        name = node.name.name
+        aux = []
+        if node.args:
+            for param in (node.args.exprs):
+                self.visit(param)
+                # E se for um vetor, função etc?
+                type = param.type_name
+                inst = [f'param_{type}', param.gen_location]
+                aux.append(inst)
+                # self.code.append(inst1)
+
+            for i in range(len(aux)):
+                self.code.append(aux[i])
+                self.block_current.append(aux[i])
+
+        target = self.scope_current.new_temp()
+        inst = [f'call', f'@{name}', target]
+        node.gen_location = target
+        node.type_name = self.scope_current.table_type.lookup(f'@{name}').names
+        self.code.append(inst)
+        self.block_current.append(inst)
+
+    ################################Arrumados
+
+    def visit_Return(self, node):
+        escopo = self.scope_current
+        label = "%exit"
+        block_exit = self.scope_current.table.lookup("%saida")
+        self.block_current.next_block = block_exit
+        block_exit.predecessors.append(self.block_current)
+
+        if (node.expr):
+            self.visit(node.expr)
+            var_return = escopo.table.lookup(label)
+            type = escopo.table_type.lookup(label).names
+            result = node.expr.gen_location
+            inst1 = [f'store_{type}', result, var_return]
+            inst2 = ['jump', label]
+            self.code.append(inst1)
+            self.code.append(inst2)
+            self.block_current.append(inst1)
+            self.block_current.append(inst2)
+        else:
+            inst = ['jump', label]
+            self.code.append(inst)
+            self.block_current.append(inst)
+
+    def visit_Read(self, node):
+        if (node.expr and isinstance(node.expr[0], list)):
+            for no in node.expr:
+                self.visit(no)
+                inst = [f'read_{no.type_name}', no.gen_location]
                 self.code.append(inst)
-                self.currentBlock.instructions.append(inst)
-            elif self.alloc_phase == 'var_init':
-                if decl.init is not None:
-                    self._storeLocation(_typename, decl.init, node.declname.gen_location)
+                self.block_current.append(inst)
+
+        elif (node.expr and isinstance(node.expr[0], ExprList)):
+            for no in (node.expr[0].exprs or []):
+                self.visit(no)
+                inst = (f'read_{no.type_name}', no.gen_location)
+                self.code.append(inst)
+                self.block_current.append(inst)
+        elif (node.expr):
+            no = node.expr[0]
+            self.visit(no)
+            inst = [f'read_{no.type_name}', no.gen_location]
+            self.code.append(inst)
+            self.block_current.append(inst)
+
+        else:
+            inst = ['read_void', ]
+            self.code.append(inst)
+            self.block_current.append(inst)
+
+    def visit_ExprList(self, node):
+        for no in node.exprs:
+            self.visit(no)
+
+    def visit_Print(self, node):
+
+        if (node.expr):
+            if (isinstance(node.expr, ExprList)):
+                for e in node.expr.exprs:
+                    if (isinstance(e, Constant) and e.type == 'string'):
+                        target = self.new_heap()
+                        inst1 = [f'global_{e.type}_{len(e.value)}', target, e.value[1:-1]]
+                        inst2 = ['print_string', target]
+                        self.code.append(inst2)
+                        self.block_current.append(inst2)
+                        self.decl_glob.append(inst1)
+
+                    else:
+                        inst2 = None
+                        self.visit(e)
+                        tgt = self.scope_current.new_temp()
+                        inst1 = [f'load_{e.type_name}', e.gen_location, tgt]
+                        if (e.type_name[-1] == '*'):
+                            inst2 = [f'print_{e.type_name[:-2]}', tgt]
+                        else:
+                            inst2 = [f'print_{e.type_name}', tgt]
+                        self.code.append(inst1)
+                        self.code.append(inst2)
+                        self.block_current.append(inst1)
+                        self.block_current.append(inst2)
+            else:
+                inst2 = None
+                self.visit(node.expr)
+                # tgt=self.scope_current.new_temp()
+                tgt = node.expr.gen_location
+                # inst1=[f'load_{node.expr.type_name}',node.expr.gen_location,tgt]
+                if (node.expr.type_name[-1] == '*'):
+                    inst2 = [f'print_{node.expr.type_name[:-2]}', tgt]
+                else:
+                    inst2 = [f'print_{node.expr.type_name}', tgt]
+                # self.code.append(inst1)
+                self.code.append(inst2)
+                # self.block_current.append(inst1)
+                self.block_current.append(inst2)
+
+        else:
+            inst = ['print_void', ]
+            self.code.append(inst)
+            self.block_current.append(inst)
+
+    def visit_Assignment(self, node):
+        escopo = self.scope_current
+        flag = False
+
+        if (node.op != '='):   flag = True
+        if (isinstance(node.lvalue, ArrayRef)):
+
+            self.visit(node.rvalue)
+            self.visit(node.lvalue)
+            name = node.lvalue.gen_name
+            type1 = node.rvalue.type_name
+            type2 = node.lvalue.type_name
+            tgt = self.scope_current.new_temp()
+            inst1 = [f'load_{type1}', node.rvalue.gen_location, tgt]
+            inst2 = [f'store_{type2}', tgt, node.lvalue.gen_location]
+            self.code.append(inst1)
+            self.code.append(inst2)
+            self.block_current.append(inst1)
+            self.block_current.append(inst2)
+
+
+
+        else:
+            type = escopo.table_type.lookup(node.lvalue.name).names
+
+            if (isinstance(node.rvalue, UnaryOp)):
+                # Aquii
+                var = escopo.table.lookup(node.lvalue.name)
+                if (node.rvalue.op == '&'):
+                    self.visit(node.rvalue)
+                    inst = [f'{self.unary_ops.get(node.rvalue.op)}_{type}', node.rvalue.gen_location, var]
+                    node.gen_location = var
+                    self.code.append(inst)
+                    self.block_current.append(inst)
+                elif (node.rvalue.op == '++'):
+
+                    self.visit(node.rvalue)
+                    inst = [f'store_{type}', node.rvalue.gen_location, var]
+                    node.gen_location = var
+                    self.code.append(inst)
+                    self.block_current.append(inst)
+                elif (node.rvalue.op == 'p++'):
+
+                    self.visit(node.rvalue.left)
+                    inst = [f'store_{type}', node.rvalue.left.gen_location, var]
+                    node.gen_location = var
+                    self.code.append(inst)
+                    self.block_current.append(inst)
+                    self.visit(node.rvalue)
+                else:
+                    self.visit(node.rvalue)
+
+            elif (isinstance(node.rvalue, ArrayRef)):
+                self.visit(node.rvalue)
+                target = escopo.new_temp()
+                type1 = escopo.table_type.lookup(node.rvalue.gen_name).names
+                inst1 = [f'load_{type1}', node.rvalue.gen_location, target]
+
+                var = escopo.table.lookup(node.lvalue.name)
+                type2 = escopo.table_type.lookup(node.lvalue.name).names
+                inst2 = [f'store_{type2}', target, var]
+
+                self.code.append(inst1)
+                self.code.append(inst2)
+                self.block_current.append(inst1)
+                self.block_current.append(inst2)
+
+            else:
+                # Cast,Constant, BinaryOp,ID
+                if (flag):
+                    bin = BinaryOp(op=self.assign_op.get(node.op), left=node.lvalue, right=node.rvalue)
+                    self.visit(bin)
+                    inst = [f'store_{type}', bin.gen_location, escopo.table.lookup(node.lvalue.name)]
+                    node.gen_location = escopo.table.lookup(node.lvalue.name)
+
+
+                else:
+                    self.visit(node.rvalue)
+                    inst = [f'store_{type}', node.rvalue.gen_location, escopo.table.lookup(node.lvalue.name)]
+                    node.gen_location = escopo.table.lookup(node.lvalue.name)
+
+                self.code.append(inst)
+                self.block_current.append(inst)
+
+    def visit_ArrayRef(self, node):
+        escopo = self.scope_current
+        self.visit(node.name)
+        self.visit(node.subscript)
+        if (node.subscript.type_name == 'float' or node.name.type_name == 'float'):
+            node.type_name = 'float'
+        elif (node.subscript.type_name == 'int' or node.name.type_name == 'int'):
+            node.type_name = 'int'
+        else:
+            node.type_name = 'char'
+        type = node.type_name
+        node.gen_name = node.name.gen_name
+        inst1, inst2, inst3, inst4, inst5 = None, None, None, None, None
+        node.type_name = type
+        if (isinstance(node.name, ID)):
+            dim = self.scope_current.table.lookup(self.scope_current.table.lookup(node.name.name))
+            literal = 1
+            if (dim):
+                for i in dim[1:]:   self.array_ref.insere(i)
+                literal = dim[0]
+            tgt1 = escopo.new_temp()
+            tgt3 = escopo.new_temp()
+            tgt4 = escopo.new_temp()
+            var1 = node.subscript.gen_location
+            var2 = node.name.gen_location
+            inst1 = [f'literal_int', literal, tgt1]
+            inst3 = [f'mul_int', tgt1, var1, tgt3]
+            node.gen_location = tgt3
+            self.array_name.empilha(node.name.gen_location)
+            self.array_name.empilha(node.name.name)
+            if (self.array_ref.vazia()):
+                type = self.scope_current.table_type.lookup(self.array_name.desempilha()).names.split('_')[0]
+                inst4 = [f'elem_{type}', self.array_name.desempilha(), tgt3, tgt4]
+                node.type_name = f'{type}_*'
+                node.gen_location = tgt4
+            node.gen_name = node.name.name
+        else:
+            literal = self.array_ref.retira()
+            tgt1 = escopo.new_temp()
+            tgt3 = escopo.new_temp()
+            tgt4 = escopo.new_temp()
+            var1 = node.subscript.gen_location
+            var2 = node.name.gen_location
+            inst1 = [f'literal_int', literal, tgt1]
+            inst3 = [f'mul_int', tgt1, var1, tgt3]
+            inst4 = [f'add_int', var2, tgt3, tgt4]
+            node.gen_location = tgt4
+
+            if (self.array_ref.vazia()):
+                tgt5 = escopo.new_temp()
+                type = self.scope_current.table_type.lookup(self.array_name.desempilha()).names.split('_')[0]
+
+                inst5 = [f'elem_{type}', self.array_name.desempilha(), tgt4, tgt5]
+                node.type_name = f'{type}_*'
+                node.gen_location = tgt5
+
+        if (inst1):   self.code.append(inst1), self.block_current.append(inst1)
+        if (inst2):   self.code.append(inst2), self.block_current.append(inst2)
+        if (inst3):   self.code.append(inst3), self.block_current.append(inst3)
+        if (inst4):   self.code.append(inst4), self.block_current.append(inst4)
+        if (inst5):   self.code.append(inst5), self.block_current.append(inst5)
+
+    def visit_Cast(self, node):
+        escopo = self.scope_current
+        self.visit(node.expr)
+        target = escopo.new_temp()
+
+        if (node.to_type.names == "int"):
+            inst = ['fptosi', node.expr.gen_location, target]
+            node.type_name = 'int'
+        else:
+            inst = ['sitofp', node.expr.gen_location, target]
+            node.type_name = 'float'
+        node.gen_location = target
+
+        self.code.append(inst)
+        self.block_current.append(inst)
+
+    def visit_BinaryOp(self, node):
+        # Visit the left and right expressions
+        escopo = self.scope_current
+        self.visit(node.left)
+        self.visit(node.right)
+        if (node.left.type_name == 'float' or node.left.type_name == 'float'):
+            node.type_name = 'float'
+        elif (node.left.type_name == 'int' or node.left.type_name == 'int'):
+            node.type_name = 'int'
+        elif (node.left.type_name == 'bool' or node.left.type_name == 'bool'):
+            node.type_name = 'bool'
+        else:
+            node.type_name = 'char'
+        type = node.type_name
+        target = escopo.new_temp()
+        # Create the opcode and append to list
+        opcode = self.binary_ops[node.op] + "_" + type
+
+        inst = [opcode, node.left.gen_location, node.right.gen_location, target]
+        if (node.op in self.binary_bool):                node.type_name = 'bool'
+
+        node.gen_location = target
+        self.code.append(inst)
+        self.block_current.append(inst)
+
+    def visit_ID(self, node):
+        # Preciso vincular cada vsriaavel com um tipo
+        escopo = self.scope_current
+        node.type = escopo.table_type.lookup(node.name)
+        if (isinstance(node.type, Type)):
+            node.type_name = node.type.names
+        else:
+            node.type_name = node.type
+        target = escopo.new_temp()
+        node.gen_name = node.name
+        inst = [f'load_{node.type_name}', escopo.table.lookup(node.name), target]
+
+        node.gen_location = target
+        self.code.append(inst)
+        self.block_current.append(inst)
+
+    def visit_Constant(self, node):
+        escopo = self.scope_current
+        target = escopo.new_temp()
+        inst = [f'literal_{node.type}', node.value, target]
+        node.type_name = node.type
+        node.gen_location = target
+
+        self.code.append(inst)
+        self.block_current.append(inst)
+
+    def visit_UnaryOp(self, node):
+        escopo = self.scope_current
+        if node.right: self.visit(node.right)
+
+        inst1, inst2 = None, None
+        target = None
+        name = node.left.name
+
+        type = escopo.table_type.lookup(name)
+        if (type):
+            type = type.names
+        else:
+            type = node.left.type_name
+
+        if (not (node.op == '&')):
+            self.visit(node.left)
+            target = escopo.new_temp()
+
+            inst1 = [f'{self.unary_ops[node.op]}_{type}', node.left.gen_location, node.right.gen_location, target]
+            inst2 = [f'store_{type}', target, escopo.table.lookup(name)]
+            node.gen_location = target
+
+        elif (node.op == '&'):
+            self.visit(node.left)
+            node.gen_location = node.left.gen_location
+
+        if inst1:
+            self.code.append(inst1)
+            self.block_current.append(inst1)
+        if inst2:
+            self.code.append(inst2)
+            self.block_current.append(inst2)
+
+    def get_literal(self, node):
+        self.scope_current.name_array = self.scope_current.name
+        if (node.arraydecl and node.const):
+            # char a="string";
+
+            return (self.new_heap(), node.const.value)
+        elif (node.const):
+            # int x=1;
+            return (node.const.value, None)
+        elif (node.arraydecl and node.initlist):
+            return []
+            # x[]={{1,2},{1,2}...}
+        elif (node.arraydecl and node.arraydecl.dim):
+            nada = True
+        elif (node.ptrs):
+            return []
+        else:
+            return []
+
+    def alloc_declarations_list(self, decls):
+        escopo = self.scope_current
+        if (decls[0]):
+            for nod in decls:
+                for no in nod:
+                    aux1 = escopo.new_temp()
+                    name = no.id.name
+                    escopo.table.add(no.id.name, aux1)
+                    escopo.table_type.add(no.id.name, no.vardecl.type)
+                    inst = None
+                    dim = None
+                    if (no.arraydecl and no.const):
+                        # char a="string";
+                        no.vardecl.type.names = 'char'
+                        escopo.table_type.add(no.id.name, no.vardecl.type)
+                        no.vardecl.type.names += f'_{len(no.const.value) - 2}'
+
+                        inst = [f'alloc_{no.vardecl.type.names}', aux1]
+                        dim = [len(no.const.value) - 2]
+                        escopo.table.add(aux1, dim)
+
+                    elif (no.const):
+                        # int x=1;
+
+                        inst = [f'alloc_{no.vardecl.type.names}', aux1]
+                    elif (no.arraydecl and no.initlist):
+                        # x[]={{1,2},{1,2}...}
+                        init = no.initlist
+                        string = f'alloc_{no.vardecl.type.names}_{len(init.exprs)}'
+                        dim = [len(init.exprs)]
+                        no.vardecl.type.names += f'_{len(init.exprs)}'
+
+                        init = init.exprs[0]
+                        while (isinstance(init, InitList) and len(init.exprs) > 1):
+                            string = string + f'_{len(init.exprs)}'
+                            no.vardecl.type.names += f'_{len(init.exprs)}'
+                            dim.append(len(init.exprs))
+                            init = init.exprs[0]
+                        escopo.table.add(aux1, dim)
+                        inst = [string, aux1]
+                    elif (no.arraydecl and no.arraydecl.dim):
+                        # int x[2];
+                        arr = f'alloc_{no.vardecl.type.names}_{no.arraydecl.dim.value}'
+                        dim = [no.arraydecl.dim.value]
+                        no.vardecl.type.names += f'_{no.arraydecl.dim.value}'
+
+                        tmp = no.arraydecl.arraydecl
+                        while (tmp):
+                            if (isinstance(tmp.dim, Constant)):
+                                arr += f'_{tmp.dim.value}'
+                                no.vardecl.type.names += f'_{tmp.dim.value}'
+                                dim.append(tmp.dim.value)
+                            tmp = tmp.arraydecl
+                        escopo.table.add(aux1, dim)
+                        inst = [arr, aux1]
+                    elif (no.funccall):
+                        inst = [f'alloc_{no.vardecl.type.names}', aux1]
+                    elif (no.ptrs):
+                        part = f'alloc_{no.vardecl.type.names}'
+                        inst = [part, aux1]
+                    elif (no.id_2):
+                        inst = [f'alloc_{no.vardecl.type.names}', aux1]
+                    elif (no.binop):
+                        inst = [f'alloc_{no.vardecl.type.names}', aux1]
+
+                    else:
+                        # int x[];
+                        inst = [f'alloc_{no.vardecl.type.names}', aux1]
+
+                    if (inst):
+                        self.code.append(inst)
+                        self.block_current.append(inst)
+                    if (dim):
+                        self.lineariza(dim)
+
+    def lineariza(self, dim):
+        cop = dim.copy()
+        for i in range(len(dim)):
+            aux = 1
+            for j in range(i + 1, len(dim)):
+                aux = aux * cop[j]
+            dim[i] = aux
+
+    def store_declarations_list(self, decls):
+        # Store literais
+        escopo = self.scope_current
+        if (decls[0]):
+            for nod in decls:
+                for no in nod:
+                    aux1 = escopo.table.lookup(no.id.name)
+                    type = escopo.table_type.lookup(no.id.name)
+                    if (no.arraydecl and no.const):
+
+                        # Caso em que char ou string
+                        target = escopo.new_temp()
+                        inst1 = [f'store_{no.vardecl.type.names}', target, aux1]
+                        inst2 = [f'global_{no.vardecl.type.names}', target, list(no.const.value[1:-1])]
+                        self.code.append(inst1)
+                        self.block_current.append(inst1)
+
+                        self.decl_glob.append(inst2)
+
+                    elif (no.const):
+                        # Caso do tipo x=const;
+                        aux2 = escopo.new_temp()
+                        inst1 = [f'literal_{no.vardecl.type.names}', no.const.value, aux2]
+                        inst2 = [f'store_{no.vardecl.type.names}', aux2, aux1]
+                        self.code.append(inst1)
+                        self.code.append(inst2)
+                        self.block_current.append(inst1)
+                        self.block_current.append(inst2)
+
+                    elif (no.arraydecl and no.initlist):
+                        # caso do tipo x[]={const,const,const} or x[][]=...
+                        str_local = f'store_{no.vardecl.type.names}'
+                        str_global = f'global_{no.vardecl.type.names}'
+                        values = []
+                        self.get_Decl(no.initlist, values)
+                        target = escopo.new_temp()
+                        inst1 = [str_local, target, aux1]
+                        inst2 = [str_global, target, values]
+
+                        self.code.append(inst1)
+                        self.block_current.append(inst1)
+
+                        self.decl_glob.append(inst2)
+
+
+                    elif (no.funccall):
+                        self.visit(no.funccall)
+                        inst = [f'store_{type.names}', no.funccall.gen_location, aux1]
+                        self.code.append(inst)
+                        self.block_current.append(inst)
+
+
+                    elif (no.id_2):
+                        target = self.scope_current.new_temp()
+                        aux2 = escopo.table.lookup(no.id_2.name)
+                        inst1 = [f'load_{no.vardecl.type.names}', aux2, target]
+                        inst2 = [f'store_{no.vardecl.type.names}', target, aux1]
+                        self.code.append(inst1)
+                        self.code.append(inst2)
+                        self.block_current.append(inst1)
+                        self.block_current.append(inst2)
+                    elif (no.binop):
+                        self.visit(no.binop)
+                        inst = [f'store_{type.names}', no.binop.gen_location, aux1]
+                        self.code.append(inst)
+                        self.block_current.append(inst)
+                    else:
+                        pass
+
+    def get_Decl(self, pai, defs=[]):
+        if (not pai):    return defs
+        for filho in pai.exprs:
+            if (isinstance(filho, InitList)):
+                defs = self.get_Decl(filho, defs)
+            else:
+                if (isinstance(filho, Constant)):     defs.append(filho.value)
+        return defs
+
+    def alloc_declarations_sts(self, sts):
+        if (sts[0]):
+            for no in sts:
+                if (isinstance(no, For)):
+                    if (isinstance(no.init, DeclList)):
+                        self.alloc_declarations_list([no.init.decls])
+
+    def store_declarations_sts(self, sts):
+        if (sts[0]):
+            for no in sts:
+                if (isinstance(no, For)):
+                    if (isinstance(no.init, DeclList)):
+                        self.store_declarations_list([no.init.decls])
+
+    def link_blocks(self, block):
+        label = block.label
+        inst_jump = ["jump", label]
+        self.code.append(inst_jump)
+        self.block_current.append(inst_jump)
+        # self.block_current.next_block=block
+
+    def assert_declarations_gloabals_before(self, node):
+        "Trada declarações globais antes dos escopos das funções"
+        for decl in node:
+            name_id = decl.id.name
+            type = decl.vardecl.type
+            self.scope_current.table.add(name_id, f'@{name_id}')
+            self.scope_current.table_type.add(name_id, type)
+            literal = self.get_literal(decl)
+            if (literal):
+                if literal[1]:
+                    inst = [f'global_{type.names}', f'@{name_id}', literal[0], literal[1]]
+                else:
+                    inst = [f'global_{type.names}', f'@{name_id}', literal[0]]
+            else:
+                inst = [f'global_{type.names}', f'@{name_id}']
+            self.decl_glob.append(inst)
+
+    def clear_None(self):
+        code = []
+        for inst in self.code:
+            if (inst[0]):    code.append(inst)
+        self.code = code
+
+    def clear_jump(self, blocks):
+        for b in blocks:
+            flag = False
+            insts = []
+            for inst in b.instructions:
+                if (not flag):
+                    insts.append(inst)
+                else:
+                    inst[0] = None
+                if ('jump' == inst[0]):
+                    flag = True
+            b.instructions = insts
 
 
 class Pilha(object):
@@ -853,3 +1135,79 @@ class Fila(object):
 
     def vazia(self):
         return len(self.dados) == 0
+
+
+class Scope(object):
+    '''
+    Cada Scope nesse contexto contém:
+        -Contém um nome. Se for uma funcão conterá o nome da função. Se for um "For", terá um identificador gerado.
+         Vale ressaltar que teremos o escopo global que exerga todos os outros
+        -Uma tabela de símbolos relacionando um id a um símbolo temporário forma %n, sendo n>=0 e positivo.
+        -Uma tabela de símbolos relacionando um id a um type, como int,float etc.
+        -Um conjunto de variáveis temporárias {%0,%1,%2...%n}
+        -Um conjunto de variáveis {@.str.1,@.str.2,@.str.3...@.str.n} que tem como propósito tratar heaps
+    '''
+
+    def __init__(self, name='global'):
+
+        self.name = name  # Nome do escopo
+        self.table = SymbolTable()  # Relaciona id aos aos símbolos %n, n>=0 e inteiro
+        self.table_type = SymbolTable()  # Relaciona id aos types
+        self.vars = dict()  # Variáveis do escopo
+        self.vars[self.name] = 0
+
+        self.name_array = name  # Variavel que trata os heaps
+        self.heaps = dict()
+
+    def new_temp(self):
+        '''
+        Create a new temporary variable of a given scope (function name).
+        '''
+        if self.name not in self.vars:
+            self.vars[self.name] = 0
+        name = "%" + "%d" % (self.vars[self.name])
+        self.vars[self.name] += 1
+        return name
+
+    def new_heap(self):
+        '''
+        Create a new heap  of a given array .
+        '''
+        if self.name_array not in self.heaps:
+            self.heaps[self.name_array] = 0
+        name = "@.str." + "%d" % (self.heaps[self.name_array])
+        self.heaps[self.name_array] += 1
+        return name
+
+    def set_name(self, name):
+        self.name = name
+
+
+binary=dict()
+binary['+']='add'
+binary['-']='sub'
+binary['*']='mul'
+binary['/']='div'
+binary['%']='mod'
+binary['<']='lt'
+binary['<=']='le'
+binary['>']='gt'
+binary['>=']='gt'
+binary['!=']='ne'
+binary['&']='and'
+binary['||']='or'
+binary['!']='not'
+binary['==']='eq'
+
+unary=dict()
+unary['--']='sub'
+unary['++']='add'
+unary['p++']='add'
+unary['p--']='sub'
+assign_op=dict()
+assign_op['+=']='+'
+assign_op['-=']='-'
+assign_op['*=']='*'
+assign_op['%=']='%'
+assign_op['/=']='/'
+rel_ops     = {"==", "!=", "<", ">", "<=", ">=","&&","||","&","|"}

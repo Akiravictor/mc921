@@ -1,3 +1,5 @@
+from ast import NodeVisitor
+
 from llvmlite import ir, binding
 from ctypes import CFUNCTYPE, c_int
 from uc_ast import *

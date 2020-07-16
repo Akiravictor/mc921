@@ -473,9 +473,9 @@ class FuncDecl(Node):
 
 
 class FuncDef(Node):
-    __slots__ = ('spec', 'decl', 'param_decls', 'body', 'coord', 'decls', 'cfg')
+    __slots__ = ('spec', 'decl', 'param_decls', 'body',  'blocks', 'begin', 'end', 'coord', 'decls', 'cfg')
 
-    def __init__(self, spec, decl, param_decls, body, coord=None, cfg=None):
+    def __init__(self, spec, decl, param_decls, body, blocks, begin, end, coord=None, cfg=None):
         self.spec = spec
         self.decl = decl
         self.param_decls = param_decls
@@ -507,25 +507,23 @@ class FuncDef(Node):
             yield child
 
     def get_blocks_dfs(self, block):
-        if not isinstance(block, BasicBlock) or block.visit:
-            return
+        if (not isinstance(block, Block) or block.visit):         return
         block.visit = True
         self.blocks.append(block)  # Essa linha pega os blocks
         self.get_blocks_dfs(block.next_block)
-        if isinstance(block, ConditionalBlock):
-            self.get_blocks_dfs(block.fall)
+        if (isinstance(block, ConditionBlock)):
+            self.get_blocks_dfs(block.fall_through)
 
     def get_blocks_bfs(self, block):
         fila = Fila()
         fila.insere(block)
-        while not fila.vazia():
+        while (not fila.vazia()):
             block = fila.retira()
-            if isinstance(block, BasicBlock) and not block.visit:
+            if (isinstance(block, Block) and not block.visit):
                 block.visit = True
                 self.blocks.append(block)
                 fila.insere(block.next_block)
-                if isinstance(block, ConditionalBlock):
-                    fila.insere(block.fall)
+                if (isinstance(block, ConditionBlock)):      fila.insere(block.fall_through)
 
     def reset(self):
         for block in self.blocks:

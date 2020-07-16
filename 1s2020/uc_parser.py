@@ -65,7 +65,7 @@ class UCParser:
 
         declaration = self._build_declarations(spec=spec, decls=[dict(decl=decl, init=None)])[0]
 
-        return FuncDef(spec=spec, decl=declaration, param_decls=param_decls, body=body, coord=decl.coord)
+        return FuncDef(spec=spec, decl=declaration, param_decls=param_decls, body=body, blocks=[], begin= -1, end=-1, coord=decl.coord)
 
     def _build_declarations(self, spec, decls):
         if self.debug:
