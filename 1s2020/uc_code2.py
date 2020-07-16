@@ -90,11 +90,7 @@ class GenerateCode(NodeVisitor):
             return ''.join(self.visit(c) for c_name, c in node.children())
 
     def visit_Constant(self, node):
-        print("Constant:")
-        print(node.type)
-        print(node.value)
-        print(node.rawtype)
-        print(node.gen_location)
+        print("Constant")
 
         if node.rawtype == 'string':
             _target = self.new_text()
@@ -108,13 +104,7 @@ class GenerateCode(NodeVisitor):
         node.gen_location = _target
 
     def visit_ID(self, node):
-        print("ID:")
-        print(node.name)
-        print(node.type)
-        print(node.bind)
-        print(node.scope)
-        print(node.gen_location)
-        print(node.kind)
+        print("ID")
 
         if node.gen_location is None:
             _type = node.bind
@@ -127,8 +117,7 @@ class GenerateCode(NodeVisitor):
                 node.gen_location = _type.declname.gen_location
 
     def visit_Print(self, node):
-        print("Print:")
-        print(node.expr)
+        print("Print")
 
         if node.expr is not None:
             if isinstance(node.expr[0], ExprList):
@@ -157,10 +146,7 @@ class GenerateCode(NodeVisitor):
             self.currentBlock.append(inst)
 
     def visit_Program(self, node):
-        print("Program:")
-        print(node.gdecls)
-        print(node.symtab)
-        print(node.text)
+        print("Program")
 
         for _decl in node.gdecls:
             self.visit(_decl)
@@ -226,10 +212,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_FuncCall(self, node):
         print("FuncCall:")
-        print(node.name)
-        print(node.args)
-        print(node.type)
-        print(node.gen_location)
 
         if node.args is not None:
             if isinstance(node.args, ExprList):
@@ -268,10 +250,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_UnaryOp(self, node):
         print("UnaryOp:")
-        print(node.op)
-        print(node.expr)
-        print(node.type)
-        print(node.gen_location)
 
         self.visit(node.expr)
         _source = node.expr.gen_location
@@ -323,11 +301,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_BinaryOp(self, node):
         print("BinaryOp:")
-        print(node.op)
-        print(node.left)
-        print(node.right)
-        print(node.type)
-        print(node.gen_location)
 
         self.visit(node.left)
         self.visit(node.right)
@@ -382,7 +355,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_Assert(self, node):
         print("Assert:")
-        print(node.expr)
 
         _expr = node.expr
         self.visit(_expr)
@@ -429,9 +401,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_Assignment(self, node):
         print("Assignment:")
-        print(node.op)
-        print(node.lvalue)
-        print(node.rvalue)
 
         _rval = node.rvalue
         self.visit(_rval)
@@ -486,9 +455,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_Decl(self, node):
         print("Decl:")
-        print(node.name)
-        print(node.type)
-        print(node.init)
 
         _type = node.type
         _dim = ""
@@ -503,17 +469,12 @@ class GenerateCode(NodeVisitor):
 
     def visit_DeclList(self, node):
         print("DeclList:")
-        print(node.decls)
 
         for decl in node.decls:
             self.visit(decl)
 
     def visit_Cast(self, node):
         print("Cast:")
-        print(node.to_type)
-        print(node.expr)
-        print(node.type)
-        print(node.gen_location)
 
         self.visit(node.expr)
         if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
@@ -532,9 +493,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_InitList(self, node):
         print("InitList:")
-        print(node.exprs)
-        print(node.value)
-        print(node.gen_location)
 
         node.value = []
         for _expr in node.exprs:
@@ -544,15 +502,12 @@ class GenerateCode(NodeVisitor):
 
     def visit_FuncDef(self, node):
         print("FuncDef:")
-        print(node.spec)
-        print(node.decl)
-        print(node.param_decls)
-        print(node.body)
 
-        self.ftype = node.spec
+        self.ftype = node.spec.names[-1].typename
+        _funcName = node.decl.name.name
 
         self.ret_block = BasicBlock('%exit_')
-        self.currentBlock = BasicBlock(None)
+        self.currentBlock = BasicBlock('define_' + _funcName)
         node.cfg = self.currentBlock
 
         self.alloc_phase = None
@@ -590,7 +545,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_Compound(self, node):
         print("Compound:")
-        print(node.block_items)
 
         for item in node.block_items:
             self.visit(item)
@@ -600,14 +554,12 @@ class GenerateCode(NodeVisitor):
 
     def visit_ParamList(self, node):
         print("ParamList:")
-        print(node.params)
 
         for _par in node.params:
             self.visit(_par)
 
     def visit_Read(self, node):
         print("Read:")
-        print(node.names)
 
         for _loc in node.names:
             self.visit(_loc)
@@ -623,7 +575,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_Return(self, node):
         print("Return:")
-        print(node.expr)
 
         if node.expr is not None:
             self.visit(node.expr)
@@ -640,16 +591,12 @@ class GenerateCode(NodeVisitor):
 
     def visit_Break(self, node):
         print("Break:")
-        print(node.bind)
 
         self.code.append(('jump', node.bind.exit_label))
         self.currentBlock.instructions.append(('jump', node.bind.exit_label))
 
     def visit_If(self, node):
         print("If:")
-        print(node.cond)
-        print(node.iftrue)
-        print(node.iffalse)
 
         true_label = self.new_temp()
         else_label = self.new_temp()
@@ -710,11 +657,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_For(self, node):
         print("For:")
-        print(node.init)
-        print(node.cond)
-        print(node.next)
-        print(node.stmt)
-        print(node.exit_label)
 
         self.visit(node.init)
 
@@ -771,9 +713,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_While(self, node):
         print("While:")
-        print(node.cond)
-        print(node.stmt)
-        print(node.exit_label)
 
         while_label = self.new_temp()
         body_label = self.new_temp()
@@ -822,12 +761,9 @@ class GenerateCode(NodeVisitor):
 
     def visit_FuncDecl(self, node):
         print("FuncDecl:")
-        print(node.args)
-        print(node.type)
-        print(node.gen_location)
 
         self.fname = "@" + node.type.declname.name
-        _typename = self.ftype.names[-1].typename
+        _typename = self.ftype
         _args = []
 
         if node.args is not None:
@@ -858,8 +794,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_ArrayDecl(self, node, decl, dim):
         print("ArrayDecl:")
-        print(node.type)
-        print(node.dim)
 
         _type = node
         dim += "_" + str(node.dim.value)
@@ -884,7 +818,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_GlobalDecl(self, node):
         print("GlobalDecl:")
-        print(node.decls)
 
         for _decl in node.decls:
             if not isinstance(_decl.type, FuncDecl):
@@ -931,16 +864,17 @@ class GenerateCode(NodeVisitor):
 
     def visit_VarDecl(self, node, decl, dim):
         print("VarDecl:")
-        print(node.declname)
-        print(node.type)
-        print(node.gen_location)
 
         if node.declname.scope == 1:
             self._globalLocation(node, decl, dim)
         else:
             _typename = node.type.names[-1].typename + dim
             if self.alloc_phase == 'arg_decl' or self.alloc_phase == 'var_decl':
-                _varname = self.new_temp()
+                _varname = ''
+                if node.declname.kind == 'var':
+                    _varname = '%.' + node.declname.name
+                else:
+                    _varname = self.new_temp()
                 inst = ('alloc_' + _typename, _varname)
                 self.code.append(inst)
                 self.currentBlock.instructions.append(inst)
