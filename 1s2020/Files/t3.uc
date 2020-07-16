@@ -1,18 +1,13 @@
-int f(int n, int k) {
-    int p, q, t;
-    if (n < 2) {
-        k = 0;
-        return n;
-    }
-    else {
-        t = f(n-1, p) + f(n-2);
-        k = p + q + 1;
-        return t;
-    }
-}
-
 int main() {
-    int m = 9;
-    print(f(3, m), m);
+    int n, r, temp;
+    float sum = 0.;
+    n = 5743475;
+    temp = n;
+    while(n > 0) {
+        r = n % 10;
+        sum = (sum * 10.) + (float)r;
+        n = n / 10;
+    }
+    assert temp == (int)sum;
     return 0;
 }
