@@ -88,8 +88,8 @@ class GenerateCode(NodeVisitor):
 
     def visit_FuncDef(self, node):
 
-        name = node.decl.id.name
-        self.scope_current.table_type.add(f'@{name}', node.type)
+        name = node.decl.name
+        self.scope_current.table_type.add(name.name, node.spec.names[-1].typename)
 
         escopo = copy.deepcopy(self.scope_current)
         escopo.set_name(name)
@@ -98,9 +98,9 @@ class GenerateCode(NodeVisitor):
         self.param_bool = True
         # escopo.new_temp()#Começamos no 1
 
-        inst_def = [f'define_{node.type.names}', '@' + name, []]
+        inst_def = [f'define_{node.spec.names[-1].typename}', '@' + name.name, []]
 
-        head_block = Block('define ' + '@' + name)
+        head_block = Block('define ' + '@' + name.name)
         self.block_current = head_block
 
         self.block_current.append(inst_def)
@@ -117,10 +117,10 @@ class GenerateCode(NodeVisitor):
         node.cfg = self.block_current
 
         label = "%exit"  # label
-        escopo.table_type.add(label, node.type)
-        type_return = node.type.names
-        type = node.type.names
-        if (node.type.names != "void"):
+        escopo.table_type.add(label, node.spec.names[-1].typename)
+        type_return = node.spec.names[-1].typename
+        type = node.spec.names[-1].typename
+        if (type != "void"):
             target = escopo.new_temp()
             escopo.table.add(label, target)
             inst = [f'alloc_{type}', target]
@@ -128,7 +128,7 @@ class GenerateCode(NodeVisitor):
             self.block_current.append(inst)
             var_return = target
         params = []
-        if (node.decl.funcdecl.paramlist):
+        if (node.param_decls):
             params = node.decl.funcdecl.paramlist.params
         # Percorremos paramlist para associar cada entrada a uma variável
         for decl in params:
@@ -141,8 +141,8 @@ class GenerateCode(NodeVisitor):
         # Variável que será o retorno da função
         # if(node.type.names!="void")
         label = "%exit"  # label
-        escopo.table_type.add(label, node.type)
-        type_return = node.type.names
+        escopo.table_type.add(label, type)
+        type_return = type
         # Término da função
         block_end = Block(label)
         self.stack_for.empilha(block_end)
@@ -161,8 +161,8 @@ class GenerateCode(NodeVisitor):
             self.code.append(inst)
             self.block_current.append(inst)
 
-        if (node.comp):
-            self.visit(node.comp)
+        if (node.body):
+            self.visit(node.body)
 
         target = self.scope_current.new_temp()
         if (type_return == 'void'):
