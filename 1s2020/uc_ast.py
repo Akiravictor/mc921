@@ -473,9 +473,9 @@ class FuncDecl(Node):
 
 
 class FuncDef(Node):
-    __slots__ = ('spec', 'decl', 'param_decls', 'body',  'blocks', 'begin', 'end', 'coord', 'decls', 'cfg')
+    __slots__ = ('spec', 'decl', 'param_decls', 'body', 'coord', 'decls', 'cfg')
 
-    def __init__(self, spec, decl, param_decls, body, blocks, begin, end, coord=None, cfg=None):
+    def __init__(self, spec, decl, param_decls, body, coord=None, cfg=None):
         self.spec = spec
         self.decl = decl
         self.param_decls = param_decls
