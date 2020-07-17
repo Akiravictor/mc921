@@ -659,10 +659,10 @@ class GenerateCode(NodeVisitor):
         exit_label = self.new_temp()
         cond_label = self.new_temp()
 
-        increaseBlock = BasicBlock(increase_label)
-        conditionBlock = ConditionalBlock(cond_label)
-        bodyBlock = BasicBlock(body_label)
-        exitBlock = BasicBlock(exit_label)
+        increaseBlock = BasicBlock('%for.inc_' + increase_label)
+        conditionBlock = ConditionalBlock('%for.cond_' + cond_label)
+        bodyBlock = BasicBlock('%for.body_' + body_label)
+        exitBlock = BasicBlock('%for.exit_' + exit_label)
 
         node.exit_label = exitBlock
         self.currentBlock.append(('jump', cond_label))
