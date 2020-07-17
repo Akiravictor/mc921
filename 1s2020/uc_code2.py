@@ -764,7 +764,7 @@ class GenerateCode(NodeVisitor):
                 # self.enqueue(self.new_temp())
                 _loc = self.new_temp()
                 self.enqueue(_loc)
-                _args.append((self.getTypeName(_param.type), _loc))
+                _args.append((_param.type.declname.type.names[-1].typename, _loc))
 
         # self.currentBlock.instructions.append(('define_' + self.ftype, '@ ' + self.fname, _args))
         node.type.declname.gen_location = self.fname

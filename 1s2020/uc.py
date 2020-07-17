@@ -158,8 +158,8 @@ class Compiler:
         self.llvm.visit(self.ast)
         if not self.args.susy and self.llvm_file is not None:
             self.llvm.save_ir(self.llvm_file)
-        if self.run:
-            self.llvm.execute_ir(self.args.llvm_opt, self.llvm_opt_file)
+        # if self.run:
+        #     self.llvm.execute_ir(self.args.llvm_opt, self.llvm_opt_file)
 
     def _do_compile(self):
         """ Compiles the code to the given source file. """
