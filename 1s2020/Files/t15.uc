@@ -1,18 +1,10 @@
-int z = 3, t =4;
+int m[][] = { {1,2}, {3,4}, {5,6} };
 
-int g (int t) {
- int x;
- t *= 2;
- x = 2*t;
- z = x+1;
- return x;
-}
-
-int main(){
-    int i, j, k;
-    i = g(t);
-    j = g(z);
-    k = g(t+z);
-    assert i == 16 && j == 68 && k == 292;
+int main() {
+    int sum = 0;
+    for (int i=0; i<3; i++) {
+        sum += m[i][0] + m[i][1];
+    }
+    assert sum == 21;
     return 0;
 }

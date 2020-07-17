@@ -1,12 +1,13 @@
-int n = 10;
-
-int foo(int a, int b) {
-    return n * (a + b);
-}
-
 int main() {
-    int c = 2, d = 3;
-    int e = foo(c, d);
-    assert e == 50;
+    int a, b;
+
+    a = 11;
+    b = 99;
+
+    a = a + b;
+    b = a - b;
+    a = a - b;
+
+    assert a == 99 && b == 11;
     return 0;
 }
