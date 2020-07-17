@@ -371,15 +371,14 @@ class LLVMFunctionVisitor(BlockVisitor):
 
     def visit_BasicBlock(self, block):
         if self.phase == "create_bb":
-            if block.label is None:
-                assert len(block.instructions) == 1
+            if block.label is 'global':
                 self._new_function(block.instructions[0])
             else:
                 bb = self.func.append_basic_block(block.label[1:])
                 self.loc[block.label] = bb
 
         elif self.phase == "build_bb":
-            if block.label:
+            if block.label is not 'global':
                 bb = self.loc[block.label]
                 self.builder = ir.IRBuilder(bb)
                 for inst in block.instructions[1:]:

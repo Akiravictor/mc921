@@ -826,7 +826,7 @@ class GenerateCode(NodeVisitor):
             self.currentBlock.instructions.append(('global_' + _type, _varname))
         elif isinstance(decl.init, Constant):
             self.text.append(('global_' + _type, _varname, decl.init.value))
-            self.currentBlock.instructions.append(('global_' + _type, _varname, decl.init.value))
+            self.currentBlock.instructions.append(('global_' + _type, _varname, [(_type, decl.init.value)]))
         elif isinstance(decl.init, InitList):
             self.visit(decl.init)
             self.text.append(('global_' + _type, _varname, decl.init.value))
