@@ -590,12 +590,12 @@ class GenerateCode(NodeVisitor):
         #     self.currentBlock.instructions.append(inst)
             # self.code.append(inst)
 
-        if self.currentBlock.generateJump():
-            self.currentBlock.append(('jump', self.ret_block.label))
-            self.currentBlock.branch = self.ret_block
-            self.currentBlock.next_block = self.ret_block
-            self.ret_block.predecessors.add(self.currentBlock)
-            self.currentBlock = self.ret_block
+        # if self.currentBlock.generateJump():
+        self.currentBlock.append(('jump', self.ret_block.label))
+        self.currentBlock.branch = self.ret_block
+        self.currentBlock.next_block = self.ret_block
+        self.ret_block.predecessors.add(self.currentBlock)
+        self.currentBlock = self.ret_block
 
     def visit_Break(self, node):
         print("Break:")
@@ -635,8 +635,9 @@ class GenerateCode(NodeVisitor):
 
         self.currentBlock.next_block = trueBlock
         self.currentBlock = trueBlock
-        # self.code.append((true_label[1:],))
+
         self.visit(node.iftrue)
+
         if self.currentBlock.generateJump():
             self.currentBlock.append(('jump', exitBlock.label))
             self.currentBlock.branch = exitBlock
@@ -790,7 +791,8 @@ class GenerateCode(NodeVisitor):
         self.currentBlock = funcBlock
 
         if self.ftype != 'void':
-            self.ret_location = self.new_temp()
+            # self.ret_location = self.new_temp()
+            self.ret_location = '@' + self.fname + '_return'
             self.currentBlock.instructions.append(('alloc_' + self.ftype, self.ret_location))
 
         self.alloc_phase = 'arg_decl'

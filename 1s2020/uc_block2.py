@@ -134,7 +134,7 @@ class CFG(object):
             self.g.node(self.fname, label=None, _attributes={'shape': 'ellipse'})
             self.g.edge(self.fname, block.next_block.label)
 
-    def visit_ConditionBlock(self, block):
+    def visit_ConditionalBlock(self, block):
         # Get the label as node name
         _name = block.label
         # get the formatted instructions as node label
@@ -144,7 +144,7 @@ class CFG(object):
         _label +="|{<f0>T|<f1>F}}"
         self.g.node(_name, label=_label)
         self.g.edge(_name + ":f0", block.taken.label)
-        self.g.edge(_name + ":f1", block.fall_through.label)
+        self.g.edge(_name + ":f1", block.fall.label)
 
     def view(self, block):
         while isinstance(block, Block):
