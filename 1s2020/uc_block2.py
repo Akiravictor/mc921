@@ -123,7 +123,7 @@ class CFG(object):
         if _name:
             # get the formatted instructions as node label
             _label = "{" + _name + ":\l\t"
-            for _inst in block.instructions[1:]:
+            for _inst in block.instructions[0:]:
                 _label += format_instruction(_inst) + "\l\t"
             _label += "}"
             self.g.node(_name, label=_label)
@@ -139,7 +139,7 @@ class CFG(object):
         _name = block.label
         # get the formatted instructions as node label
         _label = "{" + _name + ":\l\t"
-        for _inst in block.instructions[1:]:
+        for _inst in block.instructions[0:]:
             _label += format_instruction(_inst) + "\l\t"
         _label +="|{<f0>T|<f1>F}}"
         self.g.node(_name, label=_label)

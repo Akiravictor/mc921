@@ -593,7 +593,9 @@ class GenerateCode(NodeVisitor):
         if self.currentBlock.generateJump():
             self.currentBlock.append(('jump', self.ret_block.label))
             self.currentBlock.branch = self.ret_block
+            self.currentBlock.next_block = self.ret_block
             self.ret_block.predecessors.add(self.currentBlock)
+            self.currentBlock = self.ret_block
 
     def visit_Break(self, node):
         print("Break:")
