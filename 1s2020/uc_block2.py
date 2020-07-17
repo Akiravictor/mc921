@@ -34,37 +34,6 @@ class ConditionalBlock(Block):
         self.fall = None
 
 
-class AssertBlock(Block):
-    def __init__(self, label=""):
-        super(AssertBlock, self).__init__(label)
-        self.true = None
-        self.false = None
-        self.condition = None
-
-
-class ForBlock(Block):
-    def __init__(self, label=""):
-        super(ForBlock, self).__init__(label)
-        self.condition = None
-        self.body = None
-        self.increment = None
-
-
-class IfBlock(Block):
-    def __init__(self, label=""):
-        super(IfBlock, self).__init__(label)
-        self.condition = None
-        self.if_branch = None
-        self.else_branch = None
-
-
-class WhileBlock(Block):
-    def __init__(self, label=""):
-        super(WhileBlock, self).__init__(label)
-        self.condition = None
-        self.body = None
-
-
 class BlockVisitor(object):
     def visit(self, block):
         while isinstance(block, Block):
@@ -153,16 +122,6 @@ class CFG(object):
                 getattr(self, name)(block)
             block = block.next_block
         # You can use the next stmt to see the dot file
-        # print(self.g.source)
-        self.g.view()
-
-    def view(self, block):
-        while isinstance(block, Block):
-            name = "visit_%s" % type(block).__name__
-            if hasattr(self, name):
-                getattr(self, name)(block)
-            block = block.next_block
-        # You can use the next stmt to see the dot file
-        # print(self.g.source)
+        print(self.g.source)
         self.g.view()
 

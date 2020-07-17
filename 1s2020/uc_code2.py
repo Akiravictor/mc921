@@ -171,12 +171,6 @@ class GenerateCode(NodeVisitor):
 
     def visit_ArrayRef(self, node):
         print("ArrayRef:")
-        print(node.name)
-        print(node.subscript)
-        print(node.bind)
-        print(node.type)
-        print(node.kind)
-        print(node.gen_location)
 
         _subs_a = node.subscript
         self.visit(_subs_a)
@@ -360,9 +354,10 @@ class GenerateCode(NodeVisitor):
         _expr = node.expr
         self.visit(_expr)
 
+        self.changeCurrentBlock()
+
         true_label = self.new_temp()
         false_label = self.new_temp()
-        exit_label = self.new_temp()
 
         trueBlock = BasicBlock(true_label)
         falseBlock = BasicBlock(false_label)
@@ -375,10 +370,6 @@ class GenerateCode(NodeVisitor):
         self.currentBlock.taken = trueBlock
         self.currentBlock.fall = falseBlock
 
-        self.code.append((true_label[1:],))
-        self.code.append(('jump', exit_label))
-        self.code.append((false_label[1:],))
-
         self.currentBlock.next_block = falseBlock
         self.currentBlock = falseBlock
         _target = self.new_text()
@@ -388,17 +379,11 @@ class GenerateCode(NodeVisitor):
         self.text.append(inst)
         self.currentBlock.instructions.append(('print_str', _target))
         self.currentBlock.instructions.append(('jump', self.ret_block.label))
+        self.currentBlock.next_block = self.ret_block
         self.currentBlock.branch = self.ret_block
         self.ret_block.predecessors.add(self.currentBlock)
 
-        inst = ('print_string', _target)
-        self.code.append(inst)
-        self.currentBlock.instructions.append(inst)
-        self.code.append(('jump', self.ret_label))
-        self.currentBlock.instructions.append(('jump', self.ret_label))
-
-        self.code.append((exit_label[1:],))
-        self.currentBlock.instructions.append((exit_label[1:],))
+        self.currentBlock = trueBlock
 
     def visit_Assignment(self, node):
         print("Assignment:")
