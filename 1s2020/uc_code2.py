@@ -712,9 +712,9 @@ class GenerateCode(NodeVisitor):
         body_label = self.new_temp()
         exit_label = self.new_temp()
 
-        whileBlock = ConditionalBlock(while_label)
-        bodyBlock = BasicBlock(body_label)
-        exitBlock = BasicBlock(exit_label)
+        whileBlock = ConditionalBlock('%while.cond_' + while_label)
+        bodyBlock = BasicBlock('%while.body_' + body_label)
+        exitBlock = BasicBlock('%while.exit_' + exit_label)
 
         # self.currentBlock.next_block = whileBlock
 
