@@ -116,12 +116,17 @@ class CFG(object):
         self.g.edge(_name + ":f1", block.fall.label)
 
     def view(self, block):
-        while isinstance(block, Block):
-            name = "visit_%s" % type(block).__name__
-            if hasattr(self, name):
-                getattr(self, name)(block)
-            block = block.next_block
-        # You can use the next stmt to see the dot file
-        print(self.g.source)
+        self.deep_view(block)
         self.g.view()
+
+    def deep_view(self, block):
+        if not isinstance(block, Block) or block.visited:
+            return
+        block.visited = True
+        name = "visit_%s" % type(block).__name__
+        if hasattr(self, name):
+            getattr(self, name)(block)
+        self.deep_view(block.next_block)
+        if isinstance(block, ConditionalBlock):
+            self.deep_view(block.taken)
 
