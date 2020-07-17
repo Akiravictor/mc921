@@ -14,8 +14,9 @@ class GenerateCode(NodeVisitor):
         self.cfg = cfg
 
         self.ftype = None
-        self.fname = '_glob_'
-        self.currentBlock = BasicBlock('global {}'.format(self.fname))
+        self.fname = ''
+        self.currentBlock = BasicBlock('global')
+        self.currentScope = 0
         self.versions = {self.fname: 0}
         # The generated code (list of tuples)
         self.text = []
@@ -504,10 +505,14 @@ class GenerateCode(NodeVisitor):
         print("FuncDef:")
 
         self.ftype = node.spec.names[-1].typename
-        _funcName = node.decl.name.name
+        self.fname = node.decl.name.name
+        _funcName = self.fname
+        _funcType = self.ftype
 
-        self.ret_block = BasicBlock('%exit_')
-        self.currentBlock = BasicBlock('define_' + _funcName)
+        self.ret_label = '%exit_' + _funcName
+        self.ret_block = BasicBlock(self.ret_label)
+
+        # self.currentBlock = BasicBlock('define_' + _funcName)
         node.cfg = self.currentBlock
 
         self.alloc_phase = None
@@ -526,15 +531,10 @@ class GenerateCode(NodeVisitor):
             for _arg in node.decl.type.args:
                 self.visit(_arg)
 
-        if node.body is not None:
-            self.alloc_phase = 'var_init'
-            for _body in node.body:
-                self.visit(_body)
-
-        # self.code.append((self.ret_label[1:],))
-        if node.spec.names[-1].typename == 'void':
-            # self.code.append(('return_void',))
-            self.currentBlock.append(('return_void',))
+        if _funcType == 'void':
+            self.code.append(('return_void',))
+            self.ret_block.append(('return_void',))
+            # self.currentBlock.append(('return_void',))
         else:
             _rvalue = self.new_temp()
             inst = ('load_' + node.spec.names[-1].typename, self.ret_location, _rvalue)
@@ -542,6 +542,12 @@ class GenerateCode(NodeVisitor):
             self.currentBlock.append(inst)
             # self.code.append(('return_' + node.spec.names[-1].typename, _rvalue))
             self.currentBlock.append(('return_' + node.spec.names[-1].typename, _rvalue))
+
+        if node.body is not None:
+            self.alloc_phase = 'var_init'
+            for _body in node.body:
+               self.visit(_body)
+
 
     def visit_Compound(self, node):
         print("Compound:")
@@ -762,8 +768,6 @@ class GenerateCode(NodeVisitor):
     def visit_FuncDecl(self, node):
         print("FuncDecl:")
 
-        self.fname = "@" + node.type.declname.name
-        _typename = self.ftype
         _args = []
 
         if node.args is not None:
@@ -774,18 +778,18 @@ class GenerateCode(NodeVisitor):
                 self.enqueue(_loc)
                 _args.append((self.getTypeName(_param.type), _loc))
 
-        self.currentBlock.append(('define_' + _typename, self.fname, _args))
+        # self.currentBlock.instructions.append(('define_' + self.ftype, '@ ' + self.fname, _args))
         node.type.declname.gen_location = self.fname
 
-        funcBlock = BasicBlock('%entry')
+        funcBlock = BasicBlock('define_' + self.ftype + ' @' + self.fname)
         self.currentBlock.next_block = funcBlock
         self.currentBlock.branch = funcBlock
         funcBlock.predecessors.add(self.currentBlock)
         self.currentBlock = funcBlock
 
-        if _typename != 'void':
-            self.ret_location = self.new_temp()
-            self.currentBlock.append(('alloc_' + _typename, self.ret_location))
+        if self.ftype != 'void':
+            # self.ret_location = self.new_temp()
+            self.currentBlock.instructions.append(('alloc_' + self.ftype, self.ret_location))
 
         self.alloc_phase = 'arg_decl'
         if node.args is not None:
@@ -872,7 +876,7 @@ class GenerateCode(NodeVisitor):
             if self.alloc_phase == 'arg_decl' or self.alloc_phase == 'var_decl':
                 _varname = ''
                 if node.declname.kind == 'var':
-                    _varname = '%.' + node.declname.name
+                    _varname = '@' + node.declname.name
                 else:
                     _varname = self.new_temp()
                 inst = ('alloc_' + _typename, _varname)
