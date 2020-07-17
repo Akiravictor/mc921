@@ -14,7 +14,7 @@ class GenerateCode(NodeVisitor):
         self.cfg = cfg
 
         self.ftype = None
-        self.fname = ''
+        self.fname = '_glob_'
         self.currentBlock = BasicBlock('global')
         self.currentScope = 0
         self.versions = {self.fname: 0}
@@ -541,7 +541,7 @@ class GenerateCode(NodeVisitor):
             # self.code.append(inst)
             self.currentBlock.append(inst)
             # self.code.append(('return_' + node.spec.names[-1].typename, _rvalue))
-            self.currentBlock.append(('return_' + node.spec.names[-1].typename, _rvalue))
+            self.ret_block.append(('return_' + node.spec.names[-1].typename, _rvalue))
 
         if node.body is not None:
             self.alloc_phase = 'var_init'
@@ -582,12 +582,12 @@ class GenerateCode(NodeVisitor):
     def visit_Return(self, node):
         print("Return:")
 
-        if node.expr is not None:
-            self.visit(node.expr)
-            if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
-                self._loadLocation(node.expr)
-            inst = ('store_' + node.expr.type.names[-1].typename, node.expr.gen_location, self.ret_location)
-            self.currentBlock.instructions.append(inst)
+        # if node.expr is not None:
+        #     self.visit(node.expr)
+        #     if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
+        #         self._loadLocation(node.expr)
+        #     inst = ('store_' + node.expr.type.names[-1].typename, node.expr.gen_location, self.ret_location)
+        #     self.currentBlock.instructions.append(inst)
             # self.code.append(inst)
 
         if self.currentBlock.generateJump():
@@ -783,14 +783,14 @@ class GenerateCode(NodeVisitor):
         # self.currentBlock.instructions.append(('define_' + self.ftype, '@ ' + self.fname, _args))
         node.type.declname.gen_location = self.fname
 
-        funcBlock = BasicBlock('define_' + self.ftype + ' @' + self.fname)
+        funcBlock = BasicBlock('define_' + self.ftype + ' ' + self.fname)
         self.currentBlock.next_block = funcBlock
         self.currentBlock.branch = funcBlock
         funcBlock.predecessors.add(self.currentBlock)
         self.currentBlock = funcBlock
 
         if self.ftype != 'void':
-            # self.ret_location = self.new_temp()
+            self.ret_location = self.new_temp()
             self.currentBlock.instructions.append(('alloc_' + self.ftype, self.ret_location))
 
         self.alloc_phase = 'arg_decl'
