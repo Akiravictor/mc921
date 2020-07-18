@@ -624,11 +624,12 @@ class GenerateCode(NodeVisitor):
 
         self.visit(node.iftrue)
 
-        if self.currentBlock.generateJump():
-            self.currentBlock.append(('jump', exitBlock.label))
-            self.currentBlock.branch = exitBlock
-            exitBlock.predecessors.add(self.currentBlock)
-            _dump_exitBlock = True
+        if len(self.currentBlock.instructions) > 0:
+            if self.currentBlock.generateJump():
+                self.currentBlock.append(('jump', exitBlock.label))
+                self.currentBlock.branch = exitBlock
+                exitBlock.predecessors.add(self.currentBlock)
+                _dump_exitBlock = True
 
         if node.iffalse is not None:
             self.currentBlock.next_block = falseBlock
@@ -666,7 +667,7 @@ class GenerateCode(NodeVisitor):
         exitBlock = BasicBlock('%for.exit_' + exit_label)
 
         node.exit_label = exitBlock
-        self.currentBlock.append(('jump', cond_label))
+        self.currentBlock.append(('jump', '%for.cond_' + cond_label))
         # self.code.append((entry_label[1:],))
 
         self.currentBlock.next_block = conditionBlock
@@ -741,10 +742,11 @@ class GenerateCode(NodeVisitor):
 
         if node.stmt is not None:
             self.visit(node.stmt)
-        if self.currentBlock.generateJump():
-            self.currentBlock.instructions.append(('jump', whileBlock.label))
-            self.currentBlock.branch = whileBlock
-            whileBlock.predecessors.add(self.currentBlock)
+        if len(self.currentBlock.instructions) > 0:
+            if self.currentBlock.generateJump():
+                self.currentBlock.instructions.append(('jump', whileBlock.label))
+                self.currentBlock.branch = whileBlock
+                whileBlock.predecessors.add(self.currentBlock)
 
         self.currentBlock.next_block = exitBlock
         exitBlock.predecessors.add(self.currentBlock)
