@@ -108,6 +108,8 @@ class LLVMFunctionVisitor(BlockVisitor):
             _sig = [llvm_type[arg] for arg in [item[0] for item in _args]]
             funty = ir.FunctionType(llvm_type[_op], _sig)
             self.func = ir.Function(self.module, funty, name=_name)
+
+
         for _idx, _reg in enumerate([item[1] for item in _args]):
             self.loc[_reg] = self.func.args[_idx]
 
@@ -373,6 +375,7 @@ class LLVMFunctionVisitor(BlockVisitor):
         if self.phase == "create_bb":
             if 'define' in block.label :
                 self._new_function(block.instructions[1])
+                self.loc[block.label] = self.func.append_basic_block(block.label)
             else:
                 bb = self.func.append_basic_block(block.label[1:])
                 self.loc[block.label] = bb
@@ -381,7 +384,7 @@ class LLVMFunctionVisitor(BlockVisitor):
             if block.label:
                 bb = self.loc[block.label]
                 self.builder = ir.IRBuilder(bb)
-                for inst in block.instructions[1:]:
+                for inst in block.instructions[2:]:
                     print("INST " + str(inst))
                     self.build(inst)
 
@@ -489,7 +492,7 @@ class LLVMCodeGenerator(NodeVisitor):
                 gv.align = 1
                 gv.global_constant = True
             elif _modifier and not fn_sig:
-                _width = 4
+                _width = 1
                 for arg in reversed(list(_modifier.values())):
                     if arg.isdigit():
                         _width = int(arg)

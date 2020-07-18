@@ -10,6 +10,7 @@ class Block(object):
         self.label = label
         self.visited = False
         self.branch = None
+        self.scope = None
 
     def append(self, instruction):
         self.instructions.append(instruction)
