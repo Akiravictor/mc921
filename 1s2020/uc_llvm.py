@@ -429,8 +429,8 @@ class LLVMFunctionVisitor(BlockVisitor):
                 self.builder = ir.IRBuilder(bb)
                 for inst in block.instructions[:]:
                     if inst[0] not in {'entry', 'define'}:
-                        if len(inst) > 1:
-                            if inst[1] not in {'main'}:
+                        if len(inst) > 2:
+                            if type(inst[2]) is not list:
                                 self.build(inst)
                         else:
                             self.build(inst)
