@@ -551,18 +551,18 @@ class LLVMCodeGenerator(NodeVisitor):
                 gv.align = get_align(_type, _width)
                 if _name.startswith('.const'):
                     gv.global_constant = True
-                elif fn_sig:
-                    _sig = [llvm_type[arg] for arg in _value]
-                    funty = ir.FunctionType(llvm_type[_ctype], _sig)
-                    gv = ir.GlobalVariable(self.module, funty.as_pointer(), _name)
-                    gv.linkage = 'common'
-                    gv.initializer = ir.Constant(funty.as_pointer(), None)
-                    gv.align = 8
-                else:
-                    gv = ir.GlobalVariable(self.module, _type, _name)
-                    gv.align = get_align(_type, 1)
-                    if _value:
-                        gv.initializer = ir.Constant(_type, _value)
+            elif fn_sig:
+                _sig = [llvm_type[arg] for arg in _value]
+                funty = ir.FunctionType(llvm_type[_ctype], _sig)
+                gv = ir.GlobalVariable(self.module, funty.as_pointer(), _name)
+                gv.linkage = 'common'
+                gv.initializer = ir.Constant(funty.as_pointer(), None)
+                gv.align = 8
+            else:
+                gv = ir.GlobalVariable(self.module, _type, _name)
+                gv.align = get_align(_type, 1)
+                if _value:
+                    gv.initializer = ir.Constant(_type, _value)
 
     def visit_Program(self, node):
         self._generate_global_instructions(node.text)
