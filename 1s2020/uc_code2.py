@@ -239,7 +239,7 @@ class GenerateCode(NodeVisitor):
         else:
             node.gen_location = self.new_temp()
             self.visit(node.name)
-            inst = ('call', '@' + node.name.gen_location, node.gen_location)
+            inst = ('call_' + node.name.type.names[-1].typename, '@' + node.name.gen_location, node.gen_location)
             # self.code.append(inst)
             self.currentBlock.append(inst)
 
