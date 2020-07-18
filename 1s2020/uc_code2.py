@@ -113,7 +113,7 @@ class GenerateCode(NodeVisitor):
                 _type = _type.type
             if _type.declname.gen_location is None:
                 if node.kind == 'func' and node.scope == 1:
-                    node.gen_location = '@' + node.name
+                    node.gen_location = '%' + node.name
             else:
                 node.gen_location = _type.declname.gen_location
 
@@ -777,10 +777,11 @@ class GenerateCode(NodeVisitor):
         self.currentBlock.label = 'define @' + self.fname
 
         self.currentBlock.instructions.append(('entry', ))
+        self.currentBlock.instructions.append((self.ftype, self.fname, _args))
 
         if self.ftype != 'void':
             # self.ret_location = self.new_temp()
-            self.ret_location = '@' + self.fname + '_return'
+            self.ret_location = '%' + self.fname + '_return'
             self.currentBlock.instructions.append(('alloc_' + self.ftype, self.ret_location))
 
         self.alloc_phase = 'arg_decl'
@@ -823,7 +824,7 @@ class GenerateCode(NodeVisitor):
         _type = node.type.names[-1].typename
         if dim is not None:
             _type += dim
-        _varname = "@" + node.declname.name
+        _varname = "%" + node.declname.name
         if decl.init is None:
             self.text.append(('global_' + _type, _varname))
             # self.currentBlock.instructions.append(('global_' + _type, _varname))
@@ -868,7 +869,7 @@ class GenerateCode(NodeVisitor):
             if self.alloc_phase == 'arg_decl' or self.alloc_phase == 'var_decl':
                 _varname = ''
                 if node.declname.kind == 'var':
-                    _varname = '@' + node.declname.name
+                    _varname = '%' + node.declname.name
                 else:
                     _varname = self.new_temp()
                 inst = ('alloc_' + _typename, _varname)

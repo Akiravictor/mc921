@@ -102,12 +102,12 @@ class LLVMFunctionVisitor(BlockVisitor):
     def _new_function(self, inst):
         _op, _name, _args = inst
         try:
-            self.func = self.module.get_global(_name[1:])
+            self.func = self.module.get_global(_name)
         except KeyError:
-            _ctype = _op.split('_')[1]
+            # _ctype = _op.split('_')[1]
             _sig = [llvm_type[arg] for arg in [item[0] for item in _args]]
-            funty = ir.FunctionType(llvm_type[_ctype], _sig)
-            self.func = ir.Function(self.module, funty, name=_name[1:])
+            funty = ir.FunctionType(llvm_type[_op], _sig)
+            self.func = ir.Function(self.module, funty, name=_name)
         for _idx, _reg in enumerate([item[1] for item in _args]):
             self.loc[_reg] = self.func.args[_idx]
 
@@ -371,21 +371,21 @@ class LLVMFunctionVisitor(BlockVisitor):
 
     def visit_BasicBlock(self, block):
         if self.phase == "create_bb":
-            if block.label is 'global':
-                self._new_function(block.instructions[0])
+            if 'define' in block.label :
+                self._new_function(block.instructions[1])
             else:
                 bb = self.func.append_basic_block(block.label[1:])
                 self.loc[block.label] = bb
 
         elif self.phase == "build_bb":
-            if block.label is not 'global':
+            if block.label:
                 bb = self.loc[block.label]
                 self.builder = ir.IRBuilder(bb)
                 for inst in block.instructions[1:]:
                     print("INST " + str(inst))
                     self.build(inst)
 
-    def visit_ConditionBlock(self, block):
+    def visit_ConditionalBlock(self, block):
         if self.phase == "create_bb":
             bb = self.func.append_basic_block(block.label[1:])
             self.loc[block.label] = bb
