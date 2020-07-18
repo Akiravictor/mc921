@@ -654,8 +654,9 @@ class Visitor(NodeVisitor):
             print("@visit_Print")
             print(node)
         if node.expr is not None:
-            for expr in node.expr:
-                self.visit(expr)
+            if node.expr[0] is not None:
+                for expr in node.expr:
+                    self.visit(expr)
         if self.debug:
             print("visit_Print END")
 

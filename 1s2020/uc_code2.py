@@ -121,25 +121,26 @@ class GenerateCode(NodeVisitor):
         # print("Print")
 
         if node.expr is not None:
-            if isinstance(node.expr[0], ExprList):
-                for _expr in node.expr[0].exprs:
+            if node.expr[0] is not None:
+                if isinstance(node.expr[0], ExprList):
+                    for _expr in node.expr[0].exprs:
+                        self.visit(_expr)
+                        if isinstance(_expr, ID) or isinstance(_expr, ArrayRef):
+                            self._loadLocation(_expr)
+                        elif isinstance(_expr, UnaryOp) and _expr.op == "*":
+                            self._loadReference(_expr)
+                        inst = ('print_' + _expr.type.names[-1].typename, _expr.gen_location)
+                        # self.code.append(inst)
+                        self.currentBlock.append(inst)
+                else:
+                    _expr = node.expr[0]
                     self.visit(_expr)
-                    if isinstance(_expr, ID) or isinstance(_expr, ArrayRef):
+                    if isinstance(_expr, ID) or isinstance(_expr,ArrayRef):
                         self._loadLocation(_expr)
                     elif isinstance(_expr, UnaryOp) and _expr.op == "*":
                         self._loadReference(_expr)
                     inst = ('print_' + _expr.type.names[-1].typename, _expr.gen_location)
-                    # self.code.append(inst)
                     self.currentBlock.append(inst)
-            else:
-                _expr = node.expr[0]
-                self.visit(_expr)
-                if isinstance(_expr, ID) or isinstance(_expr,ArrayRef):
-                    self._loadLocation(_expr)
-                elif isinstance(_expr, UnaryOp) and _expr.op == "*":
-                    self._loadReference(_expr)
-                inst = ('print_' + _expr.type.names[-1].typename, _expr.gen_location)
-                self.currentBlock.append(inst)
 
         else:
             inst = ('print_void',)
