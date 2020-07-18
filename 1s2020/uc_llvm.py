@@ -385,7 +385,7 @@ class LLVMFunctionVisitor(BlockVisitor):
                 bb = self.loc[block.label]
                 self.builder = ir.IRBuilder(bb)
                 for inst in block.instructions[2:]:
-                    print("INST " + str(inst))
+                    # print("INST " + str(inst))
                     self.build(inst)
 
     def visit_ConditionalBlock(self, block):
@@ -526,8 +526,8 @@ class LLVMCodeGenerator(NodeVisitor):
                 bb.visit(_decl.cfg)
                 bb.phase = 'build_bb'
                 bb.visit(_decl.cfg)
-                if self.viewcfg:
-                    dot = binding.get_function_cfg(bb.func)
-                    gv = binding.view_dot_graph(dot, _decl.decl.name.name, False)
-                    gv.filename = _decl.decl.name.name + ".ll.gv"
-                    gv.view()
+                # if self.viewcfg:
+                #     dot = binding.get_function_cfg(bb.func)
+                #     gv = binding.view_dot_graph(dot, _decl.decl.name.name, False)
+                #     gv.filename = _decl.decl.name.name + ".ll.gv"
+                #     gv.view()
