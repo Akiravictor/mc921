@@ -378,7 +378,7 @@ class LLVMFunctionVisitor(BlockVisitor):
             _loc = self.builder.icmp_signed('<', _left, _right)
         self.loc[target] = _loc
 
-    def build_return(self, expr_type, target):
+    def _build_return(self, expr_type, target):
         if expr_type == 'void':
             self.builder.ret_void()
         else:
