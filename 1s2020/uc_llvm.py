@@ -333,6 +333,15 @@ class LLVMFunctionVisitor(BlockVisitor):
             _loc = self.builder.icmp_signed('<=', _left, _right)
         self.loc[target] = _loc
 
+    def _build_and(self, expr_type, left, right, target):
+        _left = self._get_loc(left)
+        _right = self._get_loc(right)
+        if expr_type == 'float':
+            _loc = self.builder.and_( _left, _right)
+        else:
+            _loc = self.builder.and_(_left, _right)
+        self.loc[target] = _loc
+
     def _build_eq(self, expr_type, left, right, target):
         _left = self._get_loc(left)
         _right = self._get_loc(right)
@@ -360,7 +369,7 @@ class LLVMFunctionVisitor(BlockVisitor):
             _loc = self.builder.icmp_signed('>', _left, _right)
         self.loc[target] = _loc
 
-    def _build_gt(self, expr_type, left, right, target):
+    def _build_lt(self, expr_type, left, right, target):
         _left = self._get_loc(left)
         _right = self._get_loc(right)
         if expr_type == 'float':
