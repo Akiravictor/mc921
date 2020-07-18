@@ -5,6 +5,17 @@ from ctypes import CFUNCTYPE, c_int
 from uc_ast2 import *
 from uc_block2 import *
 
+
+def _repr(obj):
+    """
+    Get the representation of an object, with dedicated pprint-like format for lists.
+    """
+    if isinstance(obj, list):
+        return '[' + (',\n '.join((_repr(e).replace('\n', '\n ') for e in obj))) + '\n]'
+    else:
+        return repr(obj)
+
+
 int_ty = ir.IntType(32)
 i64_ty = ir.IntType(64)
 float_ty = ir.DoubleType()
@@ -494,8 +505,20 @@ class LLVMCodeGenerator(NodeVisitor):
     def save_ir(self, output_file):
         output_file.write(str(self.module))
 
-    def execute_ir(self):
+    def execute_ir(self, opt):
         mod = self.compile_ir()
+        if opt:
+            pmb = self.binding.create_pass_manager_builder()
+            pm = self.binding.create_module_pass_manager()
+            pmb.opt_level = 0
+            pm.add_constant_merge_pass()
+            pm.add_dead_code_elimination_pass()
+            pm.add_cfg_simplification_pass()
+            pmb.populate(pm)
+            pm.run(mod)
+
+            print(mod)
+
         main_ptr = self.engine.get_function_address('main')
         main_function = CFUNCTYPE(c_int)(main_ptr)
         res = main_function()
