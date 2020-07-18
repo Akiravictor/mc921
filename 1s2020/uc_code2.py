@@ -828,6 +828,7 @@ class GenerateCode(NodeVisitor):
         print("GlobalDecl:")
         self.currentScope = 1
         node.cfg = self.globalBlock
+        
         for _decl in node.decls:
             if not isinstance(_decl.type, FuncDecl):
                 self.visit(_decl)
