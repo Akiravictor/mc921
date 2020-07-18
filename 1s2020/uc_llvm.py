@@ -86,7 +86,7 @@ class LLVMFunctionVisitor(BlockVisitor):
         except KeyError:
             return None
 
-    def _global_constant(selfself, builder_or_module, name, value, linkage='internal'):
+    def _global_constant(self, builder_or_module, name, value, linkage='internal'):
 
         if isinstance(builder_or_module, ir.Module):
             mod = builder_or_module
@@ -102,14 +102,12 @@ class LLVMFunctionVisitor(BlockVisitor):
     def _new_function(self, inst):
         _op, _name, _args = inst
         try:
-            self.func = self.module.get_global(_name)
+            self.func = self.module.get_global(_name[1:])
         except KeyError:
-            # _ctype = _op.split('_')[1]
+            _ctype = _op.split('_')[1]
             _sig = [llvm_type[arg] for arg in [item[0] for item in _args]]
-            funty = ir.FunctionType(llvm_type[_op], _sig)
-            self.func = ir.Function(self.module, funty, name=_name)
-
-
+            funty = ir.FunctionType(llvm_type[_ctype], _sig)
+            self.func = ir.Function(self.module, funty, name=_name[1:])
         for _idx, _reg in enumerate([item[1] for item in _args]):
             self.loc[_reg] = self.func.args[_idx]
 
@@ -329,18 +327,45 @@ class LLVMFunctionVisitor(BlockVisitor):
         _left = self._get_loc(left)
         _right = self._get_loc(right)
         if expr_type == 'float':
-            _loc = self.builder.fcnp_signed('<=', _left, _right)
+            _loc = self.builder.fcmp_signed('<=', _left, _right)
         else:
-            _loc = self.builder.icnp_signed('<=', _left, _right)
+            _loc = self.builder.icmp_signed('<=', _left, _right)
+        self.loc[target] = _loc
+
+    def _build_eq(self, expr_type, left, right, target):
+        _left = self._get_loc(left)
+        _right = self._get_loc(right)
+        if expr_type == 'float':
+            _loc = self.builder.fcmp_signed('==', _left, _right)
+        else:
+            _loc = self.builder.icmp_signed('==', _left, _right)
+        self.loc[target] = _loc
+
+    def _build_ge(self, expr_type, left, right, target):
+        _left = self._get_loc(left)
+        _right = self._get_loc(right)
+        if expr_type == 'float':
+            _loc = self.builder.fcmp_signed('>=', _left, _right)
+        else:
+            _loc = self.builder.icmp_signed('>=', _left, _right)
         self.loc[target] = _loc
 
     def _build_gt(self, expr_type, left, right, target):
         _left = self._get_loc(left)
         _right = self._get_loc(right)
         if expr_type == 'float':
-            _loc = self.builder.fcnp_signed('>', _left, _right)
+            _loc = self.builder.fcmp_signed('>', _left, _right)
         else:
-            _loc = self.builder.icnp_signed('>', _left, _right)
+            _loc = self.builder.icmp_signed('>', _left, _right)
+        self.loc[target] = _loc
+
+    def _build_gt(self, expr_type, left, right, target):
+        _left = self._get_loc(left)
+        _right = self._get_loc(right)
+        if expr_type == 'float':
+            _loc = self.builder.fcmp_signed('<', _left, _right)
+        else:
+            _loc = self.builder.icmp_signed('<', _left, _right)
         self.loc[target] = _loc
 
     def build_return(self, expr_type, target):
@@ -350,7 +375,7 @@ class LLVMFunctionVisitor(BlockVisitor):
             _target = self._get_loc(target)
             self.builder.ret(_target)
 
-    def build_jump(self, expr_type, target):
+    def _build_jump(self, expr_type, target):
         _target = self._get_loc(target)
         self.builder.branch(_target)
 
@@ -373,22 +398,21 @@ class LLVMFunctionVisitor(BlockVisitor):
 
     def visit_BasicBlock(self, block):
         if self.phase == "create_bb":
-            if 'define' in block.label :
-                self._new_function(block.instructions[1])
-                self.loc[block.label] = self.func.append_basic_block(block.label)
+            if block.label is None:
+                self._new_function(block.instructions[0])
             else:
-                bb = self.func.append_basic_block(block.label[1:])
+                bb = self.func.append_basic_block(block.label[:])
                 self.loc[block.label] = bb
 
         elif self.phase == "build_bb":
-            if block.label:
+            if block.label is not 'global':
                 bb = self.loc[block.label]
                 self.builder = ir.IRBuilder(bb)
-                for inst in block.instructions[2:]:
+                for inst in block.instructions[1:]:
                     print("INST " + str(inst))
                     self.build(inst)
 
-    def visit_ConditionalBlock(self, block):
+    def visit_ConditionBlock(self, block):
         if self.phase == "create_bb":
             bb = self.func.append_basic_block(block.label[1:])
             self.loc[block.label] = bb
