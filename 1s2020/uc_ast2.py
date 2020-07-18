@@ -505,11 +505,12 @@ class FuncDef(Node):
 
 
 class GlobalDecl(Node):
-    __slots__ = ('decls', 'coord')
+    __slots__ = ('decls', 'coord', 'cfg')
 
     def __init__(self, decls, coord=None):
         self.decls = decls
         self.coord = coord
+        self.cfg = None
 
     def children(self):
         nodelist = []

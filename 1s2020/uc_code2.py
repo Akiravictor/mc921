@@ -15,6 +15,7 @@ class GenerateCode(NodeVisitor):
 
         self.ftype = None
         self.fname = '_glob_'
+        self.globalBlock = BasicBlock('global')
         self.currentBlock = None
         self.currentScope = 0
         self.versions = {self.fname: 0}
@@ -61,6 +62,11 @@ class GenerateCode(NodeVisitor):
         self.versions['_glob_'] += 1
         return name
 
+    def new_const(self):
+        cte = self.versions['_glob_']
+        self.versions['_glob_'] += 1
+        return str(cte)
+
     def changeCurrentBlock(self):
         newBlock = ConditionalBlock(None)
         newBlock.instructions = self.currentBlock.instructions
@@ -91,7 +97,7 @@ class GenerateCode(NodeVisitor):
             return ''.join(self.visit(c) for c_name, c in node.children())
 
     def visit_Constant(self, node):
-        # print("Constant")
+        print("Constant")
 
         if node.rawtype == 'string':
             _target = self.new_text()
@@ -105,7 +111,7 @@ class GenerateCode(NodeVisitor):
         node.gen_location = _target
 
     def visit_ID(self, node):
-        # print("ID")
+        print("ID")
 
         if node.gen_location is None:
             _type = node.bind
@@ -118,7 +124,7 @@ class GenerateCode(NodeVisitor):
                 node.gen_location = _type.declname.gen_location
 
     def visit_Print(self, node):
-        # print("Print")
+        print("Print")
 
         if node.expr is not None:
             if node.expr[0] is not None:
@@ -148,7 +154,7 @@ class GenerateCode(NodeVisitor):
             self.currentBlock.append(inst)
 
     def visit_Program(self, node):
-        # print("Program")
+        print("Program")
 
         for _decl in node.gdecls:
             self.visit(_decl)
@@ -157,7 +163,7 @@ class GenerateCode(NodeVisitor):
         node.text = self.text.copy()
 
         for _decl in node.gdecls:
-            if isinstance(_decl, FuncDef):
+            if isinstance(_decl, FuncDef) or isinstance(_decl, GlobalDecl):
                 block = EmitBlocks()
                 block.visit(_decl.cfg)
                 for _code in block.code:
@@ -166,12 +172,14 @@ class GenerateCode(NodeVisitor):
 
         if self.cfg:
             for _decl in node.gdecls:
+                if isinstance(_decl, GlobalDecl):
+                    _cfg = CFG(_decl.cfg.label)
                 if isinstance(_decl, FuncDef):
                     _cfg = CFG(_decl.decl.name.name)
-                    _cfg.view(_decl.cfg)
+                _cfg.view(_decl.cfg)
 
     def visit_ArrayRef(self, node):
-        # print("ArrayRef:")
+        print("ArrayRef:")
 
         _subs_a = node.subscript
         self.visit(_subs_a)
@@ -207,7 +215,7 @@ class GenerateCode(NodeVisitor):
             self.currentBlock.instructions.append(inst)
 
     def visit_FuncCall(self, node):
-        # print("FuncCall:")
+        print("FuncCall:")
 
         if node.args is not None:
             if isinstance(node.args, ExprList):
@@ -245,7 +253,7 @@ class GenerateCode(NodeVisitor):
             self.currentBlock.append(inst)
 
     def visit_UnaryOp(self, node):
-        # print("UnaryOp:")
+        print("UnaryOp:")
 
         self.visit(node.expr)
         _source = node.expr.gen_location
@@ -296,7 +304,7 @@ class GenerateCode(NodeVisitor):
                     node.gen_location = node.expr.gen_location
 
     def visit_BinaryOp(self, node):
-        # print("BinaryOp:")
+        print("BinaryOp:")
 
         self.visit(node.left)
         self.visit(node.right)
@@ -350,7 +358,7 @@ class GenerateCode(NodeVisitor):
         self.currentBlock.append(('read_' + _typename, source.gen_location))
 
     def visit_Assert(self, node):
-        # print("Assert:")
+        print("Assert:")
 
         _expr = node.expr
         self.visit(_expr)
@@ -387,7 +395,7 @@ class GenerateCode(NodeVisitor):
         self.currentBlock = trueBlock
 
     def visit_Assignment(self, node):
-        # print("Assignment:")
+        print("Assignment:")
 
         _rval = node.rvalue
         self.visit(_rval)
@@ -441,7 +449,7 @@ class GenerateCode(NodeVisitor):
                     self.currentBlock.instructions.append(inst)
 
     def visit_Decl(self, node):
-        # print("Decl:")
+        print("Decl:")
 
         _type = node.type
         _dim = ""
@@ -455,13 +463,13 @@ class GenerateCode(NodeVisitor):
             self.visit_FuncDecl(_type)
 
     def visit_DeclList(self, node):
-        # print("DeclList:")
+        print("DeclList:")
 
         for decl in node.decls:
             self.visit(decl)
 
     def visit_Cast(self, node):
-        # print("Cast:")
+        print("Cast:")
 
         self.visit(node.expr)
         if isinstance(node.expr, ID) or isinstance(node.expr, ArrayRef):
@@ -488,7 +496,7 @@ class GenerateCode(NodeVisitor):
             node.value.append(_expr.value)
 
     def visit_FuncDef(self, node):
-        # print("FuncDef:")
+        print("FuncDef:")
 
         self.ftype = node.spec.names[-1].typename
         self.fname = node.decl.name.name
@@ -536,7 +544,7 @@ class GenerateCode(NodeVisitor):
 
 
     def visit_Compound(self, node):
-        # print("Compound:")
+        print("Compound:")
 
         for item in node.block_items:
             self.visit(item)
@@ -545,13 +553,13 @@ class GenerateCode(NodeVisitor):
         pass
 
     def visit_ParamList(self, node):
-        # print("ParamList:")
+        print("ParamList:")
 
         for _par in node.params:
             self.visit(_par)
 
     def visit_Read(self, node):
-        # print("Read:")
+        print("Read:")
 
         for _loc in node.names:
             self.visit(_loc)
@@ -566,7 +574,7 @@ class GenerateCode(NodeVisitor):
                     self._readLocation(_var)
 
     def visit_Return(self, node):
-        # print("Return:")
+        print("Return:")
 
         # if node.expr is not None:
         #     self.visit(node.expr)
@@ -590,7 +598,7 @@ class GenerateCode(NodeVisitor):
         self.currentBlock.instructions.append(('jump', node.bind.exit_label))
 
     def visit_If(self, node):
-        # print("If:")
+        print("If:")
 
         true_label = self.new_temp()
         else_label = self.new_temp()
@@ -652,7 +660,7 @@ class GenerateCode(NodeVisitor):
         # self.currentBlock = exitBlock
 
     def visit_For(self, node):
-        # print("For:")
+        print("For:")
 
         self.visit(node.init)
 
@@ -708,7 +716,7 @@ class GenerateCode(NodeVisitor):
         # self.code.append((exit_label[1:],))
 
     def visit_While(self, node):
-        # print("While:")
+        print("While:")
 
         while_label = self.new_temp()
         body_label = self.new_temp()
@@ -757,7 +765,7 @@ class GenerateCode(NodeVisitor):
         pass
 
     def visit_FuncDecl(self, node):
-        # print("FuncDecl:")
+        print("FuncDecl:")
 
         _args = []
 
@@ -793,7 +801,7 @@ class GenerateCode(NodeVisitor):
                 self.visit(_arg)
 
     def visit_ArrayDecl(self, node, decl, dim):
-        # print("ArrayDecl:")
+        print("ArrayDecl:")
 
         _type = node
         dim += "_" + str(node.dim.value)
@@ -817,27 +825,29 @@ class GenerateCode(NodeVisitor):
         self.visit_VarDecl(_type, decl, dim)
 
     def visit_GlobalDecl(self, node):
-        # print("GlobalDecl:")
-
+        print("GlobalDecl:")
+        self.currentScope = 1
+        node.cfg = self.globalBlock
         for _decl in node.decls:
             if not isinstance(_decl.type, FuncDecl):
                 self.visit(_decl)
+        self.currentScope = 0
 
     def _globalLocation(self, node, decl, dim):
         _type = node.type.names[-1].typename
         if dim is not None:
             _type += dim
-        _varname = "%" + node.declname.name
+        _varname = "@.const_" + node.type.names[-1].typename + '.' + self.new_const()
         if decl.init is None:
             self.text.append(('global_' + _type, _varname))
-            # self.currentBlock.instructions.append(('global_' + _type, _varname))
+            self.globalBlock.instructions.append(('global_' + _type, _varname))
         elif isinstance(decl.init, Constant):
             self.text.append(('global_' + _type, _varname, decl.init.value))
-            # self.currentBlock.instructions.append(('global_' + _type, _varname, [(_type, decl.init.value)]))
+            self.globalBlock.instructions.append(('global_' + _type, _varname, [(_type, decl.init.value)]))
         elif isinstance(decl.init, InitList):
             self.visit(decl.init)
             self.text.append(('global_' + _type, _varname, decl.init.value))
-            # self.currentBlock.instructions.append(('global_' + _type, _varname, decl.init.value))
+            self.globalBlock.instructions.append(('global_' + _type, _varname, decl.init.value))
         node.declname.gen_location = _varname
 
     def _loadLocation(self, node):
@@ -863,9 +873,9 @@ class GenerateCode(NodeVisitor):
         self.currentBlock.instructions.append(inst)
 
     def visit_VarDecl(self, node, decl, dim):
-        # print("VarDecl:")
+        print("VarDecl:")
 
-        if node.declname.scope == 1:
+        if isinstance(node.declname.bind, ArrayDecl) or node.declname.scope == 1:
             self._globalLocation(node, decl, dim)
         else:
             _typename = node.type.names[-1].typename + dim
