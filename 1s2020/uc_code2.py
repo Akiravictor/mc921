@@ -15,7 +15,7 @@ class GenerateCode(NodeVisitor):
 
         self.ftype = None
         self.fname = '_glob_'
-        self.currentBlock = BasicBlock('global')
+        self.currentBlock = None
         self.currentScope = 0
         self.versions = {self.fname: 0}
         # The generated code (list of tuples)
@@ -497,7 +497,7 @@ class GenerateCode(NodeVisitor):
         self.ret_label = '%exit_' + _funcName
         self.ret_block = BasicBlock(self.ret_label)
 
-        # self.currentBlock = BasicBlock('define_' + _funcName)
+        self.currentBlock = BasicBlock(_funcName)
         node.cfg = self.currentBlock
 
         self.alloc_phase = None
@@ -769,11 +769,14 @@ class GenerateCode(NodeVisitor):
         # self.currentBlock.instructions.append(('define_' + self.ftype, '@ ' + self.fname, _args))
         node.type.declname.gen_location = self.fname
 
-        funcBlock = BasicBlock('define_' + self.ftype + ' ' + self.fname)
-        self.currentBlock.next_block = funcBlock
-        self.currentBlock.branch = funcBlock
-        funcBlock.predecessors.add(self.currentBlock)
-        self.currentBlock = funcBlock
+        # funcBlock = BasicBlock('define @' + self.fname)
+        # self.currentBlock.next_block = funcBlock
+        # self.currentBlock.branch = funcBlock
+        # funcBlock.predecessors.add(self.currentBlock)
+        # self.currentBlock = funcBlock
+        self.currentBlock.label = 'define @' + self.fname
+
+        self.currentBlock.instructions.append(('entry', ))
 
         if self.ftype != 'void':
             # self.ret_location = self.new_temp()
@@ -823,14 +826,14 @@ class GenerateCode(NodeVisitor):
         _varname = "@" + node.declname.name
         if decl.init is None:
             self.text.append(('global_' + _type, _varname))
-            self.currentBlock.instructions.append(('global_' + _type, _varname))
+            # self.currentBlock.instructions.append(('global_' + _type, _varname))
         elif isinstance(decl.init, Constant):
             self.text.append(('global_' + _type, _varname, decl.init.value))
-            self.currentBlock.instructions.append(('global_' + _type, _varname, [(_type, decl.init.value)]))
+            # self.currentBlock.instructions.append(('global_' + _type, _varname, [(_type, decl.init.value)]))
         elif isinstance(decl.init, InitList):
             self.visit(decl.init)
             self.text.append(('global_' + _type, _varname, decl.init.value))
-            self.currentBlock.instructions.append(('global_' + _type, _varname, decl.init.value))
+            # self.currentBlock.instructions.append(('global_' + _type, _varname, decl.init.value))
         node.declname.gen_location = _varname
 
     def _loadLocation(self, node):
