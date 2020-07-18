@@ -416,12 +416,16 @@ class LLVMFunctionVisitor(BlockVisitor):
                 self.loc[block.label] = bb
 
         elif self.phase == "build_bb":
-            if block.label is not 'global':
+            if block.label:
                 bb = self.loc[block.label]
                 self.builder = ir.IRBuilder(bb)
-                for inst in block.instructions[2:]:
-                    # print("INST " + str(inst))
-                    self.build(inst)
+                for inst in block.instructions[:]:
+                    if inst[0] not in {'entry', 'define'}:
+                        if len(inst) > 1:
+                            if inst[1] not in {'main'}:
+                                self.build(inst)
+                        else:
+                            self.build(inst)
 
     def visit_ConditionBlock(self, block):
         if self.phase == "create_bb":
