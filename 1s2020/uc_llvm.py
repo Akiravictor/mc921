@@ -389,6 +389,14 @@ class LLVMFunctionVisitor(BlockVisitor):
         _target = self._get_loc(target)
         self.builder.branch(_target)
 
+    def _build_sitofp(self, opcode, value, target):
+        _loc = self.loc[value]
+        self.loc[target] = self.builder.sitofp(_loc, typ=llvm_type["float"], name=target)
+
+    def _build_fptosi(self, opcode, value, target):
+        _loc = self.loc[value]
+        self.loc[target] = self.builder.fptosi(_loc, typ=llvm_type["int"], name=target)
+
     def _build_cbranch(self, expr_type, expr_test, target, fall_through):
         _expr_test = self._get_loc(expr_test)
         _target = self._get_loc(target)
