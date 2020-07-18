@@ -104,10 +104,11 @@ class LLVMFunctionVisitor(BlockVisitor):
         try:
             self.func = self.module.get_global(_name[1:])
         except KeyError:
-            _ctype = _op.split('_')[1]
+            # _ctype = _op.split('_')[1]
             _sig = [llvm_type[arg] for arg in [item[0] for item in _args]]
-            funty = ir.FunctionType(llvm_type[_ctype], _sig)
-            self.func = ir.Function(self.module, funty, name=_name[1:])
+            funty = ir.FunctionType(llvm_type[_op], _sig)
+            self.func = ir.Function(self.module, funty, name=_name)
+
         for _idx, _reg in enumerate([item[1] for item in _args]):
             self.loc[_reg] = self.func.args[_idx]
 
@@ -398,8 +399,9 @@ class LLVMFunctionVisitor(BlockVisitor):
 
     def visit_BasicBlock(self, block):
         if self.phase == "create_bb":
-            if block.label is None:
-                self._new_function(block.instructions[0])
+            if 'define' in block.label:
+                self._new_function(block.instructions[1])
+                self.loc[block.label] = self.func.append_basic_block(block.label)
             else:
                 bb = self.func.append_basic_block(block.label[:])
                 self.loc[block.label] = bb
